@@ -1,0 +1,44 @@
+{
+  "title": "Choose the calculator workspace layout",
+  "question": "Which arrangement best balances course progress, mark entry, and calculated results? All options keep Project UNO's existing colors, typography, dark/light themes, terminology, and behavior.",
+  "options": [
+    {
+      "id": "course-side-workbench",
+      "label": "Course-side workbench",
+      "kicker": "THE ROLL",
+      "thesis": "Keep the semester course list visible beside the active marks form and its results.",
+      "palette": ["#0b0f19", "#111827", "#1f2937", "#2563eb", "#f1f5f9"],
+      "materials": ["Plus Jakarta Sans", "flat slate surfaces", "fine slate borders"],
+      "viewport": "Project UNO and the existing calculator tabs stay in the top bar. A compact Semester 1 course index sits left of the selected course's Continuous Assessment 1, Continuous Assessment 2, and End Semester Examination fields. A results column appears only after Calculate Mark & Grade, preserving the current calculation state.",
+      "risk": "The persistent course index can squeeze the mark fields at tablet widths; it must collapse into the existing course selector on small screens.",
+      "html": ".impeccable/mocks/decision/course-side-workbench.html"
+    },
+    {
+      "id": "assessment-sequence",
+      "label": "Assessment sequence",
+      "thesis": "Arrange CA 1, CA 2, and ESE in one clear sequence around the selected course.",
+      "palette": ["#0b0f19", "#111827", "#1f2937", "#2563eb", "#f1f5f9"],
+      "materials": ["Plus Jakarta Sans", "flat slate surfaces", "fine slate borders"],
+      "viewport": "The existing top navigation and semester selection lead into Foundation English. The central work area gives Continuous Assessment 1, Continuous Assessment 2, and End Semester Examination distinct sequential columns with their current mark inputs, followed by Calculate Mark & Grade. The results summary remains conditional on an explicit calculation.",
+      "risk": "Three assessment groups are information-dense; they need generous input sizing and must stack before the labels or controls become cramped.",
+      "html": ".impeccable/mocks/decision/assessment-sequence.html"
+    },
+    {
+      "id": "semester-course-ledger",
+      "label": "Semester course ledger",
+      "thesis": "Lead with the semester's course list, then give the selected course a full-width marks workspace.",
+      "palette": ["#0b0f19", "#111827", "#1f2937", "#2563eb", "#f1f5f9"],
+      "materials": ["Plus Jakarta Sans", "flat slate surfaces", "fine slate borders"],
+      "viewport": "Project UNO's existing top bar leads into a full-width Semester 1 course roster using the real course names, codes, and credits. Selecting a row opens the existing course assessment form beneath it; calculated state is shown only where the app has a calculated grade. The course roster remains available while moving between courses.",
+      "risk": "A full-width roster pushes mark entry lower on the page; preserve a direct course-to-form path and avoid requiring extra navigation steps.",
+      "html": ".impeccable/mocks/decision/semester-course-ledger.html"
+    }
+  ],
+  "reroll": {
+    "registers": ["safer", "bolder"]
+  },
+  "buildPath": {
+    "value": "code"
+  },
+  "steer": true
+}

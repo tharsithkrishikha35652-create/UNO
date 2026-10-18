@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Assessment sequence</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:1440px;height:900px;overflow:hidden}
+body{font-family:"Plus Jakarta Sans",system-ui,sans-serif;background:#0b0f19;color:#f1f5f9;font-size:14px}
+button,select,input{font:inherit;color:inherit}
+.top{height:70px;display:flex;align-items:center;gap:34px;padding:0 36px;background:#111827;border-bottom:1px solid #1f2937}
+.brand{display:flex;align-items:center;gap:12px;min-width:260px}
+.mark{width:38px;height:38px;display:grid;place-items:center;background:#2563eb;font-weight:900;font-size:12px}
+.brand-name{font-size:17px;font-weight:800;letter-spacing:-.02em}
+.brand-sub{display:block;margin-top:3px;color:#94a3b8;font-size:11px}
+nav{display:flex;align-items:center;gap:26px;height:100%}
+nav span{height:100%;display:flex;align-items:center;color:#94a3b8;font-size:13px;font-weight:700}
+nav .active{color:#93c5fd;border-bottom:2px solid #3b82f6}
+.top-end{margin-left:auto;display:flex;align-items:center;gap:16px}
+select,.outline{border:1px solid #334155;background:#111827;padding:10px 12px}
+.icon{border:1px solid #334155;background:#111827;width:38px;height:38px}
+.guest{margin:18px 36px 16px;padding:12px 16px;border:1px solid #334155;background:#111827;color:#cbd5e1}
+.guest b{color:#bfdbfe}
+main{padding:0 36px}
+.course-head{display:flex;align-items:end;justify-content:space-between;border-bottom:1px solid #334155;padding:4px 0 18px}
+h1,h2,h3,p{margin:0}
+h1{font-size:28px;letter-spacing:-.03em}
+.meta{margin-top:6px;color:#94a3b8;font-size:13px}
+.type{border:1px solid #334155;padding:8px 11px;color:#bfdbfe;font-size:11px;font-weight:700}
+.sequence{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:20px}
+.stage{background:#111827;border:1px solid #1f2937;min-height:455px}
+.stage-head{display:flex;align-items:center;justify-content:space-between;padding:17px 18px;background:#172554;border-bottom:1px solid #1e3a8a}
+.stage-head h2{font-size:15px;text-transform:uppercase;letter-spacing:.025em}
+.stage-head span{color:#dbeafe;font-size:12px}
+.stage-body{padding:19px}
+.field{margin-bottom:22px}
+label{display:block;margin-bottom:8px;font-size:12px;font-weight:700;color:#cbd5e1}
+.choices{display:flex;gap:8px}
+.choices span{padding:10px 14px;border:1px solid #334155;color:#cbd5e1;font-size:12px}
+.choices .on{background:#2563eb;border-color:#2563eb;color:#fff}
+input{height:46px;width:100%;border:1px solid #475569;background:#0b0f19;padding:10px 12px}
+.weight{margin-top:8px;color:#93c5fd;font-size:12px;font-weight:700}
+.actions{display:flex;align-items:center;justify-content:space-between;margin-top:18px;padding:15px 18px;border:1px solid #1f2937;background:#111827}
+.summary{color:#94a3b8;font-size:12px}
+.primary{border:0;background:#2563eb;color:#fff;padding:13px 19px;font-size:12px;font-weight:800}
+@media(max-width:900px){.sequence{grid-template-columns:1fr}.stage{min-height:0}.top{padding:0 20px}nav{gap:12px}main{padding:0 20px}.guest{margin:14px 20px}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><span class="mark">UNO</span><div><div class="brand-name">Project UNO</div><span class="brand-sub">Academic Marks Calculator</span></div></div>
+  <nav><span class="active">Calculator</span><span>Grading System</span><span>GPA Calculator</span></nav>
+  <div class="top-end"><select aria-label="Select Semester"><option>SEM - 1</option></select><button class="icon" aria-label="Switch to Light Mode">☼</button><button class="outline">Log out</button></div>
+</header>
+<div class="guest"><b>Guest session</b> · Saved on this device only · Not synced to Firebase</div>
+<main>
+  <div class="course-head"><div><h1>Foundation English</h1><p class="meta">EN23C03 · 3 credits · 2-0-2 LIT</p></div><button class="outline">Courses</button></div>
+  <div class="sequence">
+    <section class="stage"><div class="stage-head"><h2>Continuous Assessment 1</h2><span>CA 1</span></div><div class="stage-body"><div class="field"><label>Maximum Test Marks:</label><div class="choices"><span class="on">50 Marks</span><span>30 Marks</span></div></div><div class="field"><label>Marks Scored in Test:</label><input aria-label="Marks Scored in Test"></div><div class="weight">Weightage: 15%</div></div></section>
+    <section class="stage"><div class="stage-head"><h2>Continuous Assessment 2</h2><span>CA 2</span></div><div class="stage-body"><div class="field"><label>Maximum Test Marks:</label><div class="choices"><span class="on">50 Marks</span><span>30 Marks</span></div></div><div class="field"><label>Marks Scored in Test:</label><input aria-label="Marks Scored in Test"></div><div class="weight">Weightage: 15%</div></div></section>
+    <section class="stage"><div class="stage-head"><h2>End Semester Examination</h2><span>ESE</span></div><div class="stage-body"><div class="field"><label>Theory Marks Scored:</label><input aria-label="Theory Marks Scored"></div><div class="weight">Theory Exam · 50%</div></div></section>
+  </div>
+  <div class="actions"><span class="summary">Marks &amp; Grade Summary appears after calculation.</span><button class="primary">Calculate Mark &amp; Grade</button></div>
+</main>
+</body>
+</html>

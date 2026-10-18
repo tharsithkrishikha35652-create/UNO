@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Semester course ledger</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:1440px;height:900px;overflow:hidden}
+body{font-family:"Plus Jakarta Sans",system-ui,sans-serif;background:#0b0f19;color:#f1f5f9;font-size:14px}
+button,select,input{font:inherit;color:inherit}
+.top{height:70px;display:flex;align-items:center;gap:34px;padding:0 36px;background:#111827;border-bottom:1px solid #1f2937}
+.brand{display:flex;align-items:center;gap:12px;min-width:260px}
+.mark{width:38px;height:38px;display:grid;place-items:center;background:#2563eb;font-weight:900;font-size:12px}
+.brand-name{font-size:17px;font-weight:800;letter-spacing:-.02em}
+.brand-sub{display:block;margin-top:3px;color:#94a3b8;font-size:11px}
+nav{display:flex;align-items:center;gap:26px;height:100%}
+nav span{height:100%;display:flex;align-items:center;color:#94a3b8;font-size:13px;font-weight:700}
+nav .active{color:#93c5fd;border-bottom:2px solid #3b82f6}
+.top-end{margin-left:auto;display:flex;align-items:center;gap:16px}
+select,.outline{border:1px solid #334155;background:#111827;padding:10px 12px}
+.icon{border:1px solid #334155;background:#111827;width:38px;height:38px}
+.guest{margin:17px 36px 15px;padding:11px 16px;border:1px solid #334155;background:#111827;color:#cbd5e1}
+.guest b{color:#bfdbfe}
+main{padding:0 36px}
+.heading{display:flex;align-items:end;justify-content:space-between;padding:4px 0 13px;border-bottom:1px solid #334155}
+h1,h2,h3,p{margin:0}
+h1{font-size:27px;letter-spacing:-.03em}
+.muted{color:#94a3b8}
+.small{font-size:12px}
+.table{margin-top:10px;border:1px solid #1f2937;background:#111827}
+.row{display:grid;grid-template-columns:minmax(420px,1fr) 190px 100px 160px;align-items:center;min-height:37px;padding:0 14px;border-bottom:1px solid #1f2937}
+.row:last-child{border-bottom:0}
+.th{min-height:34px;background:#172554;color:#dbeafe;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.row.selected{background:#172554;border-bottom-color:#334155}
+.course{font-size:13px;font-weight:700}
+.code,.credit,.state{font-size:12px;color:#94a3b8}
+.state{color:#cbd5e1}
+.detail{display:flex;align-items:end;justify-content:space-between;padding:16px 0 11px}
+.detail h2{font-size:19px}
+.detail p{margin-top:4px;color:#94a3b8;font-size:12px}
+.assessment{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.stage{background:#111827;border:1px solid #1f2937;padding:13px}
+.stage h3{font-size:12px;text-transform:uppercase;color:#bfdbfe;margin-bottom:12px}
+label{display:block;margin-bottom:7px;font-size:11px;font-weight:700;color:#cbd5e1}
+.input{height:36px;width:100%;border:1px solid #475569;background:#0b0f19;padding:8px 10px}
+.actions{display:flex;justify-content:flex-end;margin-top:12px}
+.primary{border:0;background:#2563eb;color:#fff;padding:11px 18px;font-size:11px;font-weight:800}
+@media(max-width:900px){main{padding:0 20px}.top{padding:0 20px}nav{gap:12px}.guest{margin:14px 20px}.row{grid-template-columns:minmax(230px,1fr) 120px 80px 115px}.assessment{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><span class="mark">UNO</span><div><div class="brand-name">Project UNO</div><span class="brand-sub">Academic Marks Calculator</span></div></div>
+  <nav><span class="active">Calculator</span><span>Grading System</span><span>GPA Calculator</span></nav>
+  <div class="top-end"><select aria-label="Select Semester"><option>SEM - 1</option></select><button class="icon" aria-label="Switch to Light Mode">☼</button><button class="outline">Log out</button></div>
+</header>
+<div class="guest"><b>Guest session</b> · Saved on this device only · Not synced to Firebase</div>
+<main>
+  <div class="heading"><h1>Semester 1</h1><span class="small muted">7 courses</span></div>
+  <section class="table" aria-label="Semester 1 courses">
+    <div class="row th"><span>Course</span><span>Course Code</span><span>Credits</span><span>Calculated Grade</span></div>
+    <div class="row selected"><span class="course">Foundation English</span><span class="code">EN23C03</span><span class="credit">3</span><span class="state">—</span></div>
+    <div class="row"><span class="course">Calculus</span><span class="code">MA23C11</span><span class="credit">4</span><span class="state">—</span></div>
+    <div class="row"><span class="course">Engineering Physics</span><span class="code">PH23C11</span><span class="credit">4</span><span class="state">—</span></div>
+    <div class="row"><span class="course">Fundamentals of Electrical and Electronics Engineering</span><span class="code">EE23C02</span><span class="credit">3</span><span class="state">—</span></div>
+    <div class="row"><span class="course">Programming in C</span><span class="code">CS23C04</span><span class="credit">4</span><span class="state">—</span></div>
+    <div class="row"><span class="course">Computational Thinking</span><span class="code">CS23101</span><span class="credit">2</span><span class="state">—</span></div>
+    <div class="row"><span class="course">Heritage of Tamils</span><span class="code">UC23H01</span><span class="credit">1</span><span class="state">—</span></div>
+  </section>
+  <div class="detail"><div><h2>Foundation English</h2><p>EN23C03 · 3 credits · 2-0-2 LIT</p></div><button class="outline">Add Course</button></div>
+  <div class="assessment">
+    <section class="stage"><h3>Continuous Assessment 1</h3><label>Marks Scored in Test:</label><input class="input" aria-label="Marks Scored in Test"></section>
+    <section class="stage"><h3>Continuous Assessment 2</h3><label>Marks Scored in Test:</label><input class="input" aria-label="Marks Scored in Test"></section>
+    <section class="stage"><h3>End Semester Examination</h3><label>Theory Marks Scored:</label><input class="input" aria-label="Theory Marks Scored"></section>
+  </div>
+  <div class="actions"><button class="primary">Calculate Mark &amp; Grade</button></div>
+</main>
+</body>
+</html>

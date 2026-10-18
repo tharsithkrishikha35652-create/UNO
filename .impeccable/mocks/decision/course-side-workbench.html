@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Course-side workbench</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:1440px;height:900px;overflow:hidden}
+body{font-family:"Plus Jakarta Sans",system-ui,sans-serif;background:#0b0f19;color:#f1f5f9;font-size:14px}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+.top{height:70px;display:flex;align-items:center;gap:34px;padding:0 36px;background:#111827;border-bottom:1px solid #1f2937}
+.brand{min-width:260px;display:flex;align-items:center;gap:12px}
+.mark{width:38px;height:38px;display:grid;place-items:center;background:#2563eb;font-weight:900;font-size:12px}
+.brand-name{font-size:17px;font-weight:800;letter-spacing:-.02em}
+.brand-sub{display:block;margin-top:3px;color:#94a3b8;font-size:11px}
+nav{display:flex;align-items:center;gap:26px;height:100%}
+nav span{height:100%;display:flex;align-items:center;color:#94a3b8;font-size:13px;font-weight:700}
+nav .active{color:#93c5fd;border-bottom:2px solid #3b82f6}
+.top-end{margin-left:auto;display:flex;align-items:center;gap:16px}
+select,.outline{border:1px solid #334155;background:#111827;padding:10px 12px}
+.icon{border:1px solid #334155;background:#111827;width:38px;height:38px}
+.guest{display:flex;align-items:center;justify-content:space-between;margin:20px 36px 18px;padding:12px 16px;border:1px solid #334155;background:#111827;color:#cbd5e1}
+.guest b{color:#bfdbfe}
+.layout{display:grid;grid-template-columns:286px minmax(0,1fr);gap:24px;padding:0 36px}
+.course-index,.editor{min-width:0}
+.section-head{display:flex;align-items:end;justify-content:space-between;padding:0 0 14px;border-bottom:1px solid #334155}
+h1,h2,h3,p{margin:0}
+h1{font-size:25px;line-height:1.2;letter-spacing:-.03em}
+.muted{color:#94a3b8}
+.small{font-size:12px}
+.course-count{font-size:12px;color:#94a3b8}
+.course-list{margin-top:8px}
+.course{display:flex;align-items:center;gap:11px;min-height:56px;padding:8px 10px;border-bottom:1px solid #1f2937;color:#cbd5e1}
+.course.selected{background:#172554;color:#fff;border-bottom-color:#2563eb}
+.course-code{display:block;margin-top:3px;color:#94a3b8;font-size:11px}
+.course .credits{margin-left:auto;color:#94a3b8;font-size:11px;white-space:nowrap}
+.course-title{font-weight:700;font-size:13px}
+.editor-head{display:flex;align-items:center;justify-content:space-between;padding:5px 0 15px;border-bottom:1px solid #334155}
+.course-name{font-size:23px;font-weight:800;letter-spacing:-.025em}
+.course-meta{margin-top:5px;color:#94a3b8;font-size:12px}
+.type{border:1px solid #334155;color:#bfdbfe;padding:7px 10px;font-size:11px;font-weight:700}
+.group{margin-top:17px;background:#111827;border:1px solid #1f2937}
+.group-head{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;background:#172554;border-bottom:1px solid #1e3a8a}
+.group-head h2{font-size:13px;text-transform:uppercase;letter-spacing:.04em}
+.group-head span{font-size:11px;color:#dbeafe}
+.fields{display:grid;grid-template-columns:1.3fr 1fr;gap:14px;padding:15px}
+label{display:block;margin-bottom:7px;font-size:11px;font-weight:700;color:#cbd5e1}
+.marks{height:42px;width:100%;border:1px solid #475569;background:#0b0f19;padding:10px 12px}
+.choices{display:flex;gap:7px}
+.choices span{padding:9px 12px;border:1px solid #334155;color:#cbd5e1;font-size:12px}
+.choices .on{background:#2563eb;border-color:#2563eb;color:white}
+.steps{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.ese{margin-top:17px;background:#111827;border:1px solid #1f2937;padding:16px}
+.ese h2{font-size:13px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:14px}
+.actions{display:flex;justify-content:flex-end;margin-top:16px}
+.primary{border:0;background:#2563eb;color:#fff;padding:13px 19px;font-size:12px;font-weight:800}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.course-index{display:none}.top{padding:0 20px}nav{gap:12px}.guest{margin:14px 20px}.layout{padding:0 20px}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><span class="mark">UNO</span><div><div class="brand-name">Project UNO</div><span class="brand-sub">Academic Marks Calculator</span></div></div>
+  <nav><span class="active">Calculator</span><span>Grading System</span><span>GPA Calculator</span></nav>
+  <div class="top-end"><select aria-label="Select Semester"><option>SEM - 1</option></select><button class="icon" aria-label="Switch to Light Mode">☼</button><button class="outline">Log out</button></div>
+</header>
+<div class="guest"><span><b>Guest session</b> · Saved on this device only</span><span class="small muted">Not synced to Firebase</span></div>
+<main class="layout">
+  <aside class="course-index">
+    <div class="section-head"><h1>Semester 1</h1><span class="course-count">7 courses</span></div>
+    <div class="course-list">
+      <div class="course selected"><div><div class="course-title">Foundation English</div><span class="course-code">EN23C03</span></div><span class="credits">3 credits</span></div>
+      <div class="course"><div><div class="course-title">Calculus</div><span class="course-code">MA23C11</span></div><span class="credits">4 credits</span></div>
+      <div class="course"><div><div class="course-title">Engineering Physics</div><span class="course-code">PH23C11</span></div><span class="credits">4 credits</span></div>
+      <div class="course"><div><div class="course-title">Fundamentals of Electrical and Electronics Engineering</div><span class="course-code">EE23C02</span></div><span class="credits">3 credits</span></div>
+      <div class="course"><div><div class="course-title">Programming in C</div><span class="course-code">CS23C04</span></div><span class="credits">4 credits</span></div>
+      <div class="course"><div><div class="course-title">Computational Thinking</div><span class="course-code">CS23101</span></div><span class="credits">2 credits</span></div>
+      <div class="course"><div><div class="course-title">Heritage of Tamils</div><span class="course-code">UC23H01</span></div><span class="credits">1 credit</span></div>
+    </div>
+  </aside>
+  <section class="editor">
+    <div class="editor-head"><div><div class="course-name">Foundation English</div><div class="course-meta">EN23C03 · 3 credits</div></div><span class="type">2-0-2 LIT</span></div>
+    <div class="steps">
+      <section class="group"><div class="group-head"><h2>Continuous Assessment 1</h2><span>CA 1</span></div><div class="fields"><div><label>Maximum Test Marks:</label><div class="choices"><span class="on">50 Marks</span><span>30 Marks</span></div></div><div><label>Marks Scored in Test:</label><input class="marks" aria-label="Marks Scored in Test"></div></div></section>
+      <section class="group"><div class="group-head"><h2>Continuous Assessment 2</h2><span>CA 2</span></div><div class="fields"><div><label>Maximum Test Marks:</label><div class="choices"><span class="on">50 Marks</span><span>30 Marks</span></div></div><div><label>Marks Scored in Test:</label><input class="marks" aria-label="Marks Scored in Test"></div></div></section>
+    </div>
+    <section class="ese"><h2>End Semester Examination</h2><div style="max-width:360px"><label>Theory Marks Scored:</label><input class="marks" aria-label="Theory Marks Scored"></div></section>
+    <div class="actions"><button class="primary">Calculate Mark &amp; Grade</button></div>
+  </section>
+</main>
+</body>
+</html>
