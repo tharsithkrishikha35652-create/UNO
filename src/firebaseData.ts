@@ -56,6 +56,42 @@ function userDocument(uid: string, collectionName: string, id: string) {
 }
 
 export async function loadUserWorkspace(uid: string): Promise<UserWorkspaceData> {
+  if (uid === 'guest_student') {
+    const localSaved = typeof window !== 'undefined' ? localStorage.getItem('calcredit_guest_workspace') : null;
+    if (localSaved) {
+      try {
+        const parsed = JSON.parse(localSaved);
+        const subjects: SubjectData[] = parsed.subjects || [];
+        return {
+          subjects,
+          persistedSubjectSnapshots: new Map(subjects.map((s) => [s.id, JSON.stringify(s)])),
+          calculatedSignatures: parsed.calculatedSignatures || {},
+          gpaHistory: parsed.gpaHistory || [],
+          migrationResolved: true,
+          preferences: parsed.preferences || {
+            currentSubjectId: subjects[0]?.id || '',
+            activeTab: 'calculator',
+            includeEstimates: false,
+            estimatePercentage: 80,
+          },
+        };
+      } catch {}
+    }
+    return {
+      subjects: [],
+      persistedSubjectSnapshots: new Map(),
+      calculatedSignatures: {},
+      gpaHistory: [],
+      migrationResolved: true,
+      preferences: {
+        currentSubjectId: '',
+        activeTab: 'calculator',
+        includeEstimates: false,
+        estimatePercentage: 80,
+      },
+    };
+  }
+
   const firestore = requireFirestore();
   const [subjectSnapshot, gradeSnapshot, historySnapshot, preferencesSnapshot, migrationSnapshot] =
     await Promise.all([
@@ -107,13 +143,32 @@ export async function loadUserWorkspace(uid: string): Promise<UserWorkspaceData>
   };
 }
 
+function saveGuestWorkspace(updater: (data: Record<string, unknown>) => void) {
+  if (typeof window === 'undefined') return;
+  const raw = localStorage.getItem('calcredit_guest_workspace');
+  let current: Record<string, unknown> = {};
+  if (raw) {
+    try { current = JSON.parse(raw); } catch {}
+  }
+  updater(current);
+  localStorage.setItem('calcredit_guest_workspace', JSON.stringify(current));
+}
+
 export async function syncUserSubjects(
   uid: string,
   subjects: SubjectData[],
   previousSnapshots: Map<string, string>
 ): Promise<Map<string, string>> {
-  const firestore = requireFirestore();
   const nextSnapshots = new Map(subjects.map((subject) => [subject.id, JSON.stringify(subject)]));
+
+  if (uid === 'guest_student') {
+    saveGuestWorkspace((data) => {
+      data.subjects = subjects;
+    });
+    return nextSnapshots;
+  }
+
+  const firestore = requireFirestore();
   const batch = writeBatch(firestore);
   let operationCount = 0;
 
@@ -148,6 +203,13 @@ export async function saveUserPreferences(
     estimatePercentage: number;
   }
 ) {
+  if (uid === 'guest_student') {
+    saveGuestWorkspace((data) => {
+      data.preferences = preferences;
+    });
+    return;
+  }
+
   await setDoc(
     userDocument(uid, 'settings', 'preferences'),
     { ...preferences, updatedAt: serverTimestamp() },
@@ -169,6 +231,15 @@ export async function saveCalculatedGrade(
     estimate?: { enabled: boolean; percentage: number };
   }
 ) {
+  if (uid === 'guest_student') {
+    saveGuestWorkspace((data) => {
+      const sigs = (data.calculatedSignatures as Record<string, string>) || {};
+      sigs[subject.id] = record.inputSignature;
+      data.calculatedSignatures = sigs;
+    });
+    return;
+  }
+
   await setDoc(
     userDocument(uid, 'gradeRecords', subject.id),
     {
@@ -184,6 +255,14 @@ export async function saveCalculatedGrade(
 }
 
 export async function saveGpaHistory(uid: string, entry: GpaHistoryEntry) {
+  if (uid === 'guest_student') {
+    saveGuestWorkspace((data) => {
+      const history = (data.gpaHistory as GpaHistoryEntry[]) || [];
+      data.gpaHistory = [entry, ...history];
+    });
+    return;
+  }
+
   const { id, ...record } = entry;
   await setDoc(
     userDocument(uid, 'gpaHistory', id),

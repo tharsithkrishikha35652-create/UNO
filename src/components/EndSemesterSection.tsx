@@ -22,7 +22,6 @@ interface EndSemesterSectionProps {
 }
 
 export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
-  courseType,
   ese,
   onEseChange,
   eseLab = '',
@@ -43,7 +42,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
   const hasLab = eseLabWeight > 0;
   const isSplit = hasTheory && hasLab; // theory + practical
   const isPracticalOnly = !hasTheory && hasLab; // practical exam is the whole ESE
-  const labName = isPracticalOnly || courseType === 'self-development' ? 'Practical' : 'Lab';
+  const labName = isPracticalOnly ? 'Practical' : 'Lab';
 
   const handleEseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value;
@@ -83,15 +82,15 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
   const numericLab = eseLab === '' || eseLab === undefined ? 0 : Number(eseLab) || 0;
 
   return (
-    <section className="bg-white border border-slate-300 mb-8 shadow-sm">
+    <section className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 mb-8 shadow-xs transition-colors">
       {/* Section Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 sm:px-5 bg-[#172554] text-white">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 sm:px-5 bg-[#172554] dark:bg-slate-950 text-white border-b border-[#172554] dark:border-slate-800">
         <div className="flex items-center gap-3">
-          <span className="px-2.5 py-0.5 bg-white text-[#172554] font-black text-sm uppercase">
+          <span className="px-2.5 py-0.5 bg-white text-[#172554] font-black text-xs uppercase tracking-wider font-mono">
             ESE
           </span>
           <div>
-            <h3 className="text-base sm:text-lg font-bold tracking-wide">
+            <h3 className="text-sm sm:text-base font-bold tracking-wide uppercase">
               End Semester Examination
             </h3>
             {isSplit && (
@@ -109,10 +108,10 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
 
         {/* Subtotal */}
         <div className="flex items-baseline gap-2 self-start sm:self-auto text-white">
-          <span className="text-xs uppercase font-bold tracking-wider text-slate-200">
+          <span className="text-[11px] uppercase font-bold tracking-widest text-slate-300">
             MARKS:
           </span>
-          <span className="text-lg font-black tabular-nums">
+          <span className="text-lg font-black font-mono tabular-nums">
             {esePoints.toFixed(2)}{' '}
             <span className="text-xs font-semibold text-slate-300">/ {eseWeight.toFixed(2)}</span>
           </span>
@@ -121,13 +120,13 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
 
       {isSplit || isPracticalOnly ? (
         /* --- Split layout: Theory + Practical + Simulator, or Practical + Simulator when the ESE is practical-only --- */
-        <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-200">
+        <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-200 dark:divide-slate-800">
           {/* Column 1: ESE Theory (only when the course has a theory exam) */}
           {hasTheory && (
-          <div className="lg:col-span-4 p-4 sm:p-5 flex flex-col justify-between bg-white">
+          <div className="lg:col-span-4 p-4 sm:p-5 flex flex-col justify-between bg-white dark:bg-slate-900">
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <div className="p-1.5 bg-blue-50 text-[#172554] border border-blue-100 shrink-0">
+                <div className="p-1.5 bg-blue-50 dark:bg-blue-950/50 text-[#172554] dark:text-blue-300 border border-blue-100 dark:border-blue-900 shrink-0">
                   <GraduationCap className="w-5 h-5" />
                 </div>
                 <div>
@@ -211,7 +210,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                 </div>
                 <div>
                   <h4 className="text-sm font-bold text-[#172554] uppercase tracking-wide">
-                    {isPracticalOnly || courseType === 'self-development' ? 'ESE Practical Exam' : 'ESE Lab Exam'}
+                    {isPracticalOnly ? 'ESE Practical Exam' : 'ESE Lab Exam'}
                   </h4>
                   <span className="text-[11px] font-bold text-[#1e3a8a]">
                     Weightage: {eseLabWeight}%

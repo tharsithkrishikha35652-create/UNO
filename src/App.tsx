@@ -12,8 +12,9 @@ import { ContinuousAssessmentSection } from './components/ContinuousAssessmentSe
 import { EndSemesterSection } from './components/EndSemesterSection';
 import { ResultsSummaryPanel } from './components/ResultsSummaryPanel';
 import { SubjectHeader } from './components/SubjectHeader';
-import { SubjectSelectionDialog } from './components/SubjectSelectionDialog';
-import { ProjectWorkAssessmentSection } from './components/ProjectWorkAssessmentSection';
+import { SubjectSelectionDialog, PRESET_COURSES } from './components/SubjectSelectionDialog';
+import { AcademicSetupModal, type StudentProfile } from './components/AcademicSetupModal';
+import { CourseBottomSheet } from './components/CourseBottomSheet';
 import {
   applyEstimatedScores,
   GPACalculator,
@@ -43,7 +44,37 @@ import {
   LogOut,
   LoaderCircle,
   AlertCircle,
+  Sun,
+  Moon,
+  Layers,
+  ChevronDown,
 } from 'lucide-react';
+
+export function loadCoursesForSemester(sem: number): SubjectData[] {
+  const presets = PRESET_COURSES.filter((c) => c.semester === sem && c.category === 'core');
+  if (presets.length === 0) {
+    return [
+      {
+        ...DEFAULT_SUBJECT,
+        id: `sub_${sem}_1_${Date.now()}`,
+        name: `Course 1 (Sem ${sem})`,
+        code: '',
+        courseType: '2-0-2',
+      },
+    ];
+  }
+  return presets.map((p, idx) => ({
+    ...DEFAULT_SUBJECT,
+    id: `sub_${sem}_${p.code || idx}_${Date.now() + idx}`,
+    name: p.name,
+    code: p.code,
+    courseType: p.courseType,
+    act1Scores: syncScoresArray([], DEFAULT_SUBJECT.act1No),
+    act2Scores: syncScoresArray([], DEFAULT_SUBJECT.act2No),
+    lab1Scores: syncScoresArray([], DEFAULT_SUBJECT.lab1No),
+    lab2Scores: syncScoresArray([], DEFAULT_SUBJECT.lab2No),
+  }));
+}
 
 const LEGACY_STORAGE_KEY = 'ca_ese_calculator_sem1_user_selected_v18';
 
@@ -89,6 +120,9 @@ function WorkspaceLoading({ message }: { message: string }) {
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
+  const [isGuest, setIsGuest] = useState(() => {
+    return typeof window !== 'undefined' && localStorage.getItem('calcredit_guest_session') === 'true';
+  });
   const [authResolved, setAuthResolved] = useState(false);
   const [authError, setAuthError] = useState('');
   const [signOutPending, setSignOutPending] = useState(false);
@@ -115,7 +149,17 @@ export default function App() {
     );
   }, []);
 
+  const handleGuestLogin = () => {
+    setIsGuest(true);
+    localStorage.setItem('calcredit_guest_session', 'true');
+  };
+
   const handleSignOut = async () => {
+    if (isGuest) {
+      setIsGuest(false);
+      localStorage.removeItem('calcredit_guest_session');
+      return;
+    }
     if (!auth || signOutPending) return;
     setSignOutPending(true);
     setSignOutError('');
@@ -128,31 +172,42 @@ export default function App() {
     }
   };
 
-  if (!firebaseConfigReady || !auth) {
-    return <AuthScreen configurationError="Firebase is not configured. Add the required VITE_FIREBASE_* values to src/.env.local and restart the development server." />;
+  if ((!firebaseConfigReady || !auth) && !isGuest) {
+    return <AuthScreen onGuestLogin={handleGuestLogin} configurationError="Firebase is not configured. You can continue as a Guest or add VITE_FIREBASE_* credentials." />;
   }
 
-  if (!authResolved) return <WorkspaceLoading message="Checking your sign-in…" />;
+  if (!authResolved && !isGuest) return <WorkspaceLoading message="Checking your sign-in…" />;
 
-  if (authError) {
+  if (authError && !isGuest) {
     return (
-      <main className="min-h-screen bg-slate-100 flex items-center justify-center p-6">
-        <section className="max-w-lg w-full bg-white border border-rose-200 p-6 shadow-sm text-sm text-rose-900" role="alert">
+      <main className="min-h-screen bg-slate-100 dark:bg-slate-950 flex items-center justify-center p-6">
+        <section className="max-w-lg w-full bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-800 p-6 shadow-sm text-sm text-rose-900 dark:text-rose-200" role="alert">
           {authError}
-          <button type="button" onClick={() => window.location.reload()} className="mt-4 block bg-[#172554] px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-white">
-            Reload
-          </button>
+          <div className="mt-4 flex gap-3">
+            <button type="button" onClick={() => window.location.reload()} className="bg-[#172554] dark:bg-blue-600 px-4 py-2 text-xs font-bold uppercase tracking-wide text-white">
+              Reload
+            </button>
+            <button type="button" onClick={handleGuestLogin} className="border border-slate-300 dark:border-slate-700 px-4 py-2 text-xs font-bold uppercase tracking-wide text-[#172554] dark:text-slate-200">
+              Continue as Guest
+            </button>
+          </div>
         </section>
       </main>
     );
   }
 
-  if (!user) return <AuthScreen />;
+  if (!user && !isGuest) return <AuthScreen onGuestLogin={handleGuestLogin} />;
+
+  const activeUser = user || ({
+    uid: 'guest_student',
+    email: 'guest@annauniv.edu',
+    displayName: 'Guest Student',
+  } as User);
 
   return (
     <AuthenticatedApp
-      key={user.uid}
-      user={user}
+      key={activeUser.uid}
+      user={activeUser}
       onSignOut={handleSignOut}
       signOutPending={signOutPending}
       signOutError={signOutError}
@@ -183,6 +238,56 @@ function AuthenticatedApp({ user, onSignOut, signOutPending, signOutError }: Aut
   const preferencesQueueRef = useRef<Promise<void>>(Promise.resolve());
   const preferencesSignatureRef = useRef('');
   const calculationRevisionRef = useRef(0);
+
+  const [isDark, setIsDark] = useState(() => {
+    return typeof window !== 'undefined' && (localStorage.getItem('calcredit_theme') === 'dark' || document.documentElement.classList.contains('dark'));
+  });
+
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('calcredit_theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('calcredit_theme', 'light');
+    }
+  }, [isDark]);
+
+  const [profile, setProfile] = useState<StudentProfile>(() => {
+    const saved = typeof window !== 'undefined' ? localStorage.getItem(`calcredit_profile_${user.uid}`) : null;
+    if (saved) {
+      try { return JSON.parse(saved); } catch {}
+    }
+    return {
+      name: user.displayName || (user.email ? user.email.split('@')[0] : 'Student'),
+      department: 'CS',
+      semester: 1,
+    };
+  });
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(() => {
+    return typeof window !== 'undefined' && !localStorage.getItem(`calcredit_profile_${user.uid}`);
+  });
+  const [isCourseSheetOpen, setIsCourseSheetOpen] = useState(false);
+
+  const handleSaveProfile = (newProfile: StudentProfile) => {
+    setProfile(newProfile);
+    localStorage.setItem(`calcredit_profile_${user.uid}`, JSON.stringify(newProfile));
+    setIsProfileModalOpen(false);
+    if (subjects.length <= 1 && (!subjects[0]?.name || !subjects[0].name.trim())) {
+      const semCourses = loadCoursesForSemester(newProfile.semester);
+      setSubjects(semCourses);
+      setCurrentSubjectId(semCourses[0]?.id || '');
+    }
+  };
+
+  const handleSemesterChange = (newSem: number) => {
+    const updated = { ...profile, semester: newSem };
+    setProfile(updated);
+    localStorage.setItem(`calcredit_profile_${user.uid}`, JSON.stringify(updated));
+    const semCourses = loadCoursesForSemester(newSem);
+    setSubjects(semCourses);
+    setCurrentSubjectId(semCourses[0]?.id || '');
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -288,9 +393,6 @@ function AuthenticatedApp({ user, onSignOut, signOutPending, signOutError }: Aut
     currentSubject.code === 'CS23101' ||
     currentSubject.courseType === '1-0-2' ||
     Boolean(currentSubject.name && currentSubject.name.toLowerCase().includes('computational'));
-  const isIndustryOrientedTests =
-    currentSubject.courseType === 'industry-oriented-tests' ||
-    currentSubject.name.trim().toLowerCase() === 'industry oriented course i';
 
   // Update specific fields of the current subject
   const updateCurrentSubject = (updates: Partial<SubjectData>) => {
@@ -435,7 +537,7 @@ function AuthenticatedApp({ user, onSignOut, signOutPending, signOutError }: Aut
     const calculationBreakdown = calculateMarks(calculationSubject);
     const inputSignature = JSON.stringify(subjectSnapshot);
     const course = GPA_COURSES.find(
-      (item) => (Boolean(item.code) && item.code === subjectSnapshot.code) || item.name.toLowerCase() === subjectSnapshot.name.trim().toLowerCase() || (item.code === 'CS23801' && ['project', 'project-work'].includes(subjectSnapshot.courseType ?? ''))
+      (item) => item.code === subjectSnapshot.code || item.name.toLowerCase() === subjectSnapshot.name.trim().toLowerCase()
     );
 
     setCalculationBusy(true);
@@ -526,98 +628,109 @@ function AuthenticatedApp({ user, onSignOut, signOutPending, signOutError }: Aut
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900 flex flex-col font-sans">
-      {/* Top Bar */}
-      <header className="sticky top-0 z-30 bg-white border-b border-slate-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-          {/* Brand wordmark */}
-          <a href="#" className="text-base sm:text-lg font-black tracking-tight text-[#172554] flex items-center gap-2 transition-opacity hover:opacity-80">
-            <span className="w-9 h-9 bg-[#172554] text-white flex items-center justify-center text-xs font-black shadow-sm">
-              CA
-            </span>
-            <span className="uppercase">Academic Marks Calculator</span>
-          </a>
-
-          {/* Quick status bar */}
-          {activeTab === 'calculator' && <div className="hidden lg:flex items-center gap-3 border border-slate-200 px-3.5 py-1.5 bg-slate-50 text-xs shadow-sm">
-            {hasSubjectSelected && hasCalculatedCurrentSubject ? (
-              <>
-                <span className="font-bold text-[#172554] uppercase tracking-wider">{currentSubject.name}:</span>
-                <span className="font-semibold text-slate-600 bg-white px-1.5 py-0.5 border border-slate-300">
-                  {breakdown.courseTypeLabel}
-                </span>
-                <span className="font-black text-[#172554] tabular-nums text-sm">
-                  {breakdown.total.toFixed(2)} / 100
-                </span>
-                <span className="text-[#172554] font-bold">·</span>
-                <span className="font-black text-[#172554]">Grade {breakdown.grade.letter}</span>
-                <span className="text-[#172554] font-bold">·</span>
-                <button
-                  type="button"
-                  onClick={scrollToSummary}
-                  className="text-[#1e3a8a] hover:underline font-bold inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wider ml-1 cursor-pointer"
-                >
-                  <span>Summary at End</span>
-                  <ArrowDown className="w-3.5 h-3.5" />
-                </button>
-              </>
-            ) : hasSubjectSelected ? (
-              <span className="font-semibold text-slate-600">Enter marks and calculate to view the final result</span>
-            ) : (
-              <span className="font-bold text-slate-600 uppercase tracking-wider">
-                Select a subject
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans transition-colors pb-32">
+      {/* Top Header */}
+      <header className="sticky top-0 z-30 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-2xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-15 sm:h-16 flex items-center justify-between gap-3">
+          {/* Brand & Student Identity */}
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <button
+              type="button"
+              onClick={() => setIsProfileModalOpen(true)}
+              title="Edit Profile"
+              className="w-8 h-8 sm:w-9 sm:h-9 bg-[#172554] dark:bg-blue-600 text-white flex items-center justify-center text-xs font-mono font-black shadow-xs shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
+            >
+              CC
+            </button>
+            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+              <span
+                onClick={() => setIsProfileModalOpen(true)}
+                title="Edit student profile"
+                className="text-xs sm:text-sm font-black text-[#172554] dark:text-slate-100 tracking-tight truncate cursor-pointer hover:underline"
+              >
+                {profile.name}
               </span>
-            )}
-          </div>}
+              <span className="px-1.5 py-0.5 bg-blue-100 dark:bg-blue-950/60 text-[#172554] dark:text-blue-300 font-mono font-bold text-[10px] tracking-wider border border-blue-200 dark:border-blue-800 shrink-0">
+                {profile.department}
+              </span>
+            </div>
+          </div>
 
-          {/* Navigation Links */}
-          <nav className="hidden md:flex items-center gap-6 text-xs font-bold uppercase tracking-wider text-[#172554]">
-            <button
-              type="button"
-              onClick={() => setActiveTab('calculator')}
-              className={`transition-colors flex items-center gap-2 py-1 cursor-pointer ${
-                activeTab === 'calculator'
-                  ? 'text-[#172554] font-black border-b-2 border-[#172554]'
-                  : 'text-slate-600 hover:text-[#172554]'
-              }`}
-            >
-              <Calculator className="w-5 h-5" />
-              <span>Assessment Calculator</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('grades')}
-              className={`transition-colors flex items-center gap-2 py-1 cursor-pointer ${
-                activeTab === 'grades'
-                  ? 'text-[#172554] font-black border-b-2 border-[#172554]'
-                  : 'text-slate-600 hover:text-[#172554]'
-              }`}
-            >
-              <TableProperties className="w-5 h-5" />
-              <span>Grading System</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('gpa')}
-              className={`transition-colors flex items-center gap-2 py-1 cursor-pointer ${activeTab === 'gpa' ? 'text-[#172554] font-black border-b-2 border-[#172554]' : 'text-slate-600 hover:text-[#172554]'}`}
-            >
-              <GraduationCap className="w-5 h-5" />
-              <span>GPA Calculator</span>
-            </button>
-          </nav>
-
+          {/* Center/Right Controls */}
           <div className="flex items-center gap-2 shrink-0">
-            <span className="hidden xl:block max-w-40 truncate text-xs font-semibold text-slate-600" title={user.email ?? undefined}>
-              {user.email}
-            </span>
+            {/* Interactive Semester Dropdown */}
+            <div className="relative">
+              <select
+                value={profile.semester}
+                onChange={(e) => handleSemesterChange(Number(e.target.value))}
+                className="appearance-none bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-[#172554] dark:text-blue-300 font-mono font-bold text-xs py-1.5 pl-2.5 pr-7 cursor-pointer focus:outline-hidden focus:border-[#172554] dark:focus:border-blue-500 shadow-2xs"
+                aria-label="Select Semester"
+              >
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
+                  <option key={s} value={s}>
+                    SEM - {s}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-500 absolute right-2 top-2.5 pointer-events-none" />
+            </div>
+
+            {/* Circular Sun/Moon Theme Toggle */}
+            <button
+              type="button"
+              onClick={() => setIsDark((prev) => !prev)}
+              title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              className="w-8 h-8 rounded-full flex items-center justify-center border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+            >
+              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4 text-[#172554]" />}
+            </button>
+
+            {/* Desktop Navigation Links */}
+            <nav className="hidden md:flex items-center gap-4 text-xs font-bold uppercase tracking-wider text-[#172554] dark:text-slate-300 ml-2">
+              <button
+                type="button"
+                onClick={() => setActiveTab('calculator')}
+                className={`transition-colors py-1 cursor-pointer ${
+                  activeTab === 'calculator'
+                    ? 'text-[#172554] dark:text-blue-400 font-black border-b-2 border-[#172554] dark:border-blue-400'
+                    : 'text-slate-500 hover:text-[#172554] dark:hover:text-white'
+                }`}
+              >
+                Calculator
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('grades')}
+                className={`transition-colors py-1 cursor-pointer ${
+                  activeTab === 'grades'
+                    ? 'text-[#172554] dark:text-blue-400 font-black border-b-2 border-[#172554] dark:border-blue-400'
+                    : 'text-slate-500 hover:text-[#172554] dark:hover:text-white'
+                }`}
+              >
+                Grading System
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('gpa')}
+                className={`transition-colors py-1 cursor-pointer ${
+                  activeTab === 'gpa'
+                    ? 'text-[#172554] dark:text-blue-400 font-black border-b-2 border-[#172554] dark:border-blue-400'
+                    : 'text-slate-500 hover:text-[#172554] dark:hover:text-white'
+                }`}
+              >
+                GPA Calculator
+              </button>
+            </nav>
+
+            {/* Sign Out on Desktop */}
             <button
               type="button"
               onClick={() => void onSignOut()}
               disabled={signOutPending}
-              className="inline-flex items-center gap-1.5 border border-slate-300 bg-white px-2.5 py-2 text-[11px] font-bold uppercase tracking-wide text-[#172554] hover:bg-slate-50 disabled:opacity-60"
+              className="hidden lg:inline-flex items-center gap-1.5 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-wide text-[#172554] dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-60 cursor-pointer ml-1"
             >
               {signOutPending ? <LoaderCircle className="w-3.5 h-3.5 animate-spin" aria-hidden="true" /> : <LogOut className="w-3.5 h-3.5" aria-hidden="true" />}
-              <span>{signOutPending ? 'Signing out' : 'Log out'}</span>
+              <span>{signOutPending ? '...' : 'Log out'}</span>
             </button>
           </div>
         </div>
@@ -765,13 +878,6 @@ function AuthenticatedApp({ user, onSignOut, signOutPending, signOutError }: Aut
                     Course Type = {breakdown.courseTypeLabel}
                   </div>
 
-                  {currentSubject.courseType === 'project' && (
-                    <div className="mb-4 border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs sm:text-sm text-amber-900">
-                      <span className="font-black uppercase tracking-wider">Internship cum Project Work:</span>{' '}
-                      Using the app’s existing 60% CA / 40% ESE calculation. Project Work alone uses the separate Table 6 review, thesis-report, and viva-voce rubric.
-                    </div>
-                  )}
-
                   <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 border border-slate-300 bg-white px-3 py-2.5">
                     <label className="inline-flex items-center gap-2 text-xs font-semibold text-[#172554] cursor-pointer">
                       <input
@@ -813,29 +919,17 @@ function AuthenticatedApp({ user, onSignOut, signOutPending, signOutError }: Aut
                     )}
                   </div>
 
-                  {breakdown.courseType === 'project-work' ? (
-                    <ProjectWorkAssessmentSection
-                      marks={currentSubject.projectWorkMarks ?? {
-                        reviewI: '', reviewII: '', reviewIII: '', thesisGuide: '', thesisExternal: '', vivaExternal: '', vivaInternal: '',
-                      }}
-                      onMarksChange={(projectWorkMarks) => updateCurrentSubject({ projectWorkMarks })}
-                    />
-                  ) : (
-                  <>
                   {/* CA 1 Section */}
                   <ContinuousAssessmentSection
                     number={1}
-                    title={isIndustryOrientedTests ? 'Mid Term Test' : 'Continuous Assessment 1'}
+                    title="Continuous Assessment 1"
                     testMax={currentSubject.test1Max}
                     test={currentSubject.test1}
                     onTestMaxChange={(val) => updateCurrentSubject({ test1Max: val })}
                     onTestChange={(val) => updateCurrentSubject({ test1: val })}
                     testPoints={breakdown.test1_p}
                     testWeight={breakdown.testWeight}
-                    allowCustomTestMax={isComputationalThinking || isIndustryOrientedTests}
-                    testDisplayName={isIndustryOrientedTests ? 'MID TERM TEST' : undefined}
-                    isTwoTestCourse={isIndustryOrientedTests}
-                    isSelfDevelopment={breakdown.courseType === 'self-development'}
+                    allowCustomTestMax={isComputationalThinking}
                     actNo={displayedSubject.act1No}
                     onActNoChange={(val) => updateCurrentSubject({ act1No: val })}
                     actScores={displayedSubject.act1Scores}
@@ -854,21 +948,19 @@ function AuthenticatedApp({ user, onSignOut, signOutPending, signOutError }: Aut
                     caMax={breakdown.caMax}
                     estimatedMarks={currentSubjectUsesEstimates}
                   />
+                </div>
 
                 {/* CA 2 Section */}
                 <ContinuousAssessmentSection
                   number={2}
-                  title={isIndustryOrientedTests ? 'End Course Test' : 'Continuous Assessment 2'}
+                  title="Continuous Assessment 2"
                   testMax={currentSubject.test2Max}
                   test={currentSubject.test2}
                   onTestMaxChange={(val) => updateCurrentSubject({ test2Max: val })}
                   onTestChange={(val) => updateCurrentSubject({ test2: val })}
                   testPoints={breakdown.test2_p}
                   testWeight={breakdown.testWeight}
-                  allowCustomTestMax={isComputationalThinking || isIndustryOrientedTests}
-                  testDisplayName={isIndustryOrientedTests ? 'END COURSE TEST' : undefined}
-                  isTwoTestCourse={isIndustryOrientedTests}
-                  isSelfDevelopment={breakdown.courseType === 'self-development'}
+                  allowCustomTestMax={isComputationalThinking}
                   actNo={displayedSubject.act2No}
                   onActNoChange={(val) => updateCurrentSubject({ act2No: val })}
                   actScores={displayedSubject.act2Scores}
@@ -889,7 +981,7 @@ function AuthenticatedApp({ user, onSignOut, signOutPending, signOutError }: Aut
                 />
 
                 {/* End Semester Section */}
-                {!isIndustryOrientedTests && <EndSemesterSection
+                <EndSemesterSection
                   courseType={breakdown.courseType}
                   ese={currentSubject.ese}
                   onEseChange={(val) => updateCurrentSubject({ ese: val })}
@@ -905,10 +997,7 @@ function AuthenticatedApp({ user, onSignOut, signOutPending, signOutError }: Aut
                   internalTotal={breakdown.internal_total}
                   internalMax={breakdown.internalMax}
                   estimatedLabMark={currentSubjectUsesEstimates && breakdown.eseLabWeight > 0}
-                />}
-                  </>
-                  )}
-                </div>
+                />
 
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border border-slate-300 bg-white p-4">
                   <button
@@ -1060,8 +1149,134 @@ function AuthenticatedApp({ user, onSignOut, signOutPending, signOutError }: Aut
             onEstimatePercentageChange={(percentage) => updateEstimateSettings(includeEstimates, percentage)}
           />
         )}
-</main>
+      </main>
 
+      {/* Floating Live Grade Pill (shows on calculator tab when subject is active) */}
+      {activeTab === 'calculator' && hasSubjectSelected && (
+        <aside
+          aria-label="Current subject score snapshot"
+          className="fixed bottom-18 left-3 right-3 sm:left-auto sm:right-6 sm:w-96 z-30 bg-[#172554] dark:bg-slate-900 text-white p-3 border border-blue-900 dark:border-slate-700 shadow-2xl flex items-center justify-between gap-3"
+        >
+          <div className="min-w-0">
+            <p className="text-[10px] font-mono uppercase tracking-wider text-blue-200 truncate">
+              {currentSubject.name}
+            </p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-base font-black font-mono tabular-nums">
+                {hasCalculatedCurrentSubject ? `${breakdown.total.toFixed(2)} / 100` : 'Calculating…'}
+              </span>
+              {hasCalculatedCurrentSubject && (
+                <span className="text-xs font-mono font-bold px-1.5 py-0.2 bg-emerald-500 text-slate-950">
+                  Grade {breakdown.grade.letter}
+                </span>
+              )}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={scrollToSummary}
+            className="px-2.5 py-1.5 bg-white text-[#172554] hover:bg-blue-50 text-[11px] font-bold uppercase tracking-wider shrink-0 cursor-pointer flex items-center gap-1 shadow-xs"
+          >
+            <span>Summary</span>
+            <ArrowDown className="w-3 h-3" />
+          </button>
+        </aside>
+      )}
+
+      {/* Fixed Bottom Tab Bar */}
+      <nav
+        aria-label="Bottom Navigation"
+        className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-300 dark:border-slate-800 shadow-xl px-2 py-1.5 sm:py-2"
+      >
+        <div className="max-w-md mx-auto grid grid-cols-5 gap-1 text-center">
+          <button
+            type="button"
+            onClick={() => setActiveTab('calculator')}
+            className={`py-1 flex flex-col items-center justify-center transition-colors cursor-pointer ${
+              activeTab === 'calculator'
+                ? 'text-[#172554] dark:text-blue-400 font-black'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+            }`}
+          >
+            <Calculator className="w-5 h-5 mb-0.5" />
+            <span className="text-[10px] font-bold tracking-tight">Calculator</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsCourseSheetOpen(true)}
+            className="py-1 flex flex-col items-center justify-center text-slate-700 dark:text-slate-300 hover:text-[#172554] dark:hover:text-blue-400 transition-colors cursor-pointer relative"
+          >
+            <div className="relative">
+              <Layers className="w-5 h-5 mb-0.5" />
+              <span className="absolute -top-1 -right-2 w-4 h-4 bg-[#172554] dark:bg-blue-600 text-white font-mono text-[9px] font-bold rounded-full flex items-center justify-center">
+                {subjects.length}
+              </span>
+            </div>
+            <span className="text-[10px] font-bold tracking-tight">Courses ▾</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('gpa')}
+            className={`py-1 flex flex-col items-center justify-center transition-colors cursor-pointer ${
+              activeTab === 'gpa'
+                ? 'text-[#172554] dark:text-blue-400 font-black'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+            }`}
+          >
+            <GraduationCap className="w-5 h-5 mb-0.5" />
+            <span className="text-[10px] font-bold tracking-tight">GPA Hub</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('grades')}
+            className={`py-1 flex flex-col items-center justify-center transition-colors cursor-pointer ${
+              activeTab === 'grades'
+                ? 'text-[#172554] dark:text-blue-400 font-black'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+            }`}
+          >
+            <TableProperties className="w-5 h-5 mb-0.5" />
+            <span className="text-[10px] font-bold tracking-tight">Grading</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => void onSignOut()}
+            disabled={signOutPending}
+            className="py-1 flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
+          >
+            <LogOut className="w-5 h-5 mb-0.5" />
+            <span className="text-[10px] font-bold tracking-tight">Logout</span>
+          </button>
+        </div>
+      </nav>
+
+      {/* Slide-Up Course Bottom Sheet */}
+      <CourseBottomSheet
+        isOpen={isCourseSheetOpen}
+        onClose={() => setIsCourseSheetOpen(false)}
+        subjects={subjects}
+        currentSubjectId={currentSubject.id}
+        onSelectSubject={(id) => {
+          if (id !== currentSubjectId) calculationRevisionRef.current += 1;
+          setCurrentSubjectId(id);
+        }}
+        onAddNewSubject={handleAddNewSubject}
+        onDeleteSubject={handleDeleteSubject}
+        calculatedSignatures={calculatedSignatures}
+        semesterNumber={profile.semester}
+      />
+
+      {/* Academic Profile Setup Modal */}
+      <AcademicSetupModal
+        isOpen={isProfileModalOpen}
+        initialProfile={profile}
+        onSave={handleSaveProfile}
+        onClose={() => setIsProfileModalOpen(false)}
+      />
 
       {/* Subject Selection Modal Dialog Box */}
       <SubjectSelectionDialog

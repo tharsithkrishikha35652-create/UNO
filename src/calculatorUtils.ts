@@ -1,4 +1,4 @@
-import { SubjectData, CalculationBreakdown, GradeInfo, SpecialGradeInfo, CourseType, ProjectWorkMarks, ProjectWorkComponentResult } from './types';
+import { SubjectData, CalculationBreakdown, GradeInfo, SpecialGradeInfo, CourseType } from './types';
 
 export const GRADE_SCALE: GradeInfo[] = [
   {
@@ -127,17 +127,6 @@ const COURSE_WEIGHTS: Record<CourseType, Omit<CourseWeights, 'courseType' | 'caM
   // Theory-only courses (Heritage of Tamils, Calculus, Fundamentals of Electrical and Electronics Engineering):
   // 100 = ESE 60 + Internals 40; Internals = CA1 20 + CA2 20; each CA = Test 16 + Activities 4
   theory: { courseTypeLabel: 'Theory Only', testWeight: 16, actWeight: 4, labWeight: 0, eseTheoryWeight: 60, eseLabWeight: 0 },
-  // Project / internship evaluation per the university regulation table:
-  // CA = Review I (10%) + Review II (20%) + Review III (30%) = 60%
-  // ESE = Report evaluation + viva voce = 40%
-  project: { courseTypeLabel: 'Internship cum Project Work — current 60% CA, 40% ESE', testWeight: 10, actWeight: 20, labWeight: 0, eseTheoryWeight: 40, eseLabWeight: 0 },
-  // Project Work alone follows Table 6's seven review, thesis-report, and viva-voce components.
-  'project-work': { courseTypeLabel: 'Project Work — Table 6 (60% CA, 40% ESE)', testWeight: 0, actWeight: 0, labWeight: 0, eseTheoryWeight: 0, eseLabWeight: 0 },
-  // SDC flowchart: two CAs of 30 each (Test 5 + Activity 2.5 + Lab 22.5),
-  // plus ESE Theory 15 and ESE Practical 25, for a total of 100.
-  'self-development': { courseTypeLabel: 'Self Development Course — 60% CA, 40% ESE', testWeight: 5, actWeight: 2.5, labWeight: 22.5, eseTheoryWeight: 15, eseLabWeight: 25 },
-  // Semester 4 Industry Oriented Course I: Mid Term Test 50% + End Course Test 50%.
-  'industry-oriented-tests': { courseTypeLabel: 'Industry Oriented Course — Two Tests, 50% Each', testWeight: 50, actWeight: 0, labWeight: 0, eseTheoryWeight: 0, eseLabWeight: 0 },
 };
 
 export function isCourseType(value: unknown): value is CourseType {
@@ -145,30 +134,12 @@ export function isCourseType(value: unknown): value is CourseType {
 }
 
 export function getCourseType(data: SubjectData): CourseType {
-  if (data.name.trim().toLowerCase() === 'industry oriented course i') {
-    return 'industry-oriented-tests';
-  }
   if (isCourseType(data.courseType)) return data.courseType;
   return '2-0-2'; // fallback
 }
 
 export function getCourseWeights(courseType: CourseType): CourseWeights {
   const w = COURSE_WEIGHTS[courseType] ?? COURSE_WEIGHTS['2-0-2'];
-  if (courseType === 'project-work') {
-    return {
-      courseType,
-      courseTypeLabel: w.courseTypeLabel,
-      testWeight: 0,
-      actWeight: 0,
-      labWeight: 0,
-      caMax: 60,
-      internalMax: 60,
-      eseWeight: 40,
-      eseTheoryWeight: 0,
-      eseLabWeight: 0,
-      totalMax: 100,
-    };
-  }
   const caMax = w.testWeight + w.actWeight + w.labWeight;
   return {
     courseType: COURSE_WEIGHTS[courseType] ? courseType : '2-0-2',
@@ -188,11 +159,9 @@ export function describeWeights(courseType: CourseType): string {
     : `CA 1 & 2: Test ${w.testWeight}M · Activities ${w.actWeight}M - ${w.caMax}M each`;
   let ese: string;
   if (w.eseTheoryWeight > 0 && w.eseLabWeight > 0) {
-    ese = `ESE: Theory ${w.eseTheoryWeight}M + Lab ${w.eseLabWeight}M - ${w.eseWeight}M total`;
+    ese = `ESE: Theory ${w.eseTheoryWeight}M + Lab ${w.eseLabWeight}M - 50M total`;
   } else if (w.eseLabWeight > 0) {
     ese = `ESE: Practical Exam ${w.eseLabWeight}M - 50M total`;
-  } else if (w.eseWeight === 0) {
-    ese = 'ESE: None';
   } else {
     ese = `ESE: Theory Exam ${w.eseTheoryWeight}M - ${w.eseWeight}M total`;
   }
@@ -210,10 +179,10 @@ export function syncScoresArray(
   const targetCount = Math.max(0, Math.floor(Number(count) || 0));
   const result: (number | string)[] = [];
   for (let i = 0; i < targetCount; i++) {
-    if (i < currentScores.length && currentScores[i] !== undefined && currentScores[i] !== null) {
+    if (i < currentScores.length && currentScores[i] !== undefined && currentScores[i] !== null && currentScores[i] !== '') {
       result.push(currentScores[i]);
     } else {
-      result.push(''); // blank box for the user to enter marks!
+      result.push(8); // default to 8 as requested
     }
   }
   return result;
@@ -228,68 +197,6 @@ export function calculateMarks(data: SubjectData): CalculationBreakdown {
 
   const courseType = getCourseType(data);
   const weights = getCourseWeights(courseType);
-
-  if (courseType === 'project-work') {
-    const score = (value: number | string | undefined): number => {
-      const parsed = parseNum(value);
-      return Math.max(0, Math.min(100, parsed));
-    };
-    const marks: ProjectWorkMarks = data.projectWorkMarks ?? {
-      reviewI: '', reviewII: '', reviewIII: '', thesisGuide: '', thesisExternal: '', vivaExternal: '', vivaInternal: '',
-    };
-    const componentDefinitions: Array<Pick<ProjectWorkComponentResult, 'key' | 'label' | 'section' | 'weight'>> = [
-      { key: 'reviewI', label: 'Review I', section: 'Continuous Assessment' as const, weight: 10 },
-      { key: 'reviewII', label: 'Review II', section: 'Continuous Assessment' as const, weight: 20 },
-      { key: 'reviewIII', label: 'Review III', section: 'Continuous Assessment' as const, weight: 30 },
-      { key: 'thesisGuide', label: 'Project Thesis Report Evaluation — Guide', section: 'End-Semester Examination' as const, weight: 10 },
-      { key: 'thesisExternal', label: 'Project Thesis Report Evaluation — External Examiner', section: 'End-Semester Examination' as const, weight: 10 },
-      { key: 'vivaExternal', label: 'Viva-Voce — External Examiner', section: 'End-Semester Examination' as const, weight: 10 },
-      { key: 'vivaInternal', label: 'Viva-Voce — Internal Examiner', section: 'End-Semester Examination' as const, weight: 10 },
-    ];
-    const components: ProjectWorkComponentResult[] = componentDefinitions.map((component) => {
-      const componentScore = score(marks[component.key]);
-      return { ...component, score: componentScore, contribution: round2(componentScore * component.weight / 100) };
-    });
-    const internalTotal = components
-      .filter((component) => component.section === 'Continuous Assessment')
-      .reduce((sum, component) => sum + component.contribution, 0);
-    const eseTotal = components
-      .filter((component) => component.section === 'End-Semester Examination')
-      .reduce((sum, component) => sum + component.contribution, 0);
-    const total = round2(internalTotal + eseTotal);
-
-    return {
-      courseType,
-      courseTypeLabel: weights.courseTypeLabel,
-      testWeight: 0,
-      actWeight: 0,
-      labWeight: 0,
-      caMax: 60,
-      internalMax: 60,
-      eseWeight: 40,
-      eseTheoryWeight: 0,
-      eseLabWeight: 0,
-      ese_p: round2(eseTotal),
-      ese_theory_p: 0,
-      ese_lab_p: 0,
-      test1_p: 0,
-      test2_p: 0,
-      act1_sum: 0,
-      act1_p: 0,
-      act2_sum: 0,
-      act2_p: 0,
-      lab1_sum: 0,
-      lab1_p: 0,
-      lab2_sum: 0,
-      lab2_p: 0,
-      ca1_total: round2(components[0].contribution),
-      ca2_total: round2(components[1].contribution + components[2].contribution),
-      internal_total: round2(internalTotal),
-      total,
-      grade: getGradeForScore(total),
-      projectWorkComponents: components,
-    };
-  }
 
   // 1. ESE:
   // ESE weights come from the course type: theory-only (50, or 60 for the new theory-only courses), theory + practical (40 + 10), or practical-only (50)
@@ -389,15 +296,6 @@ export const DEFAULT_SUBJECT: SubjectData = {
   id: 'sub_1',
   name: '',
   code: '',
-  projectWorkMarks: {
-    reviewI: '',
-    reviewII: '',
-    reviewIII: '',
-    thesisGuide: '',
-    thesisExternal: '',
-    vivaExternal: '',
-    vivaInternal: '',
-  },
   ese: '',
   eseLab: '',
   eseLabMax: 100,

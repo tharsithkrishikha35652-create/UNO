@@ -3,20 +3,31 @@
 :root {
   color-scheme: light;
   accent-color: #1e3a8a;
+  --bg-main: #f8fafc;
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
+}
+
+.dark {
+  color-scheme: dark;
+  --bg-main: #0b0f19;
+  --card-bg: #111827;
+  --card-border: #1f2937;
 }
 
 @layer base {
-  *, *::before, *::after {
-    border-radius: 0 !important;
-  }
-
   body, input, button, select, textarea {
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     color: #0f172a;
-    background-color: #f1f5f9;
+    background-color: var(--bg-main);
     -webkit-font-smoothing: antialiased;
     font-variant-numeric: normal;
     font-feature-settings: "zero" 0;
+  }
+
+  .dark body {
+    color: #f1f5f9;
+    background-color: var(--bg-main);
   }
 
   ::selection {
