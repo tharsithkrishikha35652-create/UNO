@@ -290,7 +290,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
   ];
 
   return (
-    <div className="fixed inset-0 z-[70]" role="presentation">
+    <div className="fixed inset-0 z-[70] h-dvh max-h-dvh overflow-hidden" role="presentation">
       <button
         type="button"
         aria-label="Close profile"
@@ -303,7 +303,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="academic-profile-title"
-        className="absolute inset-y-0 left-0 flex w-[min(100%,26rem)] flex-col border-r border-slate-300 bg-white shadow-2xl animate-[profile-slide-in_220ms_cubic-bezier(0.16,1,0.3,1)]"
+        className="absolute inset-y-0 left-0 flex h-full max-h-dvh w-[min(100%,26rem)] flex-col border-r border-slate-300 bg-white shadow-2xl animate-[profile-slide-in_220ms_cubic-bezier(0.16,1,0.3,1)]"
       >
         <header className="flex items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
           <div>
