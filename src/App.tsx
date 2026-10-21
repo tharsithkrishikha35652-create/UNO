@@ -36,6 +36,7 @@ import {
 } from './components/GPACalculator';
 import { MobileBottomNavigation } from './components/MobileBottomNavigation';
 import { MobileCoursesSheet } from './components/MobileCoursesSheet';
+import { DesktopCoursesPanel } from './components/DesktopCoursesPanel';
 import { AcademicProfileFormValues, AcademicSetupScreen, ProfileDrawer } from './components/AcademicProfile';
 import { StickyResultSummary } from './components/StickyResultSummary';
 import { ThemeToggle, type AppTheme } from './components/ThemeToggle';
@@ -56,6 +57,7 @@ import {
   type GpaHistoryEntry,
 } from './firebaseData';
 import {
+  BookOpen,
   Calculator,
   TableProperties,
   ArrowDown,
@@ -399,6 +401,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'calculator' | 'grades' | 'gpa'>('calculator');
   const [isMobileCoursesOpen, setIsMobileCoursesOpen] = useState(false);
+  const [isDesktopCoursesOpen, setIsDesktopCoursesOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [showFeedbackHub, setShowFeedbackHub] = useState(false);
   const [showCredits, setShowCredits] = useState(false);
@@ -659,6 +662,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
     setSelectedSemester(semester);
     setIsEditorOpen(false);
     setActiveTab('calculator');
+    setIsDesktopCoursesOpen(false);
     setShowFeedbackHub(false);
   };
 
@@ -730,6 +734,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
     }
     setSelectedSemester(course.semester);
     setActiveTab('calculator');
+    setIsDesktopCoursesOpen(false);
     setShowFeedbackHub(false);
     setIsEditorOpen(true);
     setIsDialogOpen(false);
@@ -738,6 +743,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
   const handleOpenOtherCourse = (subject: SubjectData) => {
     setCurrentSubjectId(subject.id);
     setActiveTab('calculator');
+    setIsDesktopCoursesOpen(false);
     setShowFeedbackHub(false);
     setIsEditorOpen(true);
   };
@@ -764,6 +770,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
     withViewTransition(() => {
       setIsProfileOpen(false);
       setIsMobileCoursesOpen(false);
+      setIsDesktopCoursesOpen(false);
       setShowCredits(false);
       setShowFeedbackHub(true);
     });
@@ -773,6 +780,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
     withViewTransition(() => {
       setIsProfileOpen(false);
       setIsMobileCoursesOpen(false);
+      setIsDesktopCoursesOpen(false);
       setShowFeedbackHub(false);
       setShowCredits(true);
     });
@@ -1167,10 +1175,11 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
           </div>
 
           {/* Navigation Links */}
-          <nav className="hidden md:flex items-center gap-6 text-xs font-bold uppercase tracking-wider text-[#172554]">
+          <nav className="hidden md:flex items-center gap-4 text-xs font-bold uppercase tracking-wider text-[#172554]">
             <button
               type="button"
-              onClick={() => withViewTransition(() => { setShowFeedbackHub(false); setShowCredits(false); setActiveTab('calculator'); })}
+              onClick={() => withViewTransition(() => { setIsDesktopCoursesOpen(false); setShowFeedbackHub(false); setShowCredits(false); setActiveTab('calculator'); })}
+              aria-label="Assessment Calculator"
               className={`transition-colors flex items-center gap-2 py-1 cursor-pointer ${
                 activeTab === 'calculator'
                   ? 'text-[#172554] font-black border-b-2 border-[#172554]'
@@ -1178,11 +1187,31 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
               }`}
             >
               <Calculator className="w-5 h-5" />
-              <span>Assessment Calculator</span>
+              <span className="hidden lg:inline">Assessment Calculator</span>
             </button>
             <button
               type="button"
-              onClick={() => withViewTransition(() => { setShowFeedbackHub(false); setShowCredits(false); setActiveTab('grades'); })}
+              onClick={() => withViewTransition(() => {
+                setIsMobileCoursesOpen(false);
+                setShowFeedbackHub(false);
+                setShowCredits(false);
+                setIsDesktopCoursesOpen(true);
+              })}
+              aria-label="Courses"
+              className={`transition-colors flex items-center gap-2 py-1 cursor-pointer ${
+                isDesktopCoursesOpen
+                  ? 'text-[#172554] font-black border-b-2 border-[#172554]'
+                  : 'text-slate-600 hover:text-[#172554]'
+              }`}
+              aria-current={isDesktopCoursesOpen ? 'page' : undefined}
+            >
+              <BookOpen className="w-5 h-5" />
+              <span className="hidden lg:inline">Courses</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => withViewTransition(() => { setIsDesktopCoursesOpen(false); setShowFeedbackHub(false); setShowCredits(false); setActiveTab('grades'); })}
+              aria-label="Grading System"
               className={`transition-colors flex items-center gap-2 py-1 cursor-pointer ${
                 activeTab === 'grades'
                   ? 'text-[#172554] font-black border-b-2 border-[#172554]'
@@ -1190,15 +1219,16 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
               }`}
             >
               <TableProperties className="w-5 h-5" />
-              <span>Grading System</span>
+              <span className="hidden lg:inline">Grading System</span>
             </button>
             <button
               type="button"
-              onClick={() => withViewTransition(() => { setShowFeedbackHub(false); setShowCredits(false); setActiveTab('gpa'); })}
-              className={`transition-colors flex items-center gap-2 py-1 cursor-pointer ${activeTab === 'gpa' ? 'text-[#172554] font-black border-b-2 border-[#172554]' : 'text-slate-600 hover:text-[#172554]'}`}
+              onClick={() => withViewTransition(() => { setIsDesktopCoursesOpen(false); setShowFeedbackHub(false); setShowCredits(false); setActiveTab('gpa'); })}
+            aria-label="GPA Calculator"
+            className={`transition-colors flex items-center gap-2 py-1 cursor-pointer ${activeTab === 'gpa' ? 'text-[#172554] font-black border-b-2 border-[#172554]' : 'text-slate-600 hover:text-[#172554]'}`}
             >
-              <GraduationCap className="w-5 h-5" />
-              <span>GPA Calculator</span>
+            <GraduationCap className="w-5 h-5" />
+            <span className="hidden lg:inline">GPA Calculator</span>
             </button>
           </nav>
 
@@ -1302,6 +1332,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
         onNavigate={(tab) => {
           withViewTransition(() => {
             setIsMobileCoursesOpen(false);
+            setIsDesktopCoursesOpen(false);
             setShowFeedbackHub(false);
             setShowCredits(false);
             setActiveTab(tab);
@@ -1359,6 +1390,28 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
           />
         ) : showCredits ? <CreditsScreen /> : null}
 
+        {!showFeedbackHub && !showCredits && isDesktopCoursesOpen && (
+          <div className="hidden md:block">
+            <DesktopCoursesPanel
+              semester={selectedSemester}
+              courses={semesterCourseRows}
+              electiveSlots={semesterElectiveRows}
+              electiveOptions={mobileElectiveOptions}
+              otherCourses={otherCourseRows}
+              selectedSubjectId={isEditorOpen ? currentSubjectId : ''}
+              allCoursesCalculated={allSemesterCoursesCalculated}
+              onSelectCourse={handleOpenPresetCourse}
+              onSelectElective={handleOpenElectivePicker}
+              onSelectOtherCourse={handleOpenOtherCourse}
+              onCalculateGpa={() => {
+                setIsDesktopCoursesOpen(false);
+                setActiveTab('gpa');
+              }}
+            />
+          </div>
+        )}
+
+        <div className={isDesktopCoursesOpen ? 'md:hidden' : ''}>
         {!showFeedbackHub && !showCredits && activeTab === 'calculator' && selectedSemester === null && (
           <section className="mx-auto my-6 max-w-xl border border-slate-300 bg-white px-4 py-5 text-center shadow-sm sm:px-6 sm:py-6">
             <h1 className="text-lg font-black uppercase tracking-wide text-[#172554]">Choose your semester</h1>
@@ -1705,6 +1758,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
             )}
           </div>
         )}
+        </div>
 
         {!showFeedbackHub && !showCredits && activeTab === 'grades' && (
           <div className="max-w-4xl mx-auto">
