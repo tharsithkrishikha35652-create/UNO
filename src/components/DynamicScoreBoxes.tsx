@@ -88,10 +88,10 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
   const maxPossibleSum = numericCount * maxMarkPerBox;
 
   return (
-    <div className="p-4 sm:p-5 flex flex-col justify-between h-full bg-white">
+    <div className="p-3 sm:p-4 flex flex-col justify-between h-full bg-white">
       {/* Category Header - no horizontal underline */}
       <div>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
           <div className="flex items-center gap-2">
             <div className="p-1.5 bg-[#172554] text-white shrink-0">
               {category === 'assignment' ? (
@@ -122,7 +122,7 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
                 onClick={decrementCount}
                 disabled={estimatedMarks || numericCount <= minimumCount}
                 aria-label={`Decrease number of ${accessibleItemLabel.toLowerCase()} items in ${caName}`}
-                className="p-1.5 text-[#172554] hover:bg-slate-100 disabled:opacity-30 disabled:pointer-events-none transition-colors border-r border-slate-300"
+                className="flex h-11 w-10 items-center justify-center text-[#172554] hover:bg-slate-100 disabled:opacity-30 disabled:pointer-events-none transition-colors border-r border-slate-300"
               >
                 <Minus className="w-4 h-4" />
               </button>
@@ -135,14 +135,14 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
                 placeholder="0"
                 disabled={estimatedMarks}
                 onChange={handleCountInputChange}
-                className="w-12 text-center text-xs font-bold py-1 bg-white text-[#172554] focus:outline-hidden disabled:bg-blue-50 disabled:text-[#1e3a8a]"
+                className="h-11 w-14 text-center text-base font-bold bg-white text-[#172554] focus:outline-hidden disabled:bg-blue-50 disabled:text-[#1e3a8a]"
               />
               <button
                 type="button"
                 onClick={incrementCount}
                 disabled={estimatedMarks || numericCount >= maximumCount}
                 aria-label={`Increase number of ${accessibleItemLabel.toLowerCase()} items in ${caName}`}
-                className="p-1.5 text-[#172554] hover:bg-slate-100 disabled:opacity-30 disabled:pointer-events-none transition-colors border-l border-slate-300"
+                className="flex h-11 w-10 items-center justify-center text-[#172554] hover:bg-slate-100 disabled:opacity-30 disabled:pointer-events-none transition-colors border-l border-slate-300"
               >
                 <Plus className="w-4 h-4" />
               </button>
@@ -152,14 +152,14 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
 
         {/* Dynamic Entries: Separated only by simple vertical lines with no horizontal borders */}
         {numericCount === 0 ? (
-          <div className="py-4 text-center text-[#172554] text-xs my-2">
+          <div className="py-3 text-center text-[#172554] text-xs my-1">
             <p className="font-medium text-slate-600">
               Set the number of {category === 'assignment' ? 'assignments' : 'lab practical evaluations'} above
             </p>
           </div>
         ) : (
-          <div className="my-4 bg-white">
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(11rem,1fr))] divide-x divide-slate-200 border-x border-slate-200">
+          <div className="my-3 bg-white">
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,11rem),1fr))] divide-x divide-slate-200 border-x border-slate-200">
               {Array.from({ length: numericCount }).map((_, idx) => {
                 const displayIndex = startIndex + idx;
                 const rawScore = scores[idx];
@@ -168,7 +168,7 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
                 return (
                   <div
                     key={idx}
-                    className="min-w-0 p-3 flex flex-col items-center justify-center hover:bg-slate-50 transition-colors"
+                    className="min-w-0 p-2.5 flex flex-col items-center justify-center hover:bg-slate-50 transition-colors"
                   >
                     <span className="text-[11px] font-bold text-[#172554] mb-1.5 whitespace-nowrap">
                       {accessibleItemLabel === 'Assignment' || accessibleItemLabel === 'Lab Evaluation'
@@ -182,7 +182,7 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
                         onClick={() => adjustBoxScore(idx, -0.5)}
                         disabled={estimatedMarks || Number(displayVal || 0) <= 0}
                         aria-label={`Decrease ${category === 'assignment' ? 'assignment' : 'lab'} ${displayIndex} mark by 0.5`}
-                        className="flex h-10 w-10 items-center justify-center border border-slate-300 text-base font-black text-[#172554] hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40 sm:h-7 sm:w-7 sm:text-sm"
+                        className="flex h-11 w-10 items-center justify-center border border-slate-300 text-base font-black text-[#172554] hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40 sm:h-11 sm:w-10"
                       >
                         −
                       </button>
@@ -196,14 +196,14 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
                         readOnly={estimatedMarks}
                         onChange={(e) => handleBoxChange(idx, e.target.value)}
                         aria-label={`${accessibleItemLabel} ${displayIndex} mark out of ${maxMarkPerBox}`}
-                        className="w-14 min-w-14 py-1 px-1.5 text-xs font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] text-center read-only:bg-blue-50 read-only:text-[#1e3a8a]"
+                        className="h-11 w-16 min-w-16 px-1.5 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] text-center read-only:bg-blue-50 read-only:text-[#1e3a8a]"
                       />
                       <button
                         type="button"
                         onClick={() => adjustBoxScore(idx, 0.5)}
                         disabled={estimatedMarks || Number(displayVal || 0) >= maxMarkPerBox}
                         aria-label={`Increase ${category === 'assignment' ? 'assignment' : 'lab'} ${displayIndex} mark by 0.5`}
-                        className="flex h-10 w-10 items-center justify-center border border-slate-300 text-base font-black text-[#172554] hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40 sm:h-7 sm:w-7 sm:text-sm"
+                        className="flex h-11 w-10 items-center justify-center border border-slate-300 text-base font-black text-[#172554] hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40 sm:h-11 sm:w-10"
                       >
                         +
                       </button>
@@ -218,7 +218,7 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
       </div>
 
       {/* Marks Contributed for Total at bottom: NO horizontal line and NO rectangular box */}
-      <div className="mt-4 pt-3 space-y-1.5 border-t border-slate-200">
+      <div className="mt-3 pt-2.5 space-y-1 border-t border-slate-200">
         <div className="flex items-center justify-between text-xs text-[#172554]">
           <span className="font-medium">Total Marks Obtained:</span>
           <span className="font-bold">

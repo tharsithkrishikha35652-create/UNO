@@ -119,7 +119,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-200">
           {/* Column 1: ESE Theory (only when the course has a theory exam) */}
           {hasTheory && (
-          <div className="lg:col-span-4 p-4 sm:p-5 flex flex-col justify-between bg-white">
+          <div className="lg:col-span-4 p-3 sm:p-4 flex flex-col justify-between bg-white">
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <div className="p-1.5 bg-blue-50 text-[#172554] border border-blue-100 shrink-0">
@@ -151,13 +151,13 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                   value={ese === '' || ese === undefined ? '' : ese}
                   placeholder="Enter theory marks (0 - 100)"
                   onChange={handleEseChange}
-                  className="w-full px-3 py-2 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm"
+                  className="h-11 w-full px-3 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm"
                 />
                 <span className="absolute right-3.5 top-2.5 text-xs font-bold text-[#1e3a8a]">/ 100</span>
               </div>
 
               {/* Theory Slider */}
-              <div className="pt-1 mb-4">
+              <div className="pt-1 mb-3">
                 <div className="flex justify-between text-xs font-bold text-[#172554] mb-1">
                   <span>0</span>
                   <span className="sr-only">Adjust theory marks</span>
@@ -194,7 +194,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
           )}
 
           {/* Column 2: ESE Lab / Practical exam with User Input Max Marks */}
-          <div className={`${hasTheory ? 'lg:col-span-4' : 'lg:col-span-6'} p-4 sm:p-5 flex flex-col justify-between bg-white`}>
+          <div className={`${hasTheory ? 'lg:col-span-4' : 'lg:col-span-6'} p-3 sm:p-4 flex flex-col justify-between bg-white`}>
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <div className="p-1.5 bg-blue-50 text-[#172554] border border-blue-100 shrink-0">
@@ -246,7 +246,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                     value={eseLabMax === '' || eseLabMax === undefined ? '' : eseLabMax}
                     placeholder="Enter maximum marks (e.g. 100 or 50)"
                     onChange={handleLabMaxChange}
-                    className="w-full px-3 py-1.5 text-sm font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal"
+                    className="h-11 w-full px-3 pr-20 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal"
                   />
                   <span className="absolute right-3 top-2 text-[11px] font-semibold text-slate-500">
                     Max Scale
@@ -272,7 +272,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                   placeholder={`Enter ${labName.toLowerCase()} marks (0 - ${numericLabMax})`}
                   readOnly={estimatedLabMark}
                   onChange={handleLabChange}
-                  className="w-full px-3 py-2 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm read-only:bg-blue-50 read-only:text-[#1e3a8a]"
+                  className="h-11 w-full px-3 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm read-only:bg-blue-50 read-only:text-[#1e3a8a]"
                 />
                 <span className="absolute right-3.5 top-2.5 text-xs font-bold text-[#1e3a8a]">
                   / {numericLabMax}
@@ -280,10 +280,10 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
               </div>
 
               {/* Lab Slider */}
-              <div className="pt-1 mb-4">
+              <div className="pt-1 mb-3">
                 <div className="flex justify-between text-xs font-bold text-[#172554] mb-1">
                   <span>0</span>
-                  <span className="uppercase text-[11px] text-[#1e3a8a]">Adjust Lab Slider</span>
+                  <span className="sr-only">Adjust lab marks</span>
                   <span>{numericLabMax}</span>
                 </div>
                 <input
@@ -317,7 +317,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
           </div>
 
           {/* Column 3: Simulator & Combined ESE Breakdown */}
-          <div className={`${hasTheory ? 'lg:col-span-4' : 'lg:col-span-6'} p-4 sm:p-5 bg-white flex flex-col justify-between`}>
+          <div className={`${hasTheory ? 'lg:col-span-4' : 'lg:col-span-6'} p-3 sm:p-4 bg-white flex flex-col justify-between`}>
             <details className="group">
               <summary className="flex cursor-pointer list-none items-center gap-2 py-1 focus-visible:outline-2 focus-visible:outline-[#172554]">
                 <div className="p-1.5 bg-[#172554] text-white shrink-0">
@@ -409,9 +409,9 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
         /* --- Theory-only ESE: Standard 2-Column Layout (Theory + Target Simulator) --- */
         <div className="grid grid-cols-1 md:grid-cols-12 divide-y md:divide-y-0 md:divide-x divide-[#172554]">
           {/* Main ESE Input Section */}
-          <div className="md:col-span-6 p-4 sm:p-5 flex flex-col justify-between bg-white">
+          <div className="md:col-span-6 p-3 sm:p-4 flex flex-col justify-between bg-white">
             <div>
-              <div className="flex items-center gap-2 mb-4">
+              <div className="flex items-center gap-2 mb-3">
                 <div className="p-1.5 bg-[#172554] text-white shrink-0">
                   <GraduationCap className="w-5 h-5" />
                 </div>
@@ -429,7 +429,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
               >
                 Marks Scored:
               </label>
-              <div className="relative mb-4">
+              <div className="relative mb-3">
                 <input
                   id="ese-marks-input"
                   type="number"
@@ -439,13 +439,13 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                   value={ese === '' || ese === undefined ? '' : ese}
                   placeholder="Enter your ESE marks (0 - 100)"
                   onChange={handleEseChange}
-                  className="w-full px-3 py-2 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm"
+                  className="h-11 w-full px-3 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm"
                 />
                 <span className="absolute right-3.5 top-2.5 text-xs font-bold text-[#1e3a8a]">/ 100</span>
               </div>
 
               {/* Slider */}
-              <div className="pt-2 mb-4">
+              <div className="pt-1 mb-3">
                 <div className="flex justify-between text-xs font-bold text-[#172554] mb-1">
                   <span>0</span>
                   <span className="sr-only">Adjust end-semester marks</span>
@@ -481,7 +481,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
           </div>
 
           {/* Target Grade "What-If" Planner */}
-          <div className="md:col-span-6 p-4 sm:p-5 bg-white flex flex-col justify-between">
+          <div className="md:col-span-6 p-3 sm:p-4 bg-white flex flex-col justify-between">
             <details className="group">
               <summary className="flex cursor-pointer list-none items-center gap-2 py-1 focus-visible:outline-2 focus-visible:outline-[#172554]">
                 <div className="p-1.5 bg-[#172554] text-white shrink-0">

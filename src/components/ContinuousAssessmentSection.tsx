@@ -86,9 +86,9 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
     : (Number(testMax) === 30 ? 30 : 50);
 
   return (
-    <section className="overflow-hidden rounded-lg bg-white border border-slate-300 mb-8 shadow-sm">
+    <section className="overflow-hidden rounded-xl bg-white border border-slate-300 mb-5 shadow-sm">
       {/* Section Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 sm:px-5 bg-[#172554] text-white">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 sm:px-4 bg-[#172554] text-white">
         <div className="flex items-center gap-3">
           <span className="px-2.5 py-0.5 bg-white text-[#172554] font-black text-sm uppercase">
             {isTwoTestCourse ? `TEST ${number}` : isSingleAssessment ? 'ASSESSMENT' : `CA ${number}`}
@@ -113,10 +113,10 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
       {/* Categories separated by simple vertical formal navy line */}
       <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-200">
         {/* Category 1: Written Examination (weight depends on course type) */}
-        <div className={`${testColumnClass} p-4 sm:p-5 flex flex-col justify-between bg-white`}>
+        <div className={`${testColumnClass} p-3 sm:p-4 flex flex-col justify-between bg-white`}>
           <div>
             {/* Header - no horizontal underline */}
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <div className="p-1.5 bg-blue-50 text-[#172554] border border-blue-100 shrink-0">
                   <FileCheck className="w-5 h-5" />
@@ -134,7 +134,7 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
 
             {/* Maximum Test Marks */}
             {allowCustomTestMax ? (
-              <div className="mb-4">
+              <div className="mb-3">
                 <div className="flex items-center justify-between mb-1">
                   <label
                     htmlFor={`test-max-input-${number}`}
@@ -177,7 +177,7 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
                       const val = parseFloat(raw);
                       onTestMaxChange(isNaN(val) ? '' : Math.max(1, val));
                     }}
-                    className="w-full min-w-0 px-3 py-3 pr-24 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm"
+                    className="h-11 w-full min-w-0 px-3 pr-24 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm"
                   />
                   <span className="absolute right-3 top-2.5 text-[11px] font-semibold text-slate-500">
                     Max Scale
@@ -188,7 +188,7 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
                 </p>
               </div>
             ) : (
-              <div className="mb-4">
+              <div className="mb-3">
                 <label className="block text-xs font-bold text-[#172554] uppercase tracking-wider mb-1.5">
                   Maximum Test Marks:
                 </label>
@@ -200,7 +200,7 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
                         key={val}
                         type="button"
                         onClick={() => onTestMaxChange(val)}
-                        className={`py-2 px-3 text-xs font-bold border transition-all text-center ${
+                        className={`h-11 px-3 text-xs font-bold border transition-colors text-center ${
                           isSelected
                             ? 'bg-[#172554] text-white border-[#172554]'
                             : 'bg-white hover:bg-slate-100 text-[#172554] border-[#172554]'
@@ -215,7 +215,7 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
             )}
 
             {/* Test Marks Scored */}
-            <div className="mb-4">
+            <div className="mb-3">
               <label
                 htmlFor={`test-scored-${number}`}
                 className="block text-xs font-bold text-[#172554] uppercase tracking-wider mb-1.5"
@@ -237,7 +237,7 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
                       raw === '' ? '' : Math.max(0, Math.min(currentMax, parseFloat(raw) || 0))
                     );
                   }}
-                  className="w-full min-w-0 px-3 py-3 pr-16 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm"
+                  className="h-11 w-full min-w-0 px-3 pr-16 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm"
                 />
                 <span className="absolute right-3 top-2.5 text-xs font-bold text-[#1e3a8a]">
                   / {currentMax}
@@ -265,7 +265,7 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
         </div>
 
         {/* Category 2: Assignments / Activities (weight depends on course type) */}
-        {hasActivities && <div className={`${hasLab ? 'lg:col-span-4' : 'lg:col-span-6'} bg-white`}>
+        {hasActivities &&         <div className={`${hasLab ? 'lg:col-span-4' : 'lg:col-span-6'} min-w-0 bg-white`}>
           <DynamicScoreBoxes
             title={activityTitle ?? (hasLab && !isSelfDevelopment ? 'Assignments' : 'Activities')}
             category="assignment"
@@ -287,7 +287,7 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
 
         {/* Category 3: Lab Practical Evaluations (only for courses with a lab component) */}
         {hasLab && (
-        <div className="lg:col-span-4 bg-white">
+        <div className="min-w-0 lg:col-span-4 bg-white">
           <DynamicScoreBoxes
             title="Lab Practical Evaluations"
             category="lab"

@@ -71,19 +71,6 @@ const LEGACY_STORAGE_KEY = 'ca_ese_calculator_sem1_user_selected_v18';
 const THEME_STORAGE_KEY = 'calcredit_theme';
 const GOOGLE_ACCOUNT_SELECTION_KEY = 'calcredit_choose_google_account_after_signout';
 
-const withViewTransition = (update: () => void) => {
-  const viewTransitionDocument = document as Document & {
-    startViewTransition?: (callback: () => void) => unknown;
-  };
-
-  if (viewTransitionDocument.startViewTransition) {
-    viewTransitionDocument.startViewTransition(update);
-    return;
-  }
-
-  update();
-};
-
 function getInitialTheme(): AppTheme {
   try {
     return window.localStorage.getItem(THEME_STORAGE_KEY) === 'dark' ? 'dark' : 'light';
@@ -767,23 +754,19 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
   const closeMobileCourses = useCallback(() => setIsMobileCoursesOpen(false), []);
   const closeProfileDrawer = useCallback(() => setIsProfileOpen(false), []);
   const handleOpenFeedbackHub = () => {
-    withViewTransition(() => {
-      setIsProfileOpen(false);
-      setIsMobileCoursesOpen(false);
-      setIsDesktopCoursesOpen(false);
-      setShowCredits(false);
-      setShowFeedbackHub(true);
-    });
+    setIsProfileOpen(false);
+    setIsMobileCoursesOpen(false);
+    setIsDesktopCoursesOpen(false);
+    setShowCredits(false);
+    setShowFeedbackHub(true);
   };
 
   const handleOpenCredits = () => {
-    withViewTransition(() => {
-      setIsProfileOpen(false);
-      setIsMobileCoursesOpen(false);
-      setIsDesktopCoursesOpen(false);
-      setShowFeedbackHub(false);
-      setShowCredits(true);
-    });
+    setIsProfileOpen(false);
+    setIsMobileCoursesOpen(false);
+    setIsDesktopCoursesOpen(false);
+    setShowFeedbackHub(false);
+    setShowCredits(true);
   };
 
   const handleSaveAcademicProfile = async (values: AcademicProfileFormValues) => {
@@ -1153,7 +1136,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
             aria-controls={isProfileOpen ? 'academic-profile-drawer' : undefined}
             className="flex min-w-0 shrink items-center gap-2 text-left text-base font-black tracking-tight text-[#172554] transition-opacity hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#172554] sm:text-xl"
           >
-            <span className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-[9px] bg-[#172554] text-blue-100 shadow-sm">
+            <span className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-[#172554] text-blue-100">
               <span className="text-sm font-black tracking-[-0.12em]" aria-hidden="true">CC</span>
               <span className="absolute bottom-1.5 h-0.5 w-2 rounded-full bg-cyan-300" aria-hidden="true" />
             </span>
@@ -1178,7 +1161,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
           <nav className="hidden md:flex items-center gap-4 text-xs font-bold uppercase tracking-wider text-[#172554]">
             <button
               type="button"
-              onClick={() => withViewTransition(() => { setIsDesktopCoursesOpen(false); setShowFeedbackHub(false); setShowCredits(false); setActiveTab('calculator'); })}
+              onClick={() => { setIsDesktopCoursesOpen(false); setShowFeedbackHub(false); setShowCredits(false); setActiveTab('calculator'); }}
               aria-label="Assessment Calculator"
               className={`transition-colors flex items-center gap-2 py-1 cursor-pointer ${
                 activeTab === 'calculator'
@@ -1191,12 +1174,12 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
             </button>
             <button
               type="button"
-              onClick={() => withViewTransition(() => {
+              onClick={() => {
                 setIsMobileCoursesOpen(false);
                 setShowFeedbackHub(false);
                 setShowCredits(false);
                 setIsDesktopCoursesOpen(true);
-              })}
+              }}
               aria-label="Courses"
               className={`transition-colors flex items-center gap-2 py-1 cursor-pointer ${
                 isDesktopCoursesOpen
@@ -1210,7 +1193,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
             </button>
             <button
               type="button"
-              onClick={() => withViewTransition(() => { setIsDesktopCoursesOpen(false); setShowFeedbackHub(false); setShowCredits(false); setActiveTab('grades'); })}
+              onClick={() => { setIsDesktopCoursesOpen(false); setShowFeedbackHub(false); setShowCredits(false); setActiveTab('grades'); }}
               aria-label="Grading System"
               className={`transition-colors flex items-center gap-2 py-1 cursor-pointer ${
                 activeTab === 'grades'
@@ -1223,7 +1206,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
             </button>
             <button
               type="button"
-              onClick={() => withViewTransition(() => { setIsDesktopCoursesOpen(false); setShowFeedbackHub(false); setShowCredits(false); setActiveTab('gpa'); })}
+              onClick={() => { setIsDesktopCoursesOpen(false); setShowFeedbackHub(false); setShowCredits(false); setActiveTab('gpa'); }}
             aria-label="GPA Calculator"
             className={`transition-colors flex items-center gap-2 py-1 cursor-pointer ${activeTab === 'gpa' ? 'text-[#172554] font-black border-b-2 border-[#172554]' : 'text-slate-600 hover:text-[#172554]'}`}
             >
@@ -1292,6 +1275,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
       {!showFeedbackHub && !showCredits && activeTab === 'calculator' && isEditorOpen && hasSubjectSelected && (
         hasCalculatedCurrentSubject ? (
           <StickyResultSummary
+            key={currentSubject.id}
             placement="desktop"
             subjectName={currentSubject.name}
             total={breakdown.total}
@@ -1302,13 +1286,13 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
             onSummary={scrollToSummary}
           />
         ) : (
-          <div className="hidden border-b border-slate-200 bg-white px-4 py-2 text-sm font-black text-[#172554] md:block" role="status" aria-live="polite" aria-label="Current subject">
+          <div key={currentSubject.id} className="hidden border-b border-slate-200 bg-white px-4 py-2 text-sm font-black text-[#172554] animate-[sticky-result-in_160ms_ease-out] md:block" role="status" aria-live="polite" aria-label="Current subject">
             {currentSubject.name}
           </div>
         )
       )}
       {!showFeedbackHub && !showCredits && activeTab === 'calculator' && isEditorOpen && hasSubjectSelected && !hasCalculatedCurrentSubject && (
-        <div className="border-b border-slate-200 bg-white px-3 py-2 text-xs font-black text-[#172554] md:hidden" role="status" aria-live="polite" aria-label="Current subject">
+        <div key={currentSubject.id} className="border-b border-slate-200 bg-white px-3 py-2 text-xs font-black text-[#172554] animate-[sticky-result-in_160ms_ease-out] md:hidden" role="status" aria-live="polite" aria-label="Current subject">
           {currentSubject.name}
         </div>
       )}
@@ -1316,6 +1300,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
 
       {!showFeedbackHub && !showCredits && activeTab === 'calculator' && isEditorOpen && hasSubjectSelected && hasCalculatedCurrentSubject && (
         <StickyResultSummary
+          key={currentSubject.id}
           placement="mobile"
           subjectName={currentSubject.name}
           total={breakdown.total}
@@ -1330,13 +1315,11 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
         activeTab={showFeedbackHub || showCredits ? null : activeTab}
         coursesOpen={isMobileCoursesOpen}
         onNavigate={(tab) => {
-          withViewTransition(() => {
-            setIsMobileCoursesOpen(false);
-            setIsDesktopCoursesOpen(false);
-            setShowFeedbackHub(false);
-            setShowCredits(false);
-            setActiveTab(tab);
-          });
+          setIsMobileCoursesOpen(false);
+          setIsDesktopCoursesOpen(false);
+          setShowFeedbackHub(false);
+          setShowCredits(false);
+          setActiveTab(tab);
         }}
         onToggleCourses={() => {
           setShowFeedbackHub(false);
@@ -1346,18 +1329,33 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
         coursesButtonRef={mobileCoursesButtonRef}
       />
 
+      {saveError && (
+        <div
+          className={`fixed inset-x-3 z-[100] flex items-start justify-between gap-3 rounded-xl border border-rose-300 bg-rose-50 p-3 text-sm text-rose-900 shadow-lg sm:inset-x-auto sm:right-6 sm:w-[min(28rem,calc(100vw-3rem))] ${
+            hasCalculatedCurrentSubject
+              ? 'bottom-[calc(12rem+env(safe-area-inset-bottom))] md:bottom-6'
+              : 'bottom-[calc(6.25rem+env(safe-area-inset-bottom))] md:bottom-6'
+          }`}
+          role="alert"
+          aria-live="assertive"
+        >
+          <span className="min-w-0 break-words">{saveError}</span>
+          <button
+            type="button"
+            onClick={() => setSaveError('')}
+            className="min-h-11 shrink-0 font-bold underline underline-offset-2"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
       {/* Main Content Area */}
       <main className={`flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 ${activeTab === 'calculator' && isEditorOpen && hasSubjectSelected && hasCalculatedCurrentSubject ? 'pb-[calc(12rem+env(safe-area-inset-bottom))]' : 'pb-[calc(7.5rem+env(safe-area-inset-bottom))]'} md:pb-8`}>
         {guestMode && !showCredits && (
           <div className="mb-5 border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950" role="status">
             <strong className="font-black">Guest session:</strong>{' '}
             Your courses and results exist only in memory and will be cleared when you reload or close this page.
-          </div>
-        )}
-        {saveError && !(activeTab === 'calculator' && isEditorOpen) && (
-          <div className="mb-5 flex items-start justify-between gap-3 border border-rose-200 bg-rose-50 p-3 text-sm text-rose-900" role="alert">
-            <span>{saveError}</span>
-            <button type="button" onClick={() => setSaveError('')} aria-label="Dismiss save error" className="font-bold underline">Dismiss</button>
           </div>
         )}
         {signOutError && (
@@ -1442,7 +1440,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
                   subject={currentSubject}
                   onResetToBlank={handleReset}
                 />
-              <div className="space-y-8">
+              <div className="space-y-5">
                 {/* Course Type Specification */}
                 <div>
                   <div className="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#172554] mb-2.5">
@@ -1739,12 +1737,6 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
                       </p>
                     )}
                   </div>
-                  {saveError && (
-                    <p className="flex items-start justify-between gap-3 border border-rose-200 bg-rose-50 p-3 text-sm text-rose-900" role="alert">
-                      <span>{saveError}</span>
-                      <button type="button" onClick={() => setSaveError('')} aria-label="Dismiss save error" className="font-bold underline">Dismiss</button>
-                    </p>
-                  )}
                 </div>
 
                 {/* Show the final marks and grade only after an explicit calculation. */}

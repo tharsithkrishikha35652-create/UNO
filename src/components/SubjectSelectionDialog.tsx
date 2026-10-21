@@ -635,7 +635,7 @@ export const SubjectSelectionDialog: React.FC<SubjectSelectionDialogProps> = ({
         }
       }}
     >
-      <div className="bg-white border border-slate-300 w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh]">
+      <div className="overlay-panel bg-white border border-slate-300 w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh]">
         {/* Dialog Header */}
         <div className="bg-[#172554] text-white px-5 py-3.5 flex items-center justify-between border-b border-[#172554]">
           <h2 id="dialog-title" className="text-sm font-black uppercase tracking-wider">

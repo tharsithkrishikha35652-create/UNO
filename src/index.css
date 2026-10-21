@@ -1,24 +1,41 @@
 @import "tailwindcss";
 
-@view-transition {
-  navigation: auto;
-}
-
 :root {
   color-scheme: light;
   accent-color: #1e3a8a;
+  --radius-control: 8px;
+  --radius-card: 12px;
+  --radius-overlay: 16px;
+  --shadow-surface: 0 1px 3px rgb(15 23 42 / 7%);
+  --shadow-overlay: 0 12px 32px rgb(15 23 42 / 18%);
+  --app-background: #f1f5f9;
+  --app-surface: #ffffff;
+  --app-primary-text: #172554;
+  --app-divider: #cbd5e1;
+  --app-control-border: #8696ab;
+  --app-muted-text: #546378;
+  --app-focus: #1e3a8a;
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
   accent-color: #93c5fd;
+  --app-background: #0b1220;
+  --app-surface: #111c30;
+  --app-primary-text: #e2e8f0;
+  --app-divider: #64748b;
+  --app-control-border: #5b6b82;
+  --app-muted-text: #94a3b8;
+  --app-focus: #93c5fd;
+  --shadow-surface: 0 1px 3px rgb(0 0 0 / 22%);
+  --shadow-overlay: 0 12px 32px rgb(0 0 0 / 38%);
 }
 
 @layer base {
   body, input, button, select, textarea {
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     color: #0f172a;
-    background-color: #f1f5f9;
+    background-color: var(--app-background);
     -webkit-font-smoothing: antialiased;
     font-variant-numeric: normal;
     font-feature-settings: "zero" 0;
@@ -35,6 +52,11 @@
 
   :where(input, select, textarea) {
     caret-color: #172554;
+  }
+
+  :where(input, textarea)::placeholder {
+    color: var(--app-muted-text);
+    opacity: 1;
   }
 
   input[type="number"] {
@@ -55,24 +77,92 @@
 
   :where(*::-webkit-scrollbar-thumb) {
     background: #94a3b8;
-    border: 3px solid #f1f5f9;
+    border: 3px solid var(--app-background);
   }
 
   :where(*::-webkit-scrollbar-track) {
-    background: #f1f5f9;
+    background: var(--app-background);
   }
 }
 
 :where(button, a, input, select, textarea, [tabindex]):focus-visible {
-  outline: 2px solid #172554;
+  outline: 2px solid var(--app-focus);
   outline-offset: 2px;
 }
 
 :where(input, select, textarea):focus {
-  outline: 2px solid #1e3a8a;
+  outline: 2px solid var(--app-focus);
   outline-offset: 1px;
-  border-color: #172554;
+  border-color: var(--app-focus);
   box-shadow: 0 0 0 3px rgb(30 58 138 / 18%);
+}
+
+:where(input, select, textarea).border-slate-200,
+:where(input, select, textarea).border-slate-300,
+:where(input, select, textarea).border-slate-400,
+:where(input, select, textarea)[class~="border-[#172554]"] {
+  border-color: var(--app-control-border);
+}
+
+.border-slate-200,
+.divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--app-divider);
+}
+
+.text-slate-500,
+.text-slate-600 {
+  color: var(--app-muted-text);
+}
+
+:where(input, select, textarea):disabled {
+  color: var(--app-muted-text);
+  border-color: var(--app-control-border);
+}
+
+#root :where(button):not([class~="rounded-full"]),
+#root :where(input, select, textarea) {
+  border-radius: var(--radius-control);
+}
+
+#root .rounded-md {
+  border-radius: var(--radius-control);
+}
+
+#root .rounded-lg,
+#root .rounded-xl,
+#root .rounded-2xl {
+  border-radius: var(--radius-card);
+}
+
+#root .shadow-sm:not(header):not(button) {
+  border-radius: var(--radius-card);
+}
+
+#root .shadow-sm,
+#root .shadow-md,
+#root .shadow-lg {
+  box-shadow: var(--shadow-surface);
+}
+
+#root .shadow-2xl,
+#root .shadow-overlay {
+  box-shadow: var(--shadow-overlay);
+}
+
+#root .overlay-panel {
+  border-radius: var(--radius-overlay);
+}
+
+#root [role="status"].shadow-lg {
+  box-shadow: var(--shadow-overlay);
+}
+
+#academic-profile-drawer {
+  border-radius: 0 var(--radius-overlay) var(--radius-overlay) 0;
+}
+
+#mobile-courses-sheet {
+  border-radius: var(--radius-overlay) var(--radius-overlay) 0 0;
 }
 
 input[type="number"] {
@@ -90,21 +180,18 @@ input[type="number"]::-webkit-outer-spin-button {
   font-feature-settings: "zero" 0;
 }
 
-[data-theme="dark"] body,
-[data-theme="dark"] input,
-[data-theme="dark"] button,
-[data-theme="dark"] select,
-[data-theme="dark"] textarea {
-  color: #e2e8f0;
-  background-color: #0b1220;
+[data-theme="dark"] body {
+  color: var(--app-primary-text);
+  background-color: var(--app-background);
 }
 
-[data-theme="dark"] body {
-  background-color: #0b1220;
+[data-theme="dark"] :where(input, select, textarea) {
+  color: var(--app-primary-text);
+  background-color: var(--app-surface);
 }
 
 [data-theme="dark"] .bg-white {
-  background-color: #111c2e;
+  background-color: var(--app-surface);
 }
 
 [data-theme="dark"] .bg-slate-50 {
@@ -137,12 +224,12 @@ input[type="number"]::-webkit-outer-spin-button {
 
 [data-theme="dark"] .border-slate-200,
 [data-theme="dark"] .divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
-  border-color: #263449;
+  border-color: var(--app-divider);
 }
 
 [data-theme="dark"] .border-slate-300,
 [data-theme="dark"] .border-slate-400 {
-  border-color: #3b4a60;
+  border-color: var(--app-control-border);
 }
 
 [data-theme="dark"] .border-blue-200 {
@@ -172,11 +259,11 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 [data-theme="dark"] .text-slate-600 {
-  color: #a8b5c8;
+  color: var(--app-muted-text);
 }
 
 [data-theme="dark"] .text-slate-500 {
-  color: #94a3b8;
+  color: var(--app-muted-text);
 }
 
 [data-theme="dark"] .text-slate-400 {
@@ -185,7 +272,7 @@ input[type="number"]::-webkit-outer-spin-button {
 
 [data-theme="dark"] [class~="text-[#172554]"],
 [data-theme="dark"] [class~="text-[#1e3a8a]"] {
-  color: #bfdbfe;
+  color: var(--app-primary-text);
 }
 
 [data-theme="dark"] .text-blue-800,
@@ -233,7 +320,18 @@ input[type="number"]::-webkit-outer-spin-button {
 
 [data-theme="dark"] input::placeholder,
 [data-theme="dark"] textarea::placeholder {
-  color: #94a3b8;
+  color: var(--app-muted-text);
+  opacity: 1;
+}
+
+[data-theme="dark"] :where(input, select, textarea)[class~="border-[#172554]"] {
+  border-color: var(--app-control-border);
+}
+
+[data-theme="dark"] :where(input, select, textarea):disabled {
+  color: var(--app-muted-text);
+  background-color: #172337;
+  border-color: var(--app-control-border);
   opacity: 1;
 }
 
@@ -248,11 +346,11 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 [data-theme="dark"] :where(button, a, input, select, textarea, [tabindex]):focus-visible {
-  outline-color: #93c5fd;
+  outline-color: var(--app-focus);
 }
 
 [data-theme="dark"] :where(input, select, textarea):focus {
-  border-color: #93c5fd;
+  border-color: var(--app-focus);
   box-shadow: 0 0 0 3px rgb(147 197 253 / 22%);
 }
 
@@ -275,119 +373,49 @@ input[type="number"]::-webkit-outer-spin-button {
   to { opacity: 1; }
 }
 
-@keyframes credits-profile-reveal {
-  from {
-    opacity: 0;
-    transform: translateY(0.4rem);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.credits-profile-reveal {
-  animation: credits-profile-reveal 420ms ease-out both;
-}
-
-.credits-profile-reveal-delay {
-  animation-delay: 90ms;
-}
-
-@keyframes app-surface-reveal {
-  from {
-    opacity: 0;
-    transform: translateY(0.35rem);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes app-panel-reveal {
-  from {
-    opacity: 0;
-    transform: translateY(0.25rem);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation-duration: 240ms;
-  animation-timing-function: ease-out;
-}
-
-::view-transition-old(root) {
-  animation-name: app-view-exit;
-}
-
-::view-transition-new(root) {
-  animation-name: app-view-enter;
-}
-
-@keyframes app-view-exit {
-  to {
-    opacity: 0;
-    transform: translateY(-0.25rem);
-  }
-}
-
-@keyframes app-view-enter {
-  from {
-    opacity: 0;
-    transform: translateY(0.25rem);
-  }
-}
-
-#root > :where(div, main).min-h-screen {
-  animation: app-surface-reveal 360ms ease-out both;
-}
-
-#root .shadow-sm {
-  animation: app-panel-reveal 320ms ease-out both;
-}
-
-#root :where(button, a, select, input, textarea) {
-  transition-property: color, background-color, border-color, box-shadow, opacity, transform;
-  transition-duration: 180ms;
-  transition-timing-function: ease-out;
+#root :where(button, a):not([aria-disabled="true"]):active {
+  transform: scale(0.99);
 }
 
 #root :where(button, a) {
-  animation: app-control-enter 260ms ease-out both;
+  transition: color 140ms ease-out, background-color 140ms ease-out, border-color 140ms ease-out, box-shadow 140ms ease-out, opacity 140ms ease-out, transform 140ms ease-out;
 }
 
-#root :where(button, a):not([aria-disabled="true"]):not([role="option"]):hover {
-  transform: translateY(-0.1rem);
+#root :where(input, select, textarea) {
+  transition: color 140ms ease-out, background-color 140ms ease-out, border-color 140ms ease-out, box-shadow 140ms ease-out;
 }
 
-#root :where(button):not([aria-disabled="true"]):not([role="option"]):hover {
-  box-shadow: 0 3px 8px rgb(15 23 42 / 12%);
+@keyframes courses-sheet-in {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
 }
 
-#root :where(a):not([aria-disabled="true"]):hover {
-  text-decoration-thickness: 2px;
-  text-underline-offset: 0.2em;
+@keyframes elective-options-expand {
+  from {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+  to {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
 }
 
-@keyframes app-control-enter {
+.elective-options-expansion {
+  display: grid;
+  grid-template-rows: 1fr;
+  animation: elective-options-expand 180ms ease-out both;
+}
+
+@keyframes sticky-result-in {
   from {
     opacity: 0;
-    transform: translateY(0.2rem);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-#root :where(button, a):not([aria-disabled="true"]):active {
-  transform: scale(0.98);
 }
 
 @media (max-width: 639px) {
@@ -415,8 +443,12 @@ input[type="number"]::-webkit-outer-spin-button {
   *::before,
   *::after {
     scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    animation: none !important;
+    transition: none !important;
   }
+
+  #root :where(button, a):active {
+    transform: none !important;
+  }
+
 }

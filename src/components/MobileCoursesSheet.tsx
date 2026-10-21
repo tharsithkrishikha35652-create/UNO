@@ -114,7 +114,7 @@ export const MobileCoursesSheet: React.FC<MobileCoursesSheetProps> = ({
         tabIndex={-1}
         aria-label="Close courses"
         onClick={onClose}
-        className="absolute inset-0 h-full w-full bg-slate-950/55"
+        className="absolute inset-0 h-full w-full bg-slate-950/55 animate-[profile-backdrop-in_180ms_ease-out]"
       />
       <section
         id="mobile-courses-sheet"
@@ -122,7 +122,7 @@ export const MobileCoursesSheet: React.FC<MobileCoursesSheetProps> = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="mobile-courses-title"
-        className="absolute inset-x-0 bottom-0 flex max-h-[85dvh] flex-col rounded-t-2xl border border-slate-300 bg-white shadow-2xl"
+        className="absolute inset-x-0 bottom-0 flex max-h-[85dvh] flex-col rounded-t-2xl border border-slate-300 bg-white shadow-2xl animate-[courses-sheet-in_220ms_cubic-bezier(0.16,1,0.3,1)]"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         <div className="flex justify-center pt-2" aria-hidden="true">
@@ -224,40 +224,42 @@ export const MobileCoursesSheet: React.FC<MobileCoursesSheetProps> = ({
                           </button>
                         )}
                         {expandedElectiveSlot === slot && (
-                          <>
-                            <div className="basis-full py-1">
-                              <p className="text-[10px] font-bold uppercase tracking-wide text-slate-600">
-                                Available in Semester {semester}
-                              </p>
-                              <p className="mt-0.5 text-[10px] text-slate-500">
-                                Only choices for this semester and slot are shown.
-                              </p>
+                          <div className="elective-options-expansion basis-full">
+                            <div className="min-h-0 overflow-hidden">
+                              <div className="py-1">
+                                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-600">
+                                  Available in Semester {semester}
+                                </p>
+                                <p className="mt-0.5 text-[10px] text-slate-500">
+                                  Only choices for this semester and slot are shown.
+                                </p>
+                              </div>
+                              <ul
+                                id={`elective-options-${slot.replace(/\s+/g, '-').toLowerCase()}`}
+                                className="space-y-1.5"
+                              >
+                                {(electiveOptions[slot] ?? []).map((option) => (
+                                  <li key={option.id}>
+                                    <button
+                                      type="button"
+                                      onClick={() => onSelectCourse(option)}
+                                      className={`flex min-h-12 w-full items-center justify-between gap-3 rounded-md border px-2.5 py-2 text-left focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[#172554] ${
+                                        option.id === course?.id
+                                          ? 'border-[#172554] bg-slate-50'
+                                          : 'border-slate-300 bg-white hover:bg-slate-50'
+                                      }`}
+                                    >
+                                      <span className="min-w-0">
+                                        <span className="block truncate text-sm font-semibold text-[#172554]">{option.name}</span>
+                                        <span className="block text-[11px] text-slate-600">{option.code} · {option.type}</span>
+                                      </span>
+                                      {option.id === course?.id && <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-700" aria-label="Selected" />}
+                                    </button>
+                                  </li>
+                                ))}
+                              </ul>
                             </div>
-                            <ul
-                              id={`elective-options-${slot.replace(/\s+/g, '-').toLowerCase()}`}
-                              className="basis-full space-y-1.5"
-                            >
-                              {(electiveOptions[slot] ?? []).map((option) => (
-                                <li key={option.id}>
-                                  <button
-                                    type="button"
-                                    onClick={() => onSelectCourse(option)}
-                                    className={`flex min-h-12 w-full items-center justify-between gap-3 rounded-md border px-2.5 py-2 text-left focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[#172554] ${
-                                      option.id === course?.id
-                                        ? 'border-[#172554] bg-slate-50'
-                                        : 'border-slate-300 bg-white hover:bg-slate-50'
-                                    }`}
-                                  >
-                                    <span className="min-w-0">
-                                      <span className="block truncate text-sm font-semibold text-[#172554]">{option.name}</span>
-                                      <span className="block text-[11px] text-slate-600">{option.code} · {option.type}</span>
-                                    </span>
-                                    {option.id === course?.id && <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-700" aria-label="Selected" />}
-                                  </button>
-                                </li>
-                              ))}
-                            </ul>
-                          </>
+                          </div>
                         )}
                       </li>
                     ))}

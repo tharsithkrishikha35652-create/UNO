@@ -185,7 +185,7 @@ export const AcademicSetupScreen: React.FC<AcademicSetupScreenProps> = ({ theme,
     <section className="mx-auto w-full max-w-3xl border border-slate-300 bg-white p-5 shadow-sm sm:p-8">
       <div className="mb-7 flex items-start justify-between gap-3 border-b border-slate-200 pb-5">
         <div className="flex min-w-0 items-start gap-3">
-          <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-[9px] bg-[#172554] text-blue-100 shadow-sm">
+          <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[#172554] text-blue-100">
             <span className="text-base font-black tracking-[-0.12em]" aria-hidden="true">CC</span>
             <span className="absolute bottom-1.5 h-0.5 w-2 rounded-full bg-cyan-300" aria-hidden="true" />
           </span>
@@ -303,7 +303,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="academic-profile-title"
-        className="absolute inset-y-0 left-0 flex h-full max-h-dvh w-[min(100%,26rem)] flex-col border-r border-slate-300 bg-white shadow-2xl animate-[profile-slide-in_220ms_cubic-bezier(0.16,1,0.3,1)]"
+        className="absolute inset-y-0 left-0 flex h-full max-h-dvh w-[min(100%,26rem)] flex-col rounded-r-2xl border-r border-slate-300 bg-white shadow-2xl animate-[profile-slide-in_220ms_cubic-bezier(0.16,1,0.3,1)]"
       >
         <header className="flex items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
           <div>

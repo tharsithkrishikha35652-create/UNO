@@ -7,6 +7,13 @@ interface ResultsSummaryPanelProps {
   subject: SubjectData;
 }
 
+interface MobileSummaryRow {
+  label: string;
+  weight?: string;
+  rawMarks: string;
+  contribution?: string;
+}
+
 export const ResultsSummaryPanel: React.FC<ResultsSummaryPanelProps> = ({
   breakdown,
   subject,
@@ -76,6 +83,59 @@ export const ResultsSummaryPanel: React.FC<ResultsSummaryPanelProps> = ({
   const lab2Sum = subject.lab2Scores
     .slice(0, lab2Count)
     .reduce<number>((acc, v) => acc + (v === '' || isNaN(Number(v)) ? 0 : Number(v)), 0);
+
+  const mobileSummaryRows: MobileSummaryRow[] = isUhvCourse
+    ? [
+        { label: 'One test', weight: '70%', rawMarks: `${Number(subject.test1 || 0).toFixed(2)} / ${test1MaxNum}`, contribution: `${breakdown.test1_p.toFixed(2)} / 70` },
+        { label: `Assignment 1 (${act1Count})`, weight: '15%', rawMarks: `${act1Sum.toFixed(2)} / ${act1Count * 10}`, contribution: `${breakdown.act1_p.toFixed(2)} / 15` },
+        { label: `Assignment 2 (${act2Count})`, weight: '15%', rawMarks: `${act2Sum.toFixed(2)} / ${act2Count * 10}`, contribution: `${breakdown.act2_p.toFixed(2)} / 15` },
+      ]
+    : isLaboratoryCourse
+      ? [
+          { label: 'Work, observation and record', weight: '45%', rawMarks: `${Number(subject.labCourseWorkMark || 0).toFixed(2)} / 100`, contribution: `${breakdown.lab1_p.toFixed(2)} / 45` },
+          { label: 'Midterm practical test', weight: '15%', rawMarks: `${Number(subject.labCourseMidtermMark || 0).toFixed(2)} / 100`, contribution: `${breakdown.test1_p.toFixed(2)} / 15` },
+          { label: 'End-semester practical', weight: '40%', rawMarks: `${Number(subject.labCourseExamMark || 0).toFixed(2)} / 100`, contribution: `${breakdown.ese_p.toFixed(2)} / 40` },
+        ]
+      : isSelfLearningCourse
+        ? [{
+            label: subject.name || 'Self-Learning Course',
+            weight: `Pass threshold: ${Number(subject.selfLearningPassMark) === 40 ? 40 : 50}%`,
+            rawMarks: `${Number(subject.ese || 0).toFixed(2)} / 100`,
+            contribution: `Indicative grade: ${breakdown.grade.letter}`,
+          }]
+        : hasProjectWorkComponents
+          ? projectWorkComponents.map((component) => ({
+              label: component.label,
+              weight: `${component.weight}%`,
+              rawMarks: `${component.score.toFixed(2)} / 100`,
+              contribution: `${component.contribution.toFixed(2)} / ${component.weight}`,
+            }))
+          : [
+              ...(testWeight > 0 ? [
+                { label: assessmentOneName, weight: `${testWeight}%`, rawMarks: `${Number(subject.test1 || 0).toFixed(2)} / ${test1MaxNum}`, contribution: `${breakdown.test1_p.toFixed(2)} / ${testWeight}` },
+                { label: assessmentTwoName, weight: `${testWeight}%`, rawMarks: `${Number(subject.test2 || 0).toFixed(2)} / ${test2MaxNum}`, contribution: `${breakdown.test2_p.toFixed(2)} / ${testWeight}` },
+              ] : []),
+              ...(actWeight > 0 ? [
+                { label: `${isHeritageCourse ? 'Activity' : isSelfDevelopment ? 'Activities' : 'Assignments'} 1`, weight: `${actWeight}%`, rawMarks: `${act1Sum.toFixed(2)} / ${act1Count * 10}`, contribution: `${breakdown.act1_p.toFixed(2)} / ${actWeight}` },
+                { label: `${isHeritageCourse ? 'Activity' : isSelfDevelopment ? 'Activities' : 'Assignments'} 2`, weight: `${actWeight}%`, rawMarks: `${act2Sum.toFixed(2)} / ${act2Count * 10}`, contribution: `${breakdown.act2_p.toFixed(2)} / ${actWeight}` },
+              ] : []),
+              ...(hasLab ? [
+                { label: 'Lab practicals 1', weight: `${labWeight}%`, rawMarks: `${lab1Sum.toFixed(2)} / ${lab1Count * 10}`, contribution: `${breakdown.lab1_p.toFixed(2)} / ${labWeight}` },
+                { label: 'Lab practicals 2', weight: `${labWeight}%`, rawMarks: `${lab2Sum.toFixed(2)} / ${lab2Count * 10}`, contribution: `${breakdown.lab2_p.toFixed(2)} / ${labWeight}` },
+              ] : []),
+              ...(eseTheoryWeight > 0 ? [{
+                label: 'ESE Theory Exam',
+                weight: `${eseTheoryWeight}%`,
+                rawMarks: `${Number(subject.ese || 0).toFixed(2)} / 100`,
+                contribution: `${breakdown.ese_theory_p.toFixed(2)} / ${eseTheoryWeight.toFixed(2)}`,
+              }] : []),
+              ...(eseLabWeight > 0 ? [{
+                label: isSelfDevelopment ? 'ESE Practical Exam' : 'ESE Lab Practical Exam',
+                weight: `${eseLabWeight}%`,
+                rawMarks: `${Number(subject.eseLab || 0).toFixed(2)} / ${eseLabMaxNum}`,
+                contribution: `${breakdown.ese_lab_p.toFixed(2)} / ${eseLabWeight.toFixed(2)}`,
+              }] : []),
+            ];
 
   const handleCopy = () => {
     if (isUhvCourse) {
@@ -260,8 +320,25 @@ FINAL GRADE: Grade ${breakdown.grade.letter} - ${breakdown.grade.label} | Grade 
         </div>
       </div>
 
+      <section className="mb-5 overflow-hidden rounded-xl border border-slate-200 bg-white sm:hidden" aria-label="Marks breakdown">
+        <div className="divide-y divide-slate-200">
+          {mobileSummaryRows.map((row, index) => (
+            <div key={`${row.label}-${index}`} className="flex min-w-0 items-start justify-between gap-3 px-3 py-2.5">
+              <div className="min-w-0">
+                <p className="break-words text-sm font-bold text-[#172554]">{row.label}</p>
+                <p className="mt-0.5 text-xs text-slate-600 tabular-nums">Marks: {row.rawMarks}</p>
+              </div>
+              <div className="shrink-0 text-right">
+                {row.weight && <p className="text-xs font-semibold text-[#1e3a8a]">{row.weight}</p>}
+                {row.contribution && <p className="text-sm font-black text-[#172554] tabular-nums">{row.contribution}</p>}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {isUhvCourse ? (
-      <div className="overflow-x-auto border border-slate-200 bg-white">
+      <div className="hidden overflow-x-auto border border-slate-200 bg-white sm:block">
         <table className="w-full min-w-[440px] border-collapse text-left text-sm">
           <thead className="bg-[#172554] text-white text-xs uppercase tracking-wide"><tr><th className="px-4 py-3">Continuous assessment component</th><th className="px-4 py-3 text-center">Weight</th><th className="px-4 py-3 text-right">Raw marks</th><th className="px-4 py-3 text-right">Contribution</th></tr></thead>
           <tbody className="divide-y divide-slate-200">
@@ -273,7 +350,7 @@ FINAL GRADE: Grade ${breakdown.grade.letter} - ${breakdown.grade.label} | Grade 
         </table>
       </div>
       ) : isLaboratoryCourse ? (
-      <div className="overflow-x-auto border border-slate-200 bg-white">
+      <div className="hidden overflow-x-auto border border-slate-200 bg-white sm:block">
         <table className="w-full min-w-[500px] border-collapse text-left text-sm">
           <thead className="bg-[#172554] text-white text-xs uppercase tracking-wide"><tr><th className="px-4 py-3">Assessment component</th><th className="px-4 py-3 text-center">Weight</th><th className="px-4 py-3 text-right">Raw marks</th><th className="px-4 py-3 text-right">Contribution</th></tr></thead>
           <tbody className="divide-y divide-slate-200">
@@ -285,7 +362,7 @@ FINAL GRADE: Grade ${breakdown.grade.letter} - ${breakdown.grade.label} | Grade 
         </table>
       </div>
       ) : isSelfLearningCourse ? (
-      <div className="overflow-x-auto border border-slate-200 bg-white">
+      <div className="hidden overflow-x-auto border border-slate-200 bg-white sm:block">
         <table className="w-full min-w-[440px] border-collapse text-left text-sm">
           <thead className="bg-[#172554] text-white text-xs uppercase tracking-wide">
             <tr><th className="px-4 py-3">Provider result</th><th className="px-4 py-3 text-center">Pass mark</th><th className="px-4 py-3 text-right">Entered score</th><th className="px-4 py-3 text-right">Indicative grade</th></tr>
@@ -301,7 +378,7 @@ FINAL GRADE: Grade ${breakdown.grade.letter} - ${breakdown.grade.label} | Grade 
         </table>
       </div>
       ) : hasProjectWorkComponents ? (
-      <div className="border border-slate-200 bg-white overflow-x-auto">
+      <div className="hidden border border-slate-200 bg-white overflow-x-auto sm:block">
         <table className="min-w-[560px] w-full text-left border-collapse text-xs sm:text-sm">
           <thead>
             <tr className="bg-[#172554] text-white text-[11px] sm:text-xs uppercase tracking-wider font-extrabold">
@@ -344,7 +421,7 @@ FINAL GRADE: Grade ${breakdown.grade.letter} - ${breakdown.grade.label} | Grade 
       </div>
       ) : (
       /* Complete Organized Marks Distribution Table - horizontally scrollable on mobile */
-      <div className="border border-slate-200 bg-white overflow-x-auto">
+      <div className="hidden border border-slate-200 bg-white overflow-x-auto sm:block">
         <table className="min-w-[560px] w-full text-left border-collapse text-xs sm:text-sm">
           <thead>
             <tr className="bg-[#172554] text-white text-[11px] sm:text-xs uppercase tracking-wider font-extrabold border-b-2 border-[#172554]">

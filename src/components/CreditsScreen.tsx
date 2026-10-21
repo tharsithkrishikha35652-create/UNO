@@ -48,7 +48,7 @@ export const CreditsScreen: React.FC = () => (
       {developers.map(({ name, role, RoleIcon, department, registration, links }, index) => (
         <article
           key={name}
-          className={`credits-profile-reveal ${index === 1 ? 'credits-profile-reveal-delay' : ''} min-w-0 border-b border-slate-200 border-l-2 border-l-[#172554] py-3 pl-3 last:border-b-0 md:border-b-0 md:py-4 md:first:pr-8 md:last:border-l md:last:border-l-[#172554] md:last:pl-8`}
+          className="min-w-0 border-b border-slate-200 border-l-2 border-l-[#172554] py-3 pl-3 last:border-b-0 md:border-b-0 md:py-4 md:first:pr-8 md:last:border-l md:last:border-l-[#172554] md:last:pl-8"
         >
           <div className="min-w-0">
               <h2 className="break-words text-lg font-semibold leading-snug tracking-[-0.02em] text-[#172554] sm:text-xl">{name}</h2>

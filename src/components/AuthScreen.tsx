@@ -126,7 +126,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
       <section className="w-full max-w-md bg-white border border-slate-300 shadow-sm">
         <div className="bg-[#172554] text-white px-5 py-5 flex items-center justify-between gap-3 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-[9px] bg-white text-[#172554] shadow-sm">
+            <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-white text-[#172554]">
               <span className="text-base font-black tracking-[-0.12em]" aria-hidden="true">CC</span>
               <span className="absolute bottom-1.5 h-0.5 w-2 rounded-full bg-cyan-500" aria-hidden="true" />
             </div>

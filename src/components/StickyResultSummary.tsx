@@ -26,8 +26,8 @@ export const StickyResultSummary: React.FC<StickyResultSummaryProps> = ({
     aria-label={`${subjectName} calculated result`}
     aria-live="polite"
     className={placement === 'desktop'
-      ? 'hidden items-center justify-between gap-4 border-b border-slate-200 bg-white px-4 py-2.5 md:flex'
-      : 'fixed inset-x-0 bottom-[calc(6.5rem+env(safe-area-inset-bottom))] z-30 border-t border-slate-300 bg-white px-3 py-2.5 shadow-[0_-8px_24px_rgba(15,23,42,0.12)] md:hidden'}
+      ? 'hidden items-center justify-between gap-4 border-b border-slate-200 bg-white px-4 py-2.5 animate-[sticky-result-in_160ms_ease-out] md:flex'
+      : 'fixed inset-x-0 bottom-[calc(6.5rem+env(safe-area-inset-bottom))] z-30 border-t border-slate-300 bg-white px-3 py-2.5 shadow-overlay animate-[sticky-result-in_160ms_ease-out] md:hidden'}
   >
     <div className={placement === 'desktop' ? 'flex min-w-0 items-center gap-4' : 'min-w-0'}>
       <p className="truncate text-sm font-black text-[#172554]" title={subjectName}>{subjectName}</p>
