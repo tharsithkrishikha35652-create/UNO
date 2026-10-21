@@ -416,7 +416,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
   const [migrationResolved, setMigrationResolved] = useState(false);
   const [migrationBusy, setMigrationBusy] = useState(false);
   const [migrationError, setMigrationError] = useState('');
-  const [calculationBusy, setCalculationBusy] = useState(false);
+  const [calculationState, setCalculationState] = useState<'idle' | 'calculating' | 'saving' | 'success' | 'error'>('idle');
   const persistedSubjectsRef = useRef<Map<string, string>>(new Map());
   const persistQueueRef = useRef<Promise<void>>(Promise.resolve());
   const preferencesQueueRef = useRef<Promise<void>>(Promise.resolve());
@@ -874,7 +874,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
   };
 
   const handleCalculateMarks = async () => {
-    if (calculationBusy) return;
+    if (calculationState === 'calculating' || calculationState === 'saving') return;
     const revisionAtStart = calculationRevisionRef.current;
     const subjectIdAtStart = currentSubjectId;
     const subjectSnapshot: SubjectData = {
@@ -942,10 +942,11 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
       return;
     }
 
-    setCalculationBusy(true);
+    setCalculationState('calculating');
     setSaveError('');
     try {
       if (user) {
+        setCalculationState('saving');
         const syncTask = persistQueueRef.current.then(async () => {
           const latestSnapshots = await syncUserSubjects(
             user.uid,
@@ -982,11 +983,11 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
         setCalculatedSignatures((previous) => ({ ...previous, [subjectIdAtStart]: inputSignature }));
         setSaveError('');
       }
+      setCalculationState('success');
     } catch (error) {
       console.error('Unable to save calculated grade:', error);
+      setCalculationState('error');
       setSaveError('The latest marks or result could not be saved. Check your connection and recalculate.');
-    } finally {
-      setCalculationBusy(false);
     }
   };
 
@@ -1315,7 +1316,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
       />
 
       {/* Main Content Area */}
-      <main className={`flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 ${activeTab === 'calculator' && isEditorOpen && hasSubjectSelected && hasCalculatedCurrentSubject ? 'pb-[calc(12rem+env(safe-area-inset-bottom))]' : 'pb-[calc(5.5rem+env(safe-area-inset-bottom))]'} md:pb-8`}>
+      <main className={`flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 ${activeTab === 'calculator' && isEditorOpen && hasSubjectSelected && hasCalculatedCurrentSubject ? 'pb-[calc(12rem+env(safe-area-inset-bottom))]' : 'pb-[calc(7.5rem+env(safe-area-inset-bottom))]'} md:pb-8`}>
         {guestMode && !showCredits && (
           <div className="mb-5 border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950" role="status">
             <strong className="font-black">Guest session:</strong>{' '}
@@ -1661,19 +1662,27 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
                     <button
                       type="button"
                       onClick={() => void handleCalculateMarks()}
-                      disabled={calculationBusy}
+                      disabled={calculationState === 'calculating' || calculationState === 'saving'}
                       className="inline-flex items-center justify-center gap-2 px-5 py-3 text-xs font-bold uppercase tracking-wider bg-[#172554] text-white hover:bg-[#1e3a8a] disabled:opacity-60 transition-colors cursor-pointer"
                     >
-                      {calculationBusy ? <LoaderCircle className="w-4 h-4 animate-spin" aria-hidden="true" /> : <Calculator className="w-4 h-4" aria-hidden="true" />}
-                      {calculationBusy ? 'Saving result…' : hasCalculatedCurrentSubject ? 'Recalculate Mark & Grade' : 'Calculate Mark & Grade'}
+                      {calculationState === 'calculating' || calculationState === 'saving' ? <LoaderCircle className="w-4 h-4 animate-spin" aria-hidden="true" /> : <Calculator className="w-4 h-4" aria-hidden="true" />}
+                      {calculationState === 'calculating'
+                        ? 'Calculating result…'
+                        : calculationState === 'saving'
+                          ? 'Saving result…'
+                          : hasCalculatedCurrentSubject
+                            ? 'Recalculate Mark & Grade'
+                            : 'Calculate Mark & Grade'}
                     </button>
-                    {['project', 'project-work'].includes(currentCourseType) && (calculationBusy || hasCalculatedCurrentSubject) && (
+                    {(calculationState === 'calculating' || calculationState === 'saving' || (calculationState === 'success' && hasCalculatedCurrentSubject)) && (
                       <p className="text-xs font-semibold text-slate-600" role="status" aria-live="polite">
-                        {calculationBusy
-                          ? 'Saving Project Work result…'
+                        {calculationState === 'calculating'
+                          ? 'Calculating result…'
+                          : calculationState === 'saving'
+                            ? 'Saving result to your account…'
                           : guestMode
-                            ? 'Project Work result is calculated for this temporary session only.'
-                            : 'Project Work result is saved to your account.'}
+                              ? 'Result calculated for this temporary session only.'
+                              : 'Result calculated and saved to your account.'}
                       </p>
                     )}
                   </div>
@@ -1766,6 +1775,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
             initialSemester={selectedSemester ?? 1}
             includeEstimates={includeEstimates}
             estimatePercentage={estimatePercentage}
+            guestMode={guestMode}
           />
         )}
 </main>

@@ -187,6 +187,7 @@ interface GPACalculatorProps {
   initialSemester: number;
   includeEstimates: boolean;
   estimatePercentage: number;
+  guestMode: boolean;
 }
 
 export const GPACalculator: React.FC<GPACalculatorProps> = ({
@@ -197,14 +198,22 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
   initialSemester,
   includeEstimates,
   estimatePercentage,
+  guestMode,
 }) => {
-  const [calculatedSubjects, setCalculatedSubjects] = useState<SubjectData[] | null>(null);
+  const [calculatedInputSignature, setCalculatedInputSignature] = useState<string | null>(null);
+  const [calculationState, setCalculationState] = useState<'idle' | 'calculating' | 'saving' | 'success' | 'error'>('idle');
   const selectedSemester = initialSemester;
-  const [isSaving, setIsSaving] = useState(false);
   const [calculationError, setCalculationError] = useState('');
   const semesterCourses = GPA_COURSES.filter((course) => course.semester === selectedSemester);
   const gpaReady = isGpaReady(subjects, includeEstimates, selectedSemester, calculatedSignatures);
-  const hasCalculated = gpaReady && calculatedSubjects === subjects;
+  const inputSignature = JSON.stringify({
+    semester: selectedSemester,
+    subjects,
+    includeEstimates,
+    estimatePercentage,
+  });
+  const isBusy = calculationState === 'calculating' || calculationState === 'saving';
+  const hasCalculated = gpaReady && calculatedInputSignature === inputSignature && calculationState === 'success';
   const rows = semesterCourses.map((course) => {
     const subject = findCourseSubject(subjects, course);
     const complete = Boolean(subject && (
@@ -235,8 +244,9 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
   const completedCourses = rows.filter((row) => row.complete).length;
   const totalSemesterCourses = rows.length;
   const handleCalculateGpa = async () => {
-    if (!gpaReady || isSaving) return;
-    setIsSaving(true);
+    if (!gpaReady || isBusy) return;
+    setCalculatedInputSignature(null);
+    setCalculationState('calculating');
     setCalculationError('');
     try {
       const entry: GpaHistoryEntry = {
@@ -259,12 +269,13 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
           gradePoint: row.gradePoint ?? 0,
         })),
       };
+      setCalculationState(guestMode ? 'calculating' : 'saving');
       await onCalculate(entry);
-      setCalculatedSubjects(subjects);
+      setCalculatedInputSignature(inputSignature);
+      setCalculationState('success');
     } catch {
+      setCalculationState('error');
       setCalculationError('Could not save GPA history. Check your connection and try again.');
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -338,13 +349,24 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
           <button
             type="button"
             onClick={handleCalculateGpa}
-            disabled={!gpaReady || isSaving}
+            disabled={!gpaReady || isBusy}
             className="inline-flex items-center justify-center gap-2 px-5 py-3 text-xs font-bold uppercase tracking-wider bg-[#172554] text-white hover:bg-[#1e3a8a] disabled:bg-slate-300 disabled:text-slate-600 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
             <GraduationCap className="w-4 h-4" aria-hidden="true" />
-            {isSaving ? 'Saving…' : 'Calculate GPA'}
+            {calculationState === 'calculating'
+              ? 'Calculating GPA…'
+              : calculationState === 'saving'
+                ? 'Saving result…'
+                : hasCalculated
+                  ? 'Recalculate GPA'
+                  : 'Calculate GPA'}
           </button>
         </div>
+        {calculationState === 'success' && hasCalculated && (
+          <p className="border-t border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900" role="status">
+            {guestMode ? 'GPA calculated for this temporary session.' : 'GPA calculated and saved to your account.'}
+          </p>
+        )}
         {calculationError && <p className="border-t border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900" role="alert">{calculationError}</p>}
       </div>
 

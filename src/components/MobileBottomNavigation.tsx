@@ -32,8 +32,7 @@ export const MobileBottomNavigation: React.FC<MobileBottomNavigationProps> = ({
 }) => (
   <nav
     aria-label="Mobile navigation"
-    className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-slate-300 bg-white md:hidden"
-    style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+    className="fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 grid grid-cols-4 overflow-hidden rounded-2xl border border-slate-300 bg-white/95 shadow-[0_10px_30px_rgba(15,23,42,0.18)] backdrop-blur-sm md:hidden"
   >
     {destinations.map(({ label, tab, Icon }) => {
       const isActive = tab === null ? coursesOpen : activeTab === tab;
