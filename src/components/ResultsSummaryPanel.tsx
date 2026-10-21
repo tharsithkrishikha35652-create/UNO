@@ -416,7 +416,7 @@ FINAL GRADE: Grade ${breakdown.grade.letter} - ${breakdown.grade.label} | Grade 
             {/* CA 1 Subtotal */}
             <tr className="bg-slate-50 font-bold border-b border-[#172554]">
               <td colSpan={2} className="py-2 px-3 sm:px-4 font-black text-[#172554] uppercase text-[11px] sm:text-xs">
-                {isIndustryOrientedTests ? 'Mid Term Test Total' : isStandardsCourse ? 'Standards Test I Total' : isAuditCourse ? 'Audit Test I Total' : isHeritageCourse ? 'Heritage Test I Total' : 'CA 1 Subtotal'}
+                {isIndustryOrientedTests ? 'Mid Term Test Total' : isStandardsCourse ? 'Standards Test I Total' : isAuditCourse ? 'Audit Test I Total' : isHeritageCourse ? 'Heritage Assessment I Total' : 'CA 1 Subtotal'}
               </td>
               <td className="py-2 px-3 text-right text-[#172554] font-bold text-[11px]">—</td>
               <td className="py-2 px-3 sm:px-4 text-right font-black text-[#172554] tabular-nums whitespace-nowrap">
@@ -486,7 +486,7 @@ FINAL GRADE: Grade ${breakdown.grade.letter} - ${breakdown.grade.label} | Grade 
             {/* CA 2 Subtotal */}
             <tr className="bg-slate-50 font-bold border-b border-[#172554]">
               <td colSpan={2} className="py-2 px-3 sm:px-4 font-black text-[#172554] uppercase text-[11px] sm:text-xs">
-                {isIndustryOrientedTests ? 'End Course Test Total' : isStandardsCourse ? 'Standards Test II Total' : isAuditCourse ? 'Audit Test II Total' : isHeritageCourse ? 'Heritage Test II Total' : 'CA 2 Subtotal'}
+                {isIndustryOrientedTests ? 'End Course Test Total' : isStandardsCourse ? 'Standards Test II Total' : isAuditCourse ? 'Audit Test II Total' : isHeritageCourse ? 'Heritage Assessment II Total' : 'CA 2 Subtotal'}
               </td>
               <td className="py-2 px-3 text-right text-[#172554] font-bold text-[11px]">—</td>
               <td className="py-2 px-3 sm:px-4 text-right font-black text-[#172554] tabular-nums whitespace-nowrap">

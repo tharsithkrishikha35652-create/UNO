@@ -17,7 +17,9 @@ interface ContinuousAssessmentSectionProps {
   isTwoTestCourse?: boolean;
   isSingleAssessment?: boolean;
   minimumActivityCount?: number;
+  maximumActivityCount?: number;
   activityTitle?: string;
+  activityScoreLabel?: string;
 
   actNo: number | string;
   onActNoChange: (val: number | string) => void;
@@ -55,7 +57,9 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
   isTwoTestCourse = false,
   isSingleAssessment = false,
   minimumActivityCount = 0,
+  maximumActivityCount = 20,
   activityTitle,
+  activityScoreLabel,
   actNo,
   onActNoChange,
   actScores,
@@ -276,7 +280,8 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
             caName={`CA ${number}`}
             estimatedMarks={estimatedMarks}
             minimumCount={minimumActivityCount}
-            itemLabel={activityTitle === 'Heritage Activity' ? 'Activity' : undefined}
+            maximumCount={maximumActivityCount}
+            scoreLabel={activityScoreLabel}
           />
         </div>}
 

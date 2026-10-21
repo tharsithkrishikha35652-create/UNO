@@ -124,7 +124,7 @@ const COURSE_WEIGHTS: Record<CourseType, Omit<CourseWeights, 'courseType' | 'caM
   '3+4': { courseTypeLabel: '3-0-4 LIT', testWeight: 15, actWeight: 2.5, labWeight: 7.5, eseTheoryWeight: 40, eseLabWeight: 10 },
   '1-0-4': { courseTypeLabel: '1-0-4 LIT', testWeight: 5, actWeight: 2.5, labWeight: 17.5, eseTheoryWeight: 0, eseLabWeight: 50 },
   '1+4': { courseTypeLabel: '1-0-4 LIT', testWeight: 5, actWeight: 2.5, labWeight: 17.5, eseTheoryWeight: 0, eseLabWeight: 50 },
-  // Theory-only courses (Heritage of Tamils, Calculus, Fundamentals of Electrical and Electronics Engineering):
+  // Theory-only courses (Calculus, Fundamentals of Electrical and Electronics Engineering):
   // 100 = ESE 60 + Internals 40; Internals = CA1 20 + CA2 20; each CA = Test 16 + Activities 4
   theory: { courseTypeLabel: 'Theory Only', testWeight: 16, actWeight: 4, labWeight: 0, eseTheoryWeight: 60, eseLabWeight: 0 },
   // Project / internship evaluation per the university regulation table:

@@ -41,6 +41,8 @@ import { StickyResultSummary } from './components/StickyResultSummary';
 import { ThemeToggle, type AppTheme } from './components/ThemeToggle';
 import { GPA_COURSES } from './gpaCourses';
 import { AuthScreen } from './components/AuthScreen';
+import { FeedbackHub } from './components/FeedbackHub';
+import { CreditsScreen } from './components/CreditsScreen';
 import { auth, firebaseConfigReady } from './firebase';
 import {
   importLegacySubjects,
@@ -65,6 +67,20 @@ import {
 
 const LEGACY_STORAGE_KEY = 'ca_ese_calculator_sem1_user_selected_v18';
 const THEME_STORAGE_KEY = 'calcredit_theme';
+const GOOGLE_ACCOUNT_SELECTION_KEY = 'calcredit_choose_google_account_after_signout';
+
+const withViewTransition = (update: () => void) => {
+  const viewTransitionDocument = document as Document & {
+    startViewTransition?: (callback: () => void) => unknown;
+  };
+
+  if (viewTransitionDocument.startViewTransition) {
+    viewTransitionDocument.startViewTransition(update);
+    return;
+  }
+
+  update();
+};
 
 function getInitialTheme(): AppTheme {
   try {
@@ -230,6 +246,13 @@ export default function App() {
   const [theme, setTheme] = useState<AppTheme>(getInitialTheme);
   const [authResolved, setAuthResolved] = useState(false);
   const [authError, setAuthError] = useState('');
+  const [forceGoogleAccountSelection, setForceGoogleAccountSelection] = useState(() => {
+    try {
+      return window.localStorage.getItem(GOOGLE_ACCOUNT_SELECTION_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  });
   const [signOutPending, setSignOutPending] = useState(false);
   const [signOutError, setSignOutError] = useState('');
 
@@ -255,6 +278,14 @@ export default function App() {
       auth,
       (nextUser) => {
         setUser(nextUser);
+        if (nextUser) {
+          setForceGoogleAccountSelection(false);
+          try {
+            window.localStorage.removeItem(GOOGLE_ACCOUNT_SELECTION_KEY);
+          } catch (error) {
+            console.error('Unable to clear Google account selection preference:', error);
+          }
+        }
         setAuthResolved(true);
         setAuthError('');
         setSignOutPending(false);
@@ -271,10 +302,22 @@ export default function App() {
     if (!auth || signOutPending) return;
     setSignOutPending(true);
     setSignOutError('');
+    setForceGoogleAccountSelection(true);
+    try {
+      window.localStorage.setItem(GOOGLE_ACCOUNT_SELECTION_KEY, 'true');
+    } catch (error) {
+      console.error('Unable to save Google account selection preference:', error);
+    }
     try {
       await signOut(auth);
     } catch (error) {
       console.error('Unable to sign out:', error);
+      setForceGoogleAccountSelection(false);
+      try {
+        window.localStorage.removeItem(GOOGLE_ACCOUNT_SELECTION_KEY);
+      } catch (storageError) {
+        console.error('Unable to clear Google account selection preference:', storageError);
+      }
       setSignOutError('Could not log out. Please try again.');
       setSignOutPending(false);
     }
@@ -307,6 +350,7 @@ export default function App() {
     return (
       <AuthScreen
         configurationError="Firebase is not configured. Account sign-in is unavailable, but you can continue as a guest."
+        forceGoogleAccountSelection={forceGoogleAccountSelection}
         onContinueAsGuest={handleContinueAsGuest}
         theme={theme}
         onToggleTheme={toggleTheme}
@@ -329,7 +373,7 @@ export default function App() {
     );
   }
 
-  if (!user) return <AuthScreen onContinueAsGuest={handleContinueAsGuest} theme={theme} onToggleTheme={toggleTheme} />;
+  if (!user) return <AuthScreen forceGoogleAccountSelection={forceGoogleAccountSelection} onContinueAsGuest={handleContinueAsGuest} theme={theme} onToggleTheme={toggleTheme} />;
 
   return (
     <AuthenticatedApp
@@ -351,11 +395,13 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
   const [profile, setProfile] = useState<AcademicProfileData | null>(null);
   const [currentSubjectId, setCurrentSubjectId] = useState('');
   const [selectedSemester, setSelectedSemester] = useState<SemesterNumber | null>(null);
+  const [isSemesterMenuOpen, setIsSemesterMenuOpen] = useState(false);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'calculator' | 'grades' | 'gpa'>('calculator');
   const [isMobileCoursesOpen, setIsMobileCoursesOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [showFeedbackHub, setShowFeedbackHub] = useState(false);
+  const [showCredits, setShowCredits] = useState(false);
   const [includeEstimates, setIncludeEstimates] = useState(false);
   const [estimatePercentage, setEstimatePercentage] = useState(80);
   const [calculatedSignatures, setCalculatedSignatures] = useState<Record<string, string>>({});
@@ -370,11 +416,12 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
   const [migrationResolved, setMigrationResolved] = useState(false);
   const [migrationBusy, setMigrationBusy] = useState(false);
   const [migrationError, setMigrationError] = useState('');
-  const [calculationBusy, setCalculationBusy] = useState(false);
+  const [calculationState, setCalculationState] = useState<'idle' | 'calculating' | 'saving' | 'success' | 'error'>('idle');
   const persistedSubjectsRef = useRef<Map<string, string>>(new Map());
   const persistQueueRef = useRef<Promise<void>>(Promise.resolve());
   const preferencesQueueRef = useRef<Promise<void>>(Promise.resolve());
   const preferencesSignatureRef = useRef('');
+  const semesterMenuRef = useRef<HTMLDivElement>(null);
   const latestPreferencesRef = useRef({
     currentSubjectId,
     activeTab,
@@ -383,6 +430,19 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
     selectedSemester,
   });
   const calculationRevisionRef = useRef(0);
+
+  useEffect(() => {
+    if (!isSemesterMenuOpen) return;
+
+    const handleOutsidePointerDown = (event: PointerEvent) => {
+      if (semesterMenuRef.current && !semesterMenuRef.current.contains(event.target as Node)) {
+        setIsSemesterMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('pointerdown', handleOutsidePointerDown);
+    return () => document.removeEventListener('pointerdown', handleOutsidePointerDown);
+  }, [isSemesterMenuOpen]);
   const mobileCoursesButtonRef = useRef<HTMLButtonElement>(null);
   const profileButtonRef = useRef<HTMLButtonElement>(null);
   const dialogReturnFocusRef = useRef<HTMLElement | null>(null);
@@ -611,6 +671,20 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
     }) === 'heritage-course';
     const existing = findSubjectForCourse(subjects, course);
     if (existing) {
+      if (course.courseType === 'heritage-course') {
+        setSubjects((previous) => previous.map((subject) => {
+          if (subject.id !== existing.id) return subject;
+          const act1Count = Math.max(1, Number(subject.act1No) || 0);
+          const act2Count = Math.max(1, Number(subject.act2No) || 0);
+          return {
+            ...subject,
+            act1No: act1Count,
+            act1Scores: syncScoresArray(subject.act1Scores, act1Count),
+            act2No: act2Count,
+            act2Scores: syncScoresArray(subject.act2Scores, act2Count),
+          };
+        }));
+      }
       setCurrentSubjectId(existing.id);
       if (isHeritageCourse) {
         const activityOneCount = Math.max(1, Math.floor(Number(existing.act1No) || 0));
@@ -687,9 +761,21 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
   const closeMobileCourses = useCallback(() => setIsMobileCoursesOpen(false), []);
   const closeProfileDrawer = useCallback(() => setIsProfileOpen(false), []);
   const handleOpenFeedbackHub = () => {
-    setIsProfileOpen(false);
-    setIsMobileCoursesOpen(false);
-    setShowFeedbackHub(true);
+    withViewTransition(() => {
+      setIsProfileOpen(false);
+      setIsMobileCoursesOpen(false);
+      setShowCredits(false);
+      setShowFeedbackHub(true);
+    });
+  };
+
+  const handleOpenCredits = () => {
+    withViewTransition(() => {
+      setIsProfileOpen(false);
+      setIsMobileCoursesOpen(false);
+      setShowFeedbackHub(false);
+      setShowCredits(true);
+    });
   };
 
   const handleSaveAcademicProfile = async (values: AcademicProfileFormValues) => {
@@ -741,6 +827,9 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
       name: currentSubject.name,
       code: currentSubject.code,
       courseType: currentSubject.courseType,
+      ...(getCourseType(currentSubject) === 'heritage-course'
+        ? { act1No: 1, act1Scores: [''], act2No: 1, act2Scores: [''] }
+        : {}),
     });
   };
 
@@ -785,7 +874,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
   };
 
   const handleCalculateMarks = async () => {
-    if (calculationBusy) return;
+    if (calculationState === 'calculating' || calculationState === 'saving') return;
     const revisionAtStart = calculationRevisionRef.current;
     const subjectIdAtStart = currentSubjectId;
     const subjectSnapshot: SubjectData = {
@@ -853,10 +942,11 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
       return;
     }
 
-    setCalculationBusy(true);
+    setCalculationState('calculating');
     setSaveError('');
     try {
       if (user) {
+        setCalculationState('saving');
         const syncTask = persistQueueRef.current.then(async () => {
           const latestSnapshots = await syncUserSubjects(
             user.uid,
@@ -893,11 +983,11 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
         setCalculatedSignatures((previous) => ({ ...previous, [subjectIdAtStart]: inputSignature }));
         setSaveError('');
       }
+      setCalculationState('success');
     } catch (error) {
       console.error('Unable to save calculated grade:', error);
+      setCalculationState('error');
       setSaveError('The latest marks or result could not be saved. Check your connection and recalculate.');
-    } finally {
-      setCalculationBusy(false);
     }
   };
 
@@ -1053,32 +1143,34 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
             aria-haspopup="dialog"
             aria-expanded={isProfileOpen}
             aria-controls={isProfileOpen ? 'academic-profile-drawer' : undefined}
-            className="flex min-w-0 shrink items-center gap-2 text-left text-base font-black tracking-tight text-[#172554] transition-opacity hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#172554] sm:text-lg"
+            className="flex min-w-0 shrink items-center gap-2 text-left text-base font-black tracking-tight text-[#172554] transition-opacity hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#172554] sm:text-xl"
           >
-            <span className="w-8 h-8 rounded-[5px] bg-[#172554] text-white flex items-center justify-center text-xs font-black">
-              CC
+            <span className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-[9px] bg-[#172554] text-blue-100 shadow-sm">
+              <span className="text-sm font-black tracking-[-0.12em]" aria-hidden="true">CC</span>
+              <span className="absolute bottom-1.5 h-0.5 w-2 rounded-full bg-cyan-300" aria-hidden="true" />
             </span>
             <span className="flex min-w-0 flex-col leading-tight">
-              <span className="hidden uppercase md:inline">CALCREDIT</span>
-              <span className="text-[10px] uppercase leading-tight md:hidden">CALCREDIT</span>
-              <span
-                className="max-w-20 truncate text-[10px] font-semibold normal-case tracking-normal text-slate-600 md:max-w-36"
-                title={profile?.studentName.trim() || (guestMode ? 'Guest Student' : 'Student')}
-              >
-                {profile?.studentName.trim() || (guestMode ? 'Guest Student' : 'Student')}
-              </span>
+              <span className="tracking-[0.08em]">CalCredit</span>
             </span>
           </button>
 
-          <span className="shrink-0 rounded bg-slate-200 px-2 py-1 text-[9px] font-black uppercase tracking-wide text-[#172554]">
-            CSE
-          </span>
+          <div className="hidden min-w-0 max-w-44 items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 sm:flex">
+            <div className="min-w-0">
+              <p
+                className="truncate text-xs font-bold text-[#172554]"
+                title={profile?.studentName.trim() || (guestMode ? 'Guest Student' : 'Student')}
+              >
+                {profile?.studentName.trim() || (guestMode ? 'Guest Student' : 'Student')}
+              </p>
+              <p className="mt-0.5 text-[9px] font-black uppercase tracking-[0.14em] text-slate-500">CSE</p>
+            </div>
+          </div>
 
           {/* Navigation Links */}
           <nav className="hidden md:flex items-center gap-6 text-xs font-bold uppercase tracking-wider text-[#172554]">
             <button
               type="button"
-              onClick={() => { setShowFeedbackHub(false); setActiveTab('calculator'); }}
+              onClick={() => withViewTransition(() => { setShowFeedbackHub(false); setShowCredits(false); setActiveTab('calculator'); })}
               className={`transition-colors flex items-center gap-2 py-1 cursor-pointer ${
                 activeTab === 'calculator'
                   ? 'text-[#172554] font-black border-b-2 border-[#172554]'
@@ -1090,7 +1182,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
             </button>
             <button
               type="button"
-              onClick={() => { setShowFeedbackHub(false); setActiveTab('grades'); }}
+              onClick={() => withViewTransition(() => { setShowFeedbackHub(false); setShowCredits(false); setActiveTab('grades'); })}
               className={`transition-colors flex items-center gap-2 py-1 cursor-pointer ${
                 activeTab === 'grades'
                   ? 'text-[#172554] font-black border-b-2 border-[#172554]'
@@ -1102,7 +1194,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
             </button>
             <button
               type="button"
-              onClick={() => { setShowFeedbackHub(false); setActiveTab('gpa'); }}
+              onClick={() => withViewTransition(() => { setShowFeedbackHub(false); setShowCredits(false); setActiveTab('gpa'); })}
               className={`transition-colors flex items-center gap-2 py-1 cursor-pointer ${activeTab === 'gpa' ? 'text-[#172554] font-black border-b-2 border-[#172554]' : 'text-slate-600 hover:text-[#172554]'}`}
             >
               <GraduationCap className="w-5 h-5" />
@@ -1112,27 +1204,62 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
 
           <label className="ml-auto flex shrink-0 items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-[#172554] sm:gap-2">
             <span className="hidden md:inline">Semester</span>
-            <span className="relative">
-              <select
+            <div ref={semesterMenuRef} className="relative">
+              <button
+                type="button"
                 aria-label="Choose semester"
-                value={selectedSemester ?? ''}
-                onChange={(event) => handleSemesterChange(event.currentTarget.value)}
-                className="min-w-24 appearance-none rounded-md border border-slate-300 bg-white py-2 pl-2.5 pr-7 text-xs font-bold text-[#172554] focus:border-[#172554] focus:outline-2 focus:outline-[#172554] sm:min-w-28 sm:pl-3 sm:pr-8"
+                aria-haspopup="listbox"
+                aria-expanded={isSemesterMenuOpen}
+                onClick={() => setIsSemesterMenuOpen((open) => !open)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Escape') setIsSemesterMenuOpen(false);
+                  if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+                    event.preventDefault();
+                    setIsSemesterMenuOpen(true);
+                  }
+                }}
+                className="inline-flex h-10 min-w-24 items-center justify-between gap-2 rounded-full border border-slate-300 bg-slate-50 pl-3 pr-3 text-xs font-bold text-[#172554] shadow-sm transition-colors hover:border-slate-400 hover:bg-white focus:border-[#172554] focus:outline-2 focus:outline-[#172554] sm:min-w-28 sm:pl-4"
               >
-                <option value="">Choose…</option>
-                {[1, 2, 3, 4, 5, 6, 7, 8].map((semester) => (
-                  <option key={semester} value={semester}>Semester {semester}</option>
-                ))}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2" aria-hidden="true" />
-            </span>
+                <span>{selectedSemester ? `Semester ${selectedSemester}` : 'Choose…'}</span>
+                <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isSemesterMenuOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
+              </button>
+              {isSemesterMenuOpen && (
+                <div
+                  role="listbox"
+                  aria-label="Semester options"
+                  className="absolute right-0 z-40 mt-2 w-32 overflow-hidden rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg ring-1 ring-slate-950/5"
+                >
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={selectedSemester === null}
+                    onClick={() => { handleSemesterChange(''); setIsSemesterMenuOpen(false); }}
+                    className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-[#172554] aria-selected:bg-blue-50 aria-selected:text-[#172554]"
+                  >
+                    Choose…
+                  </button>
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map((semester) => (
+                    <button
+                      key={semester}
+                      type="button"
+                      role="option"
+                      aria-selected={selectedSemester === semester}
+                      onClick={() => { handleSemesterChange(String(semester)); setIsSemesterMenuOpen(false); }}
+                      className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 hover:text-[#172554] aria-selected:bg-blue-50 aria-selected:text-[#172554]"
+                    >
+                      Semester {semester}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </label>
 
           <ThemeToggle theme={theme} onToggle={onToggleTheme} />
 
         </div>
       </header>
-      {!showFeedbackHub && activeTab === 'calculator' && isEditorOpen && hasSubjectSelected && (
+      {!showFeedbackHub && !showCredits && activeTab === 'calculator' && isEditorOpen && hasSubjectSelected && (
         hasCalculatedCurrentSubject ? (
           <StickyResultSummary
             placement="desktop"
@@ -1150,14 +1277,14 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
           </div>
         )
       )}
-      {!showFeedbackHub && activeTab === 'calculator' && isEditorOpen && hasSubjectSelected && !hasCalculatedCurrentSubject && (
+      {!showFeedbackHub && !showCredits && activeTab === 'calculator' && isEditorOpen && hasSubjectSelected && !hasCalculatedCurrentSubject && (
         <div className="border-b border-slate-200 bg-white px-3 py-2 text-xs font-black text-[#172554] md:hidden" role="status" aria-live="polite" aria-label="Current subject">
           {currentSubject.name}
         </div>
       )}
       </div>
 
-      {!showFeedbackHub && activeTab === 'calculator' && isEditorOpen && hasSubjectSelected && hasCalculatedCurrentSubject && (
+      {!showFeedbackHub && !showCredits && activeTab === 'calculator' && isEditorOpen && hasSubjectSelected && hasCalculatedCurrentSubject && (
         <StickyResultSummary
           placement="mobile"
           subjectName={currentSubject.name}
@@ -1170,20 +1297,27 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
       )}
 
       <MobileBottomNavigation
-        activeTab={showFeedbackHub ? null : activeTab}
+        activeTab={showFeedbackHub || showCredits ? null : activeTab}
         coursesOpen={isMobileCoursesOpen}
         onNavigate={(tab) => {
-          setIsMobileCoursesOpen(false);
-          setShowFeedbackHub(false);
-          setActiveTab(tab);
+          withViewTransition(() => {
+            setIsMobileCoursesOpen(false);
+            setShowFeedbackHub(false);
+            setShowCredits(false);
+            setActiveTab(tab);
+          });
         }}
-        onToggleCourses={() => setIsMobileCoursesOpen((open) => !open)}
+        onToggleCourses={() => {
+          setShowFeedbackHub(false);
+          setShowCredits(false);
+          setIsMobileCoursesOpen((open) => !open);
+        }}
         coursesButtonRef={mobileCoursesButtonRef}
       />
 
       {/* Main Content Area */}
-      <main className={`flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 ${activeTab === 'calculator' && isEditorOpen && hasSubjectSelected && hasCalculatedCurrentSubject ? 'pb-[calc(12rem+env(safe-area-inset-bottom))]' : 'pb-[calc(5.5rem+env(safe-area-inset-bottom))]'} md:pb-8`}>
-        {guestMode && (
+      <main className={`flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 ${activeTab === 'calculator' && isEditorOpen && hasSubjectSelected && hasCalculatedCurrentSubject ? 'pb-[calc(12rem+env(safe-area-inset-bottom))]' : 'pb-[calc(7.5rem+env(safe-area-inset-bottom))]'} md:pb-8`}>
+        {guestMode && !showCredits && (
           <div className="mb-5 border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950" role="status">
             <strong className="font-black">Guest session:</strong>{' '}
             Your courses and results exist only in memory and will be cleared when you reload or close this page.
@@ -1219,20 +1353,20 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
         )}
 
         {showFeedbackHub ? (
-          <section className="mx-auto my-6 max-w-2xl border border-slate-300 bg-white p-5 shadow-sm sm:p-7" aria-labelledby="feedback-hub-heading">
-            <h1 id="feedback-hub-heading" className="text-xl font-black text-[#172554]">Feedback Hub</h1>
-            <p className="mt-2 text-sm text-slate-600">Feedback submission is not available yet.</p>
-          </section>
-        ) : null}
+          <FeedbackHub
+            user={user}
+            guestMode={guestMode}
+          />
+        ) : showCredits ? <CreditsScreen /> : null}
 
-        {!showFeedbackHub && activeTab === 'calculator' && selectedSemester === null && (
+        {!showFeedbackHub && !showCredits && activeTab === 'calculator' && selectedSemester === null && (
           <section className="mx-auto my-6 max-w-xl border border-slate-300 bg-white px-4 py-5 text-center shadow-sm sm:px-6 sm:py-6">
             <h1 className="text-lg font-black uppercase tracking-wide text-[#172554]">Choose your semester</h1>
             <p className="mx-auto mt-2 max-w-md text-sm text-slate-600">Select a semester from the menu at the top right to see its courses and start entering marks.</p>
           </section>
         )}
 
-        {!showFeedbackHub && activeTab === 'calculator' && selectedSemester !== null && (
+        {!showFeedbackHub && !showCredits && activeTab === 'calculator' && selectedSemester !== null && (
           <div className="min-w-0 space-y-6">
             <div className={`min-w-0 ${isEditorOpen ? 'hidden md:block' : ''}`}>
               <SemesterCourseDashboard
@@ -1441,8 +1575,6 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
                     testDisplayName={isIndustryOrientedTests ? 'MID TERM TEST' : currentCourseType === 'standards-course' ? 'STANDARDS TEST I' : currentCourseType === 'audit-course' ? 'AUDIT TEST I' : currentCourseType === 'heritage-course' ? 'HERITAGE ASSESSMENT TEST I' : undefined}
                     isTwoTestCourse={isTwoTestCourse}
                     isSelfDevelopment={breakdown.courseType === 'self-development'}
-                    minimumActivityCount={currentCourseType === 'heritage-course' ? 1 : 0}
-                    activityTitle={currentCourseType === 'heritage-course' ? 'Heritage Activity' : undefined}
                     actNo={displayedSubject.act1No}
                     onActNoChange={(val) => updateCurrentSubject({ act1No: val })}
                     actScores={displayedSubject.act1Scores}
@@ -1450,6 +1582,10 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
                     actPoints={breakdown.act1_p}
                     actWeight={breakdown.actWeight}
                     actStartIndex={1}
+                    minimumActivityCount={currentCourseType === 'heritage-course' ? 1 : 0}
+                    maximumActivityCount={currentCourseType === 'heritage-course' ? 1 : 20}
+                    activityTitle={currentCourseType === 'heritage-course' ? 'Activities' : undefined}
+                    activityScoreLabel={currentCourseType === 'heritage-course' ? 'Activity' : undefined}
                     labNo={displayedSubject.lab1No}
                     onLabNoChange={(val) => updateCurrentSubject({ lab1No: val })}
                     labScores={displayedSubject.lab1Scores}
@@ -1476,8 +1612,6 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
                   testDisplayName={isIndustryOrientedTests ? 'END COURSE TEST' : currentCourseType === 'standards-course' ? 'STANDARDS TEST II' : currentCourseType === 'audit-course' ? 'AUDIT TEST II' : currentCourseType === 'heritage-course' ? 'HERITAGE ASSESSMENT TEST II' : undefined}
                   isTwoTestCourse={isTwoTestCourse}
                   isSelfDevelopment={breakdown.courseType === 'self-development'}
-                  minimumActivityCount={currentCourseType === 'heritage-course' ? 1 : 0}
-                  activityTitle={currentCourseType === 'heritage-course' ? 'Heritage Activity' : undefined}
                   actNo={displayedSubject.act2No}
                   onActNoChange={(val) => updateCurrentSubject({ act2No: val })}
                   actScores={displayedSubject.act2Scores}
@@ -1485,6 +1619,10 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
                   actPoints={breakdown.act2_p}
                   actWeight={breakdown.actWeight}
                   actStartIndex={(Number(displayedSubject.act1No) || 0) + 1}
+                  minimumActivityCount={currentCourseType === 'heritage-course' ? 1 : 0}
+                  maximumActivityCount={currentCourseType === 'heritage-course' ? 1 : 20}
+                  activityTitle={currentCourseType === 'heritage-course' ? 'Activities' : undefined}
+                  activityScoreLabel={currentCourseType === 'heritage-course' ? 'Activity' : undefined}
                   labNo={displayedSubject.lab2No}
                   onLabNoChange={(val) => updateCurrentSubject({ lab2No: val })}
                   labScores={displayedSubject.lab2Scores}
@@ -1524,19 +1662,27 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
                     <button
                       type="button"
                       onClick={() => void handleCalculateMarks()}
-                      disabled={calculationBusy}
+                      disabled={calculationState === 'calculating' || calculationState === 'saving'}
                       className="inline-flex items-center justify-center gap-2 px-5 py-3 text-xs font-bold uppercase tracking-wider bg-[#172554] text-white hover:bg-[#1e3a8a] disabled:opacity-60 transition-colors cursor-pointer"
                     >
-                      {calculationBusy ? <LoaderCircle className="w-4 h-4 animate-spin" aria-hidden="true" /> : <Calculator className="w-4 h-4" aria-hidden="true" />}
-                      {calculationBusy ? 'Saving result…' : hasCalculatedCurrentSubject ? 'Recalculate Mark & Grade' : 'Calculate Mark & Grade'}
+                      {calculationState === 'calculating' || calculationState === 'saving' ? <LoaderCircle className="w-4 h-4 animate-spin" aria-hidden="true" /> : <Calculator className="w-4 h-4" aria-hidden="true" />}
+                      {calculationState === 'calculating'
+                        ? 'Calculating result…'
+                        : calculationState === 'saving'
+                          ? 'Saving result…'
+                          : hasCalculatedCurrentSubject
+                            ? 'Recalculate Mark & Grade'
+                            : 'Calculate Mark & Grade'}
                     </button>
-                    {['project', 'project-work'].includes(currentCourseType) && (calculationBusy || hasCalculatedCurrentSubject) && (
+                    {(calculationState === 'calculating' || calculationState === 'saving' || (calculationState === 'success' && hasCalculatedCurrentSubject)) && (
                       <p className="text-xs font-semibold text-slate-600" role="status" aria-live="polite">
-                        {calculationBusy
-                          ? 'Saving Project Work result…'
+                        {calculationState === 'calculating'
+                          ? 'Calculating result…'
+                          : calculationState === 'saving'
+                            ? 'Saving result to your account…'
                           : guestMode
-                            ? 'Project Work result is calculated for this temporary session only.'
-                            : 'Project Work result is saved to your account.'}
+                              ? 'Result calculated for this temporary session only.'
+                              : 'Result calculated and saved to your account.'}
                       </p>
                     )}
                   </div>
@@ -1560,7 +1706,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
           </div>
         )}
 
-        {!showFeedbackHub && activeTab === 'grades' && (
+        {!showFeedbackHub && !showCredits && activeTab === 'grades' && (
           <div className="max-w-4xl mx-auto">
             <div className="bg-white border border-slate-300 p-3 sm:p-5 shadow-sm">
               <h2 className="text-lg font-black text-[#172554] mb-2 uppercase tracking-wide">
@@ -1620,7 +1766,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
           </div>
         )}
     
-        {!showFeedbackHub && activeTab === 'gpa' && (
+        {!showFeedbackHub && !showCredits && activeTab === 'gpa' && (
           <GPACalculator
             subjects={subjects}
             calculatedSignatures={calculatedSignatures}
@@ -1629,6 +1775,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
             initialSemester={selectedSemester ?? 1}
             includeEstimates={includeEstimates}
             estimatePercentage={estimatePercentage}
+            guestMode={guestMode}
           />
         )}
 </main>
@@ -1668,6 +1815,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
   theme={theme}
   onToggleTheme={onToggleTheme}
   onOpenFeedback={handleOpenFeedbackHub}
+  onOpenCredits={handleOpenCredits}
   onLogout={handleProfileLogout}
   logoutPending={signOutPending}
 />

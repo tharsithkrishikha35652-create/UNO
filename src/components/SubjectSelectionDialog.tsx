@@ -16,8 +16,8 @@ export interface PresetCourse {
 }
 
 export const ELECTIVE_SLOTS_BY_SEMESTER: Record<number, string[]> = {
-  5: ['Professional Elective I'],
-  6: ['Professional Elective II', 'Professional Elective III'],
+  5: ['Open Elective I', 'Professional Elective I'],
+  6: ['Open Elective II', 'Professional Elective II', 'Professional Elective III'],
   7: ['Professional Elective IV', 'Professional Elective V', 'Professional Elective VI'],
 };
 
@@ -391,11 +391,12 @@ export const PRESET_COURSES: PresetCourse[] = [
   {
     id: 'CS23504',
     name: 'Open Elective I',
-    code: '',
+    code: 'OE-I',
     type: '3-0-0',
     courseType: 'theory',
     semester: 5,
-    group: 'core',
+    group: 'elective',
+    electiveSlot: 'Open Elective I',
   },
   {
     id: 'CS23505',
@@ -465,11 +466,12 @@ export const PRESET_COURSES: PresetCourse[] = [
   {
     id: 'OPEN_ELECTIVE_II',
     name: 'Open Elective II',
-    code: '',
+    code: 'OE-II',
     type: '3-0-0',
     courseType: 'theory',
     semester: 6,
-    group: 'core',
+    group: 'elective',
+    electiveSlot: 'Open Elective II',
   },
   {
     id: 'CS23604',

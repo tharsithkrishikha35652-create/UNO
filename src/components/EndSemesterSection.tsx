@@ -99,11 +99,6 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                 Split Weightage: Theory {eseTheoryWeight}% + Lab Practicals {eseLabWeight}%
               </span>
             )}
-            {isPracticalOnly && (
-              <span className="text-[11px] font-semibold text-amber-200">
-                Practical exam only: {eseLabWeight}%
-              </span>
-            )}
           </div>
         </div>
 

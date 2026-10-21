@@ -3,14 +3,129 @@ import {
   doc,
   getDoc,
   getDocs,
+  orderBy,
+  query,
+  runTransaction,
   serverTimestamp,
   setDoc,
+  Timestamp,
   writeBatch,
 } from 'firebase/firestore';
 import type { AcademicProfileData, SubjectData } from './types';
 import { db } from './firebase';
 import { GPA_COURSES } from './gpaCourses';
 import { PRESET_COURSES } from './components/SubjectSelectionDialog';
+
+export const FEEDBACK_CATEGORIES = ['General', 'Bug report', 'Suggestion', 'Other'] as const;
+export type FeedbackCategory = (typeof FEEDBACK_CATEGORIES)[number];
+
+export interface FeedbackRecord {
+  id: string;
+  senderUid: string;
+  senderEmail: string;
+  message: string;
+  category: FeedbackCategory;
+  createdAt: Timestamp | null;
+}
+
+export const DAILY_FEEDBACK_LIMIT = 2;
+const INDIA_TIME_ZONE = 'Asia/Kolkata';
+const INDIA_UTC_OFFSET_MS = 330 * 60 * 1000;
+
+export class FeedbackDailyLimitError extends Error {
+  readonly code = 'feedback/daily-limit-exceeded';
+
+  constructor() {
+    super('Daily feedback limit reached');
+    this.name = 'FeedbackDailyLimitError';
+  }
+}
+
+export function getIndiaDayStart(now = new Date()): Timestamp {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: INDIA_TIME_ZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(now);
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    Number(parts.find((item) => item.type === type)?.value);
+  return Timestamp.fromMillis(Date.UTC(part('year'), part('month') - 1, part('day')));
+}
+
+export function getNextIndiaMidnightMs(now = new Date()): number {
+  return getIndiaDayStart(now).toMillis() + 24 * 60 * 60 * 1000 - INDIA_UTC_OFFSET_MS;
+}
+
+export async function loadTodayFeedbackCount(uid: string): Promise<number> {
+  const firestore = requireFirestore();
+  const counterSnapshot = await getDoc(doc(firestore, 'feedbackCounters', uid));
+  if (!counterSnapshot.exists()) return 0;
+
+  const counter = counterSnapshot.data();
+  const today = getIndiaDayStart();
+  return counter.uid === uid && counter.dayStart instanceof Timestamp && counter.dayStart.isEqual(today)
+    ? Math.max(0, Math.min(DAILY_FEEDBACK_LIMIT, Number(counter.count) || 0))
+    : 0;
+}
+
+export async function submitFeedback(
+  sender: { uid: string; email: string },
+  message: string,
+  category: FeedbackCategory
+): Promise<number> {
+  const firestore = requireFirestore();
+  const dayStart = getIndiaDayStart();
+  const counterRef = doc(firestore, 'feedbackCounters', sender.uid);
+  const feedbackRef = doc(collection(firestore, 'feedback'));
+
+  return runTransaction(firestore, async (transaction) => {
+    const counterSnapshot = await transaction.get(counterRef);
+    const previous = counterSnapshot.data();
+    const previousCount = counterSnapshot.exists() &&
+      previous?.uid === sender.uid &&
+      previous.dayStart instanceof Timestamp &&
+      previous.dayStart.isEqual(dayStart)
+      ? Number(previous.count) || 0
+      : 0;
+
+    if (previousCount >= DAILY_FEEDBACK_LIMIT) throw new FeedbackDailyLimitError();
+
+    const nextCount = previousCount + 1;
+    transaction.set(counterRef, {
+      uid: sender.uid,
+      dayStart,
+      count: nextCount,
+      lastFeedbackId: feedbackRef.id,
+    });
+    transaction.set(feedbackRef, {
+      senderUid: sender.uid,
+      senderEmail: sender.email,
+      message: message.trim(),
+      category,
+      createdAt: serverTimestamp(),
+      dayStart,
+    });
+    return nextCount;
+  });
+}
+
+export async function loadFeedbackInbox(): Promise<FeedbackRecord[]> {
+  const firestore = requireFirestore();
+  const feedbackQuery = query(collection(firestore, 'feedback'), orderBy('createdAt', 'desc'));
+  const snapshot = await getDocs(feedbackQuery);
+  return snapshot.docs.map((feedbackDoc) => {
+    const data = feedbackDoc.data();
+    return {
+      id: feedbackDoc.id,
+      senderUid: data.senderUid as string,
+      senderEmail: data.senderEmail as string,
+      message: data.message as string,
+      category: data.category as FeedbackCategory,
+      createdAt: data.createdAt instanceof Timestamp ? data.createdAt : null,
+    };
+  });
+}
 
 export interface GpaHistoryEntry {
   id: string;

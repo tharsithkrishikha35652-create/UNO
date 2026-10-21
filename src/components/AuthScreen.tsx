@@ -4,7 +4,7 @@ import {
   GoogleAuthProvider,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
-  signInWithPopup,
+  signInWithRedirect,
 } from 'firebase/auth';
 import { AlertCircle, BookOpen, Eye, EyeOff, LoaderCircle } from 'lucide-react';
 import { auth } from '../firebase';
@@ -12,6 +12,7 @@ import { ThemeToggle, type AppTheme } from './ThemeToggle';
 
 interface AuthScreenProps {
   configurationError?: string;
+  forceGoogleAccountSelection?: boolean;
   onContinueAsGuest: () => void;
   theme: AppTheme;
   onToggleTheme: () => void;
@@ -54,12 +55,14 @@ function friendlyAuthError(error: unknown, provider: 'email' | 'google' = 'email
   }
 }
 
-export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, onContinueAsGuest, theme, onToggleTheme }) => {
+export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forceGoogleAccountSelection = false, onContinueAsGuest, theme, onToggleTheme }) => {
   const [mode, setMode] = useState<AuthMode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [googleBusy, setGoogleBusy] = useState(false);
+  const [googleSlow, setGoogleSlow] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
 
@@ -86,14 +89,18 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, onCo
   };
 
   const handleGoogleSignIn = async () => {
-    if (!auth || configurationError || busy) return;
-    setBusy(true);
+    if (!auth || configurationError || busy || googleBusy) return;
+    setGoogleBusy(true);
+    setGoogleSlow(false);
     setError('');
     setNotice('');
+    const slowTimer = window.setTimeout(() => setGoogleSlow(true), 5000);
     try {
       const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({ prompt: 'select_account' });
-      await signInWithPopup(auth, provider);
+      if (forceGoogleAccountSelection) {
+        provider.setCustomParameters({ prompt: 'select_account' });
+      }
+      await signInWithRedirect(auth, provider);
     } catch (authError) {
       const code = typeof authError === 'object' && authError !== null && 'code' in authError
         ? String(authError.code)
@@ -102,7 +109,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, onCo
         setError(friendlyAuthError(authError, 'google'));
       }
     } finally {
-      setBusy(false);
+      window.clearTimeout(slowTimer);
+      setGoogleBusy(false);
+      setGoogleSlow(false);
     }
   };
 
@@ -117,11 +126,12 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, onCo
       <section className="w-full max-w-md bg-white border border-slate-300 shadow-sm">
         <div className="bg-[#172554] text-white px-5 py-5 flex items-center justify-between gap-3 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="w-9 h-9 shrink-0 flex items-center justify-center bg-white text-[#172554] font-black text-xs">
-              CC
+            <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-[9px] bg-white text-[#172554] shadow-sm">
+              <span className="text-base font-black tracking-[-0.12em]" aria-hidden="true">CC</span>
+              <span className="absolute bottom-1.5 h-0.5 w-2 rounded-full bg-cyan-500" aria-hidden="true" />
             </div>
             <div className="min-w-0">
-              <p className="text-[11px] uppercase font-bold tracking-widest text-blue-100">CALCREDIT</p>
+              <p className="text-[11px] font-bold tracking-[0.08em] text-blue-100">CalCredit</p>
               <h1 className="text-base font-black sm:text-lg">Academic Marks Calculator</h1>
             </div>
           </div>
@@ -214,10 +224,10 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, onCo
               <button
                 type="button"
                 onClick={() => void handleGoogleSignIn()}
-                disabled={busy || !auth}
+                disabled={busy || googleBusy || !auth}
                 className="mt-4 w-full inline-flex items-center justify-center gap-3 border border-slate-300 bg-white px-4 py-3 text-xs font-bold uppercase tracking-wider text-[#172554] hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#172554] disabled:cursor-wait disabled:opacity-60"
               >
-                {busy ? (
+                {googleBusy ? (
                   <LoaderCircle className="w-4 h-4 animate-spin" aria-hidden="true" />
                 ) : (
                   <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
@@ -227,8 +237,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, onCo
                     <path fill="#EA4335" d="M12 5.36c1.62 0 3.06.56 4.21 1.64l3.15-3.15A10.54 10.54 0 0 0 12 1a11 11 0 0 0-9.85 6.06L5.84 9.9C6.71 7.29 9.14 5.36 12 5.36Z" />
                   </svg>
                 )}
-                {busy ? 'Please wait…' : 'Continue with Google'}
+                {googleBusy ? 'Redirecting to Google…' : 'Continue with Google'}
               </button>
+              {googleSlow && (
+                <p className="mt-2 text-center text-xs text-slate-500" role="status">
+                  Google is taking longer than usual. Keep this page open while sign-in continues.
+                </p>
+              )}
             </div>
           )}
 

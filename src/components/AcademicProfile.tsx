@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, type FormEvent } from 'react';
-import { Info, LoaderCircle, LogOut, MessageSquare, X } from 'lucide-react';
+import { LoaderCircle, LogOut, MessageSquare, UsersRound, X } from 'lucide-react';
 import type { AcademicProfileData } from '../types';
 import type { SemesterNumber } from './SubjectSelectionDialog';
 import { ThemeToggle, type AppTheme } from './ThemeToggle';
@@ -185,9 +185,12 @@ export const AcademicSetupScreen: React.FC<AcademicSetupScreenProps> = ({ theme,
     <section className="mx-auto w-full max-w-3xl border border-slate-300 bg-white p-5 shadow-sm sm:p-8">
       <div className="mb-7 flex items-start justify-between gap-3 border-b border-slate-200 pb-5">
         <div className="flex min-w-0 items-start gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center bg-[#172554] text-xs font-black text-white">CC</span>
+          <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-[9px] bg-[#172554] text-blue-100 shadow-sm">
+            <span className="text-base font-black tracking-[-0.12em]" aria-hidden="true">CC</span>
+            <span className="absolute bottom-1.5 h-0.5 w-2 rounded-full bg-cyan-300" aria-hidden="true" />
+          </span>
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-widest text-blue-800">CALCREDIT</p>
+            <p className="text-[11px] font-bold tracking-[0.08em] text-blue-800">CalCredit</p>
             <h1 className="mt-1 text-xl font-black text-[#172554] sm:text-2xl">Academic Setup</h1>
             <p className="mt-1 max-w-prose text-sm text-slate-600">Add your academic details to personalize your course workspace.</p>
           </div>
@@ -205,6 +208,7 @@ interface ProfileDrawerProps extends Omit<AcademicProfileFormProps, 'submitLabel
   theme: AppTheme;
   onToggleTheme: () => void;
   onOpenFeedback: () => void;
+  onOpenCredits: () => void;
   onLogout: () => void;
   logoutPending: boolean;
 }
@@ -220,6 +224,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
   theme,
   onToggleTheme,
   onOpenFeedback,
+  onOpenCredits,
   onLogout,
   logoutPending,
 }) => {
@@ -366,7 +371,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
           )}
         </div>
         {!editing && (
-          <footer className="space-y-2 border-t border-slate-200 p-5">
+          <footer className="shrink-0 space-y-2 border-t border-slate-200 bg-white p-5">
             <button
               type="button"
               onClick={onOpenFeedback}
@@ -375,13 +380,14 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
               <MessageSquare className="h-4 w-4" aria-hidden="true" />
               Feedback Hub
             </button>
-            <details className="border border-slate-300">
-              <summary className="flex min-h-11 cursor-pointer list-none items-center gap-3 px-3 py-2 text-sm font-semibold text-[#172554] focus-visible:outline-2 focus-visible:outline-[#172554]">
-                <Info className="h-4 w-4" aria-hidden="true" />
-                Credits
-              </summary>
-              <p className="px-3 pb-3 text-sm text-slate-600">Credits information is not available yet.</p>
-            </details>
+            <button
+              type="button"
+              onClick={onOpenCredits}
+              className="flex min-h-11 w-full items-center gap-3 border border-slate-300 px-3 py-2 text-left text-sm font-semibold text-[#172554] hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-[#172554]"
+            >
+              <UsersRound className="h-4 w-4" aria-hidden="true" />
+              Credits
+            </button>
             <button
               type="button"
               onClick={onLogout}

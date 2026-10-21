@@ -4,5 +4,86 @@ service cloud.firestore {
     match /users/{userId}/{document=**} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
+
+    function isFeedbackAdmin() {
+      return request.auth != null
+        && request.auth.token.email == 'projectunocc@gmail.com'
+        && request.auth.token.email_verified == true
+        && request.auth.token.firebase.sign_in_provider == 'google.com';
+    }
+
+    function indiaDayStart() {
+      return (request.time + duration.value(330, 'm')).date();
+    }
+
+    function feedbackForCounter(counter) {
+      return getAfter(
+        /databases/$(database)/documents/feedback/$(counter.lastFeedbackId)
+      ).data;
+    }
+
+    function validCounter(uid) {
+      let next = request.resource.data;
+      let feedback = feedbackForCounter(next);
+      return request.auth != null
+        && request.auth.uid == uid
+        && next.keys().hasAll(['uid', 'dayStart', 'count', 'lastFeedbackId'])
+        && next.keys().hasOnly(['uid', 'dayStart', 'count', 'lastFeedbackId'])
+        && next.uid == uid
+        && next.dayStart == indiaDayStart()
+        && next.count is int
+        && next.count >= 1
+        && next.count <= 2
+        && next.lastFeedbackId is string
+        && feedback.senderUid == uid
+        && feedback.dayStart == next.dayStart;
+    }
+
+    match /feedback/{feedbackId} {
+      allow get: if isFeedbackAdmin()
+        || (request.auth != null && resource.data.senderUid == request.auth.uid);
+      allow list: if isFeedbackAdmin()
+        || (request.auth != null && resource.data.senderUid == request.auth.uid);
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasAll([
+          'senderUid', 'senderEmail', 'message', 'category', 'createdAt', 'dayStart'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'senderUid', 'senderEmail', 'message', 'category', 'createdAt', 'dayStart'
+        ])
+        && request.resource.data.senderUid == request.auth.uid
+        && request.resource.data.senderEmail == request.auth.token.email
+        && request.resource.data.message is string
+        && request.resource.data.message.size() > 0
+        && request.resource.data.message.size() <= 2000
+        && request.resource.data.category in ['General', 'Bug report', 'Suggestion', 'Other']
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.dayStart == indiaDayStart()
+        && getAfter(
+          /databases/$(database)/documents/feedbackCounters/$(request.auth.uid)
+        ).data.lastFeedbackId == feedbackId
+        && getAfter(
+          /databases/$(database)/documents/feedbackCounters/$(request.auth.uid)
+        ).data.dayStart == request.resource.data.dayStart
+        && getAfter(
+          /databases/$(database)/documents/feedbackCounters/$(request.auth.uid)
+        ).data.count <= 2;
+      allow update, delete: if false;
+    }
+
+    match /feedbackCounters/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+      allow list: if false;
+      allow create: if validCounter(uid)
+        && request.resource.data.count == 1;
+      allow update: if validCounter(uid)
+        && (
+          (request.resource.data.dayStart == resource.data.dayStart
+            && request.resource.data.count == resource.data.count + 1)
+          || (request.resource.data.dayStart != resource.data.dayStart
+            && request.resource.data.count == 1)
+        );
+      allow delete: if false;
+    }
   }
 }

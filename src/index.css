@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+@view-transition {
+  navigation: auto;
+}
+
 :root {
   color-scheme: light;
   accent-color: #1e3a8a;
@@ -138,7 +142,7 @@ input[type="number"]::-webkit-outer-spin-button {
 
 [data-theme="dark"] .border-slate-300,
 [data-theme="dark"] .border-slate-400 {
-  border-color: #475569;
+  border-color: #3b4a60;
 }
 
 [data-theme="dark"] .border-blue-200 {
@@ -269,6 +273,121 @@ input[type="number"]::-webkit-outer-spin-button {
 @keyframes profile-backdrop-in {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+@keyframes credits-profile-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(0.4rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.credits-profile-reveal {
+  animation: credits-profile-reveal 420ms ease-out both;
+}
+
+.credits-profile-reveal-delay {
+  animation-delay: 90ms;
+}
+
+@keyframes app-surface-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(0.35rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes app-panel-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(0.25rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 240ms;
+  animation-timing-function: ease-out;
+}
+
+::view-transition-old(root) {
+  animation-name: app-view-exit;
+}
+
+::view-transition-new(root) {
+  animation-name: app-view-enter;
+}
+
+@keyframes app-view-exit {
+  to {
+    opacity: 0;
+    transform: translateY(-0.25rem);
+  }
+}
+
+@keyframes app-view-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.25rem);
+  }
+}
+
+#root > :where(div, main).min-h-screen {
+  animation: app-surface-reveal 360ms ease-out both;
+}
+
+#root .shadow-sm {
+  animation: app-panel-reveal 320ms ease-out both;
+}
+
+#root :where(button, a, select, input, textarea) {
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform;
+  transition-duration: 180ms;
+  transition-timing-function: ease-out;
+}
+
+#root :where(button, a) {
+  animation: app-control-enter 260ms ease-out both;
+}
+
+#root :where(button, a):not([aria-disabled="true"]):not([role="option"]):hover {
+  transform: translateY(-0.1rem);
+}
+
+#root :where(button):not([aria-disabled="true"]):not([role="option"]):hover {
+  box-shadow: 0 3px 8px rgb(15 23 42 / 12%);
+}
+
+#root :where(a):not([aria-disabled="true"]):hover {
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.2em;
+}
+
+@keyframes app-control-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.2rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+#root :where(button, a):not([aria-disabled="true"]):active {
+  transform: scale(0.98);
 }
 
 @media (max-width: 639px) {
