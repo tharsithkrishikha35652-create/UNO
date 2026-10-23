@@ -210,50 +210,6 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                 </div>
               </div>
 
-              {/* Configurable Max Marks for ESE Lab */}
-              <div className="mb-3">
-                <div className="flex items-center justify-between mb-1">
-                  <label
-                    htmlFor="ese-lab-max-input"
-                    className="text-xs font-bold text-[#172554] uppercase tracking-wider"
-                  >
-                    Max Marks for ESE {labName}:
-                  </label>
-                  {/* Preset quick buttons */}
-                  <div className="flex items-center gap-1">
-                    {[50, 75, 100].map((presetVal) => (
-                      <button
-                        key={presetVal}
-                        type="button"
-                        onClick={() => onEseLabMaxChange && onEseLabMaxChange(presetVal)}
-                        className={`text-[10px] font-bold px-1.5 py-0.5 border cursor-pointer transition-colors ${
-                          Number(eseLabMax) === presetVal
-                            ? 'bg-[#172554] text-white border-[#172554]'
-                            : 'bg-white text-[#172554] border-slate-300 hover:bg-slate-100'
-                        }`}
-                      >
-                        {presetVal}M
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="relative">
-                  <input
-                    id="ese-lab-max-input"
-                    type="number"
-                    min={1}
-                    step={1}
-                    value={eseLabMax === '' || eseLabMax === undefined ? '' : eseLabMax}
-                    placeholder="Enter maximum marks (e.g. 100 or 50)"
-                    onChange={handleLabMaxChange}
-                    className="h-11 w-full px-3 pr-20 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal"
-                  />
-                  <span className="absolute right-3 top-2 text-[11px] font-semibold text-slate-500">
-                    Max Scale
-                  </span>
-                </div>
-              </div>
-
               {/* Lab Marks Scored Input */}
               <label
                 htmlFor="ese-lab-input"
@@ -270,9 +226,8 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                   step={0.5}
                   value={eseLab === '' || eseLab === undefined ? '' : eseLab}
                   placeholder={`Enter ${labName.toLowerCase()} marks (0 - ${numericLabMax})`}
-                  readOnly={estimatedLabMark}
                   onChange={handleLabChange}
-                  className="h-11 w-full px-3 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm read-only:bg-blue-50 read-only:text-[#1e3a8a]"
+                  className="h-11 w-full px-3 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm"
                 />
                 <span className="absolute right-3.5 top-2.5 text-xs font-bold text-[#1e3a8a]">
                   / {numericLabMax}
@@ -292,8 +247,8 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                   max={numericLabMax}
                   step={1}
                   value={Math.min(numericLabMax, numericLab)}
-                  disabled={estimatedLabMark}
                   onChange={(e) => onEseLabChange && onEseLabChange(parseFloat(e.target.value))}
+                  onInput={(e) => onEseLabChange && onEseLabChange(parseFloat((e.target as HTMLInputElement).value))}
                   aria-label="Adjust ESE Lab Marks slider"
                   className="w-full accent-[#172554] cursor-pointer"
                 />

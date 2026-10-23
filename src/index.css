@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 :root {
   color-scheme: light;
@@ -245,8 +246,41 @@ input[type="number"]::-webkit-outer-spin-button {
   border-color: #245b49;
 }
 
-[data-theme="dark"] .border-rose-200 {
+[data-theme="dark"] .border-rose-200,
+[data-theme="dark"] .border-rose-300 {
   border-color: #6c3542;
+}
+
+[data-theme="dark"] .bg-white\/95 {
+  background-color: rgb(17 28 48 / 95%);
+}
+
+[data-theme="dark"] .bg-blue-100 {
+  background-color: #172d49;
+}
+
+[data-theme="dark"] .bg-rose-50\/70 {
+  background-color: rgb(59 32 40 / 70%);
+}
+
+[data-theme="dark"] .hover\:bg-rose-100:hover {
+  background-color: rgb(76 36 46 / 80%);
+}
+
+[data-theme="dark"] .bg-indigo-50\/50 {
+  background-color: rgb(30 27 75 / 35%);
+}
+
+[data-theme="dark"] .border-indigo-400 {
+  border-color: #4338ca;
+}
+
+[data-theme="dark"] .bg-blue-50\/80 {
+  background-color: rgb(23 45 73 / 80%);
+}
+
+[data-theme="dark"] .bg-blue-50\/50 {
+  background-color: rgb(23 45 73 / 50%);
 }
 
 [data-theme="dark"] .text-slate-900 {
@@ -416,6 +450,36 @@ input[type="number"]::-webkit-outer-spin-button {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+@keyframes toast-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes toast-exit-left-to-right {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(120%);
+  }
+}
+
+.toast-in {
+  animation: toast-slide-in 200ms ease-out forwards;
+}
+
+.toast-exit-lr {
+  animation: toast-exit-left-to-right 320ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 @media (max-width: 639px) {

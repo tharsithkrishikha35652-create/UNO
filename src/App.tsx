@@ -65,6 +65,7 @@ import {
   LoaderCircle,
   AlertCircle,
   ChevronDown,
+  HelpCircle,
 } from 'lucide-react';
 
 const LEGACY_STORAGE_KEY = 'ca_ese_calculator_sem1_user_selected_v18';
@@ -82,17 +83,17 @@ function getInitialTheme(): AppTheme {
 
 function findSubjectForCourse(subjects: SubjectData[], course: PresetCourse): SubjectData | undefined {
   return subjects.find((subject) => {
-    if (course.code && subject.code === course.code) return true;
-    return subject.name.trim().toLowerCase() === course.name.toLowerCase() &&
-      (!subject.courseType || subject.courseType === course.courseType || getCourseType(subject) === course.courseType);
+    if (subject.id === `course_${course.id}` || subject.id === course.id) return true;
+    if (course.code && subject.code && subject.code.trim().toUpperCase() === course.code.trim().toUpperCase()) return true;
+    return subject.name.trim().toLowerCase() === course.name.trim().toLowerCase();
   });
 }
 
 function findPresetForSubject(subject: SubjectData): PresetCourse | undefined {
   return PRESET_COURSES.find((course) => {
-    if (course.code && subject.code === course.code) return true;
-    return subject.name.trim().toLowerCase() === course.name.toLowerCase() &&
-      (!subject.courseType || subject.courseType === course.courseType || getCourseType(subject) === course.courseType);
+    if (subject.id === `course_${course.id}` || subject.id === course.id) return true;
+    if (course.code && subject.code && subject.code.trim().toUpperCase() === course.code.trim().toUpperCase()) return true;
+    return subject.name.trim().toLowerCase() === course.name.trim().toLowerCase();
   });
 }
 
@@ -247,6 +248,7 @@ export default function App() {
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
+    document.documentElement.classList.toggle('dark', theme === 'dark');
     try {
       window.localStorage.setItem(THEME_STORAGE_KEY, theme);
     } catch (error) {
@@ -394,6 +396,8 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
   const [showCredits, setShowCredits] = useState(false);
   const [includeEstimates, setIncludeEstimates] = useState(false);
   const [estimatePercentage, setEstimatePercentage] = useState(80);
+  const [showEstimateHelp, setShowEstimateHelp] = useState(false);
+  const estimateHelpRef = useRef<HTMLDivElement>(null);
   const [calculatedSignatures, setCalculatedSignatures] = useState<Record<string, string>>({});
   const [gpaHistory, setGpaHistory] = useState<GpaHistoryEntry[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -401,6 +405,66 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
   const [dataLoading, setDataLoading] = useState(Boolean(user));
   const [dataError, setDataError] = useState('');
   const [saveError, setSaveError] = useState('');
+  const [isErrorDismissing, setIsErrorDismissing] = useState(false);
+  const errorTimeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!showEstimateHelp) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowEstimateHelp(false);
+    };
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      if (estimateHelpRef.current && !estimateHelpRef.current.contains(e.target as Node)) {
+        setShowEstimateHelp(false);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [showEstimateHelp]);
+
+  useEffect(() => {
+    if (!saveError) {
+      setIsErrorDismissing(false);
+      return;
+    }
+
+    setIsErrorDismissing(false);
+    if (errorTimeoutRef.current) {
+      window.clearTimeout(errorTimeoutRef.current);
+    }
+
+    // Auto-dismiss after 7 seconds with left-to-right exit transition
+    errorTimeoutRef.current = window.setTimeout(() => {
+      setIsErrorDismissing(true);
+      errorTimeoutRef.current = window.setTimeout(() => {
+        setSaveError('');
+        setIsErrorDismissing(false);
+      }, 320);
+    }, 7000);
+
+    return () => {
+      if (errorTimeoutRef.current) {
+        window.clearTimeout(errorTimeoutRef.current);
+      }
+    };
+  }, [saveError]);
+
+  const handleDismissSaveError = () => {
+    if (errorTimeoutRef.current) {
+      window.clearTimeout(errorTimeoutRef.current);
+    }
+    setIsErrorDismissing(true);
+    errorTimeoutRef.current = window.setTimeout(() => {
+      setSaveError('');
+      setIsErrorDismissing(false);
+    }, 320);
+  };
   const [loadAttempt, setLoadAttempt] = useState(0);
   const [legacySubjects, setLegacySubjects] = useState<SubjectData[]>([]);
   const [migrationResolved, setMigrationResolved] = useState(false);
@@ -563,6 +627,12 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
     dialogReturnFocusRef.current = null;
   }, [isDialogOpen]);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [currentSubjectId]);
+
   const currentSubject = useMemo(() => {
     return subjects.find((s) => s.id === currentSubjectId) || subjects[0] || DEFAULT_SUBJECT;
   }, [subjects, currentSubjectId]);
@@ -583,7 +653,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
   const isUniversalHumanValues = currentCourseType === 'universal-human-values';
   const isSelfLearning = currentCourseType === 'self-learning';
   const isLaboratoryCourse = currentCourseType === 'laboratory-course';
-  const isTwoTestCourse = ['industry-oriented-tests', 'standards-course', 'audit-course', 'heritage-course'].includes(currentCourseType);
+  const isTwoTestCourse = ['industry-oriented-tests', 'standards-course', 'audit-course'].includes(currentCourseType);
 
   // Update specific fields of the current subject
   const updateCurrentSubject = (updates: Partial<SubjectData>) => {
@@ -655,54 +725,49 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
 
   const handleOpenPresetCourse = (course: PresetCourse) => {
     calculationRevisionRef.current += 1;
-    const isHeritageCourse = getCourseType({
-      ...DEFAULT_SUBJECT,
-      name: course.name,
-      courseType: course.courseType,
-    }) === 'heritage-course';
-    const existing = findSubjectForCourse(subjects, course);
-    if (existing) {
-      if (course.courseType === 'heritage-course') {
-        setSubjects((previous) => previous.map((subject) => {
-          if (subject.id !== existing.id) return subject;
-          const act1Count = Math.max(1, Number(subject.act1No) || 0);
-          const act2Count = Math.max(1, Number(subject.act2No) || 0);
-          return {
-            ...subject,
-            act1No: act1Count,
-            act1Scores: syncScoresArray(subject.act1Scores, act1Count),
-            act2No: act2Count,
-            act2Scores: syncScoresArray(subject.act2Scores, act2Count),
-          };
-        }));
-      }
-      setCurrentSubjectId(existing.id);
-      if (isHeritageCourse) {
-        const activityOneCount = Math.max(1, Math.floor(Number(existing.act1No) || 0));
-        const activityTwoCount = Math.max(1, Math.floor(Number(existing.act2No) || 0));
-        setSubjects((previous) => previous.map((subject) => subject.id === existing.id
-          ? {
+    const isHeritageCourse =
+      getCourseType({
+        ...DEFAULT_SUBJECT,
+        name: course.name,
+        courseType: course.courseType,
+      }) === 'heritage-course' ||
+      course.name.trim().toLowerCase() === 'heritage of tamils' ||
+      course.code === 'UC23H01';
+
+    const stableId = `course_${course.id}`;
+    let targetSubjectId = stableId;
+
+    setSubjects((previous) => {
+      const existing = findSubjectForCourse(previous, course);
+      if (existing) {
+        targetSubjectId = existing.id;
+        if (isHeritageCourse) {
+          const act1Count = Math.max(1, Number(existing.act1No) || 0);
+          const act2Count = Math.max(1, Number(existing.act2No) || 0);
+          return previous.map((subject) => {
+            if (subject.id !== existing.id) return subject;
+            return {
               ...subject,
               courseType: 'heritage-course',
-              act1No: activityOneCount,
-              act1Scores: syncScoresArray(subject.act1Scores, activityOneCount),
-              act2No: activityTwoCount,
-              act2Scores: syncScoresArray(subject.act2Scores, activityTwoCount),
-            }
-          : subject));
-      }
-      if (course.electiveSlot) {
-        setSubjects((previous) => {
+              act1No: act1Count,
+              act1Scores: syncScoresArray(subject.act1Scores, act1Count),
+              act2No: act2Count,
+              act2Scores: syncScoresArray(subject.act2Scores, act2Count),
+            };
+          });
+        }
+        if (course.electiveSlot) {
           const selected = previous.find((subject) => subject.id === existing.id);
           return selected
             ? [...previous.filter((subject) => subject.id !== selected.id), selected]
             : previous;
-        });
+        }
+        return previous;
       }
-    } else {
+
       const newSubject: SubjectData = {
         ...DEFAULT_SUBJECT,
-        id: `course_${course.id}`,
+        id: stableId,
         name: course.name,
         code: course.code,
         courseType: isHeritageCourse ? 'heritage-course' : course.courseType,
@@ -714,17 +779,20 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
           : {}),
         ...(course.courseType === 'self-learning' ? { selfLearningPassMark: 50 } : {}),
       };
-      setSubjects((previous) => previous.some((subject) => findSubjectForCourse(previous, course))
-        ? previous
-        : [...previous, newSubject]);
-      setCurrentSubjectId(newSubject.id);
-    }
+      targetSubjectId = newSubject.id;
+      return [...previous, newSubject];
+    });
+
+    setCurrentSubjectId(targetSubjectId);
     setSelectedSemester(course.semester);
     setActiveTab('calculator');
     setIsDesktopCoursesOpen(false);
     setShowFeedbackHub(false);
     setIsEditorOpen(true);
     setIsDialogOpen(false);
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
   };
 
   const handleOpenOtherCourse = (subject: SubjectData) => {
@@ -733,6 +801,9 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
     setIsDesktopCoursesOpen(false);
     setShowFeedbackHub(false);
     setIsEditorOpen(true);
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
   };
 
   const handleOpenElectivePicker = (slot: string) => {
@@ -1047,6 +1118,9 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
     if (!nextCourseFlowItem) {
       setIsMobileCoursesOpen(false);
       setActiveTab('gpa');
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
       return;
     }
 
@@ -1058,6 +1132,10 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
     } else if (nextCourseFlowItem.course) {
       handleOpenPresetCourse(nextCourseFlowItem.course);
     }
+
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
   };
 
   const allSemesterCoursesCalculated = useMemo(() => {
@@ -1276,7 +1354,6 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
         hasCalculatedCurrentSubject ? (
           <StickyResultSummary
             key={currentSubject.id}
-            placement="desktop"
             subjectName={currentSubject.name}
             total={breakdown.total}
             grade={breakdown.grade.letter}
@@ -1286,30 +1363,28 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
             onSummary={scrollToSummary}
           />
         ) : (
-          <div key={currentSubject.id} className="hidden border-b border-slate-200 bg-white px-4 py-2 text-sm font-black text-[#172554] animate-[sticky-result-in_160ms_ease-out] md:block" role="status" aria-live="polite" aria-label="Current subject">
-            {currentSubject.name}
+          <div
+            key={currentSubject.id}
+            className="border-b border-slate-200 bg-white px-3 py-2 sm:px-6 sm:py-2.5 shadow-xs animate-[sticky-result-in_160ms_ease-out]"
+            role="status"
+            aria-live="polite"
+            aria-label="Current subject status"
+          >
+            <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
+              <span className="truncate text-xs sm:text-sm font-black text-[#172554]" title={currentSubject.name}>
+                {currentSubject.name}
+              </span>
+              {hasEnteredSubjectMarks(currentSubject) && (
+                <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[10px] sm:text-xs font-bold text-amber-800">
+                  <AlertCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5" aria-hidden="true" />
+                  Enter all marks
+                </span>
+              )}
+            </div>
           </div>
         )
       )}
-      {!showFeedbackHub && !showCredits && activeTab === 'calculator' && isEditorOpen && hasSubjectSelected && !hasCalculatedCurrentSubject && (
-        <div key={currentSubject.id} className="border-b border-slate-200 bg-white px-3 py-2 text-xs font-black text-[#172554] animate-[sticky-result-in_160ms_ease-out] md:hidden" role="status" aria-live="polite" aria-label="Current subject">
-          {currentSubject.name}
-        </div>
-      )}
       </div>
-
-      {!showFeedbackHub && !showCredits && activeTab === 'calculator' && isEditorOpen && hasSubjectSelected && hasCalculatedCurrentSubject && (
-        <StickyResultSummary
-          key={currentSubject.id}
-          placement="mobile"
-          subjectName={currentSubject.name}
-          total={breakdown.total}
-          grade={breakdown.grade.letter}
-          gradePoint={breakdown.grade.gradePoint}
-          actionLabel={nextCourseActionLabel}
-          onAction={handleNextCourse}
-        />
-      )}
 
       <MobileBottomNavigation
         activeTab={showFeedbackHub || showCredits ? null : activeTab}
@@ -1332,17 +1407,15 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
       {saveError && (
         <div
           className={`fixed inset-x-3 z-[100] flex items-start justify-between gap-3 rounded-xl border border-rose-300 bg-rose-50 p-3 text-sm text-rose-900 shadow-lg sm:inset-x-auto sm:right-6 sm:w-[min(28rem,calc(100vw-3rem))] ${
-            hasCalculatedCurrentSubject
-              ? 'bottom-[calc(12rem+env(safe-area-inset-bottom))] md:bottom-6'
-              : 'bottom-[calc(6.25rem+env(safe-area-inset-bottom))] md:bottom-6'
-          }`}
+            isErrorDismissing ? 'toast-exit-lr pointer-events-none' : 'toast-in'
+          } bottom-[calc(6.25rem+env(safe-area-inset-bottom))] md:bottom-6`}
           role="alert"
           aria-live="assertive"
         >
           <span className="min-w-0 break-words">{saveError}</span>
           <button
             type="button"
-            onClick={() => setSaveError('')}
+            onClick={handleDismissSaveError}
             className="min-h-11 shrink-0 font-bold underline underline-offset-2"
           >
             Dismiss
@@ -1351,7 +1424,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
       )}
 
       {/* Main Content Area */}
-      <main className={`flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 ${activeTab === 'calculator' && isEditorOpen && hasSubjectSelected && hasCalculatedCurrentSubject ? 'pb-[calc(12rem+env(safe-area-inset-bottom))]' : 'pb-[calc(7.5rem+env(safe-area-inset-bottom))]'} md:pb-8`}>
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-[calc(7.5rem+env(safe-area-inset-bottom))] md:pb-8">
         {guestMode && !showCredits && (
           <div className="mb-5 border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950" role="status">
             <strong className="font-black">Guest session:</strong>{' '}
@@ -1443,20 +1516,65 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
               <div className="space-y-5">
                 {/* Course Type Specification */}
                 <div>
-                  <div className="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#172554] mb-2.5">
-                    Course Type = {breakdown.courseTypeLabel}
-                  </div>
+                  {breakdown.courseType !== 'heritage-course' && (
+                    <div className="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#172554] mb-2.5">
+                      Course Type = {breakdown.courseTypeLabel}
+                    </div>
+                  )}
 
                   <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 border border-slate-300 bg-white px-3 py-2.5">
-                    <label className="inline-flex items-center gap-2 text-xs font-semibold text-[#172554] cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={includeEstimates}
-                        onChange={(event) => updateEstimateSettings(event.target.checked)}
-                        className="h-4 w-4 accent-[#172554]"
-                      />
-                      <span>Include estimated lab &amp; activity average</span>
-                    </label>
+                    <div className="inline-flex items-center gap-1.5">
+                      <label className="inline-flex items-center gap-2 text-xs font-semibold text-[#172554] cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={includeEstimates}
+                          onChange={(event) => updateEstimateSettings(event.target.checked)}
+                          className="h-4 w-4 accent-[#172554]"
+                        />
+                        <span>Include estimated lab &amp; activity average</span>
+                      </label>
+
+                      {/* Accessible help tooltip/popover */}
+                      <div className="relative inline-flex items-center" ref={estimateHelpRef}>
+                        <button
+                          type="button"
+                          onClick={() => setShowEstimateHelp((prev) => !prev)}
+                          className="p-1 text-slate-400 hover:text-[#172554] focus:outline-hidden focus:text-[#172554] cursor-pointer rounded-full transition-colors"
+                          aria-label="How estimated marks work"
+                          aria-expanded={showEstimateHelp}
+                          aria-controls="estimate-help-popover"
+                        >
+                          <HelpCircle className="w-4 h-4" aria-hidden="true" />
+                        </button>
+                        {showEstimateHelp && (
+                          <div
+                            id="estimate-help-popover"
+                            role="tooltip"
+                            className="absolute left-0 top-full mt-1.5 z-40 w-72 sm:w-80 rounded-lg border border-slate-300 bg-white p-3.5 shadow-xl text-xs text-slate-700 space-y-2 animate-[sticky-result-in_160ms_ease-out]"
+                          >
+                            <div className="flex items-center justify-between pb-1 border-b border-slate-100">
+                              <p className="font-bold text-[#172554]">Estimated Lab &amp; Activity Marks</p>
+                              <button
+                                type="button"
+                                onClick={() => setShowEstimateHelp(false)}
+                                className="text-slate-400 hover:text-slate-700 text-xs font-bold px-1 cursor-pointer"
+                                aria-label="Close help"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                            <p className="leading-relaxed text-[11px]">
+                              When enabled, missing lab practicals, assignments, or activities are projected at this percentage (default 80%) so you can preview your overall grade early.
+                            </p>
+                            <ul className="list-disc pl-4 space-y-1 text-[11px] text-slate-600">
+                              <li><strong>Entered marks are kept:</strong> Any marks you manually type are always preserved and never overwritten by the estimate.</li>
+                              <li><strong>Missing scores only:</strong> The percentage is only applied to unentered activities or unentered ESE lab marks.</li>
+                              <li><strong>Customizable:</strong> Adjust the percentage anytime to test different outcome scenarios.</li>
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                     {includeEstimates && (
                       <label className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700">
                         <span>Estimate</span>
@@ -1615,7 +1733,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
                   {/* CA 1 Section */}
                   <ContinuousAssessmentSection
                     number={1}
-                    title={isIndustryOrientedTests ? 'Mid-Term Test' : currentCourseType === 'standards-course' ? 'Standards Test I — Mid-Term' : currentCourseType === 'audit-course' ? 'Audit Test I — Mid-Term' : currentCourseType === 'heritage-course' ? 'Heritage Assessment Test I' : 'Continuous Assessment 1'}
+                    title={isIndustryOrientedTests ? 'Mid-Term Test' : currentCourseType === 'standards-course' ? 'Standards Test I — Mid-Term' : currentCourseType === 'audit-course' ? 'Audit Test I — Mid-Term' : currentCourseType === 'heritage-course' ? 'Continuous Assessment 1' : 'Continuous Assessment 1'}
                     testMax={currentSubject.test1Max}
                     test={currentSubject.test1}
                     onTestMaxChange={(val) => updateCurrentSubject({ test1Max: val })}
@@ -1623,7 +1741,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
                     testPoints={breakdown.test1_p}
                     testWeight={breakdown.testWeight}
                     allowCustomTestMax={isComputationalThinking || isTwoTestCourse}
-                    testDisplayName={isIndustryOrientedTests ? 'MID TERM TEST' : currentCourseType === 'standards-course' ? 'STANDARDS TEST I' : currentCourseType === 'audit-course' ? 'AUDIT TEST I' : currentCourseType === 'heritage-course' ? 'HERITAGE ASSESSMENT TEST I' : undefined}
+                    testDisplayName={isIndustryOrientedTests ? 'MID TERM TEST' : currentCourseType === 'standards-course' ? 'STANDARDS TEST I' : currentCourseType === 'audit-course' ? 'AUDIT TEST I' : currentCourseType === 'heritage-course' ? 'CA 1' : undefined}
                     isTwoTestCourse={isTwoTestCourse}
                     isSelfDevelopment={breakdown.courseType === 'self-development'}
                     actNo={displayedSubject.act1No}
@@ -1652,7 +1770,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
                 {/* CA 2 Section */}
                 {!isUniversalHumanValues && <ContinuousAssessmentSection
                   number={2}
-                  title={isIndustryOrientedTests ? 'End-Course Test' : currentCourseType === 'standards-course' ? 'Standards Test II' : currentCourseType === 'audit-course' ? 'Audit Test II' : currentCourseType === 'heritage-course' ? 'Heritage Assessment Test II' : 'Continuous Assessment 2'}
+                  title={isIndustryOrientedTests ? 'End-Course Test' : currentCourseType === 'standards-course' ? 'Standards Test II' : currentCourseType === 'audit-course' ? 'Audit Test II' : currentCourseType === 'heritage-course' ? 'Continuous Assessment 2' : 'Continuous Assessment 2'}
                   testMax={currentSubject.test2Max}
                   test={currentSubject.test2}
                   onTestMaxChange={(val) => updateCurrentSubject({ test2Max: val })}
@@ -1660,7 +1778,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
                   testPoints={breakdown.test2_p}
                   testWeight={breakdown.testWeight}
                   allowCustomTestMax={isComputationalThinking || isTwoTestCourse}
-                  testDisplayName={isIndustryOrientedTests ? 'END COURSE TEST' : currentCourseType === 'standards-course' ? 'STANDARDS TEST II' : currentCourseType === 'audit-course' ? 'AUDIT TEST II' : currentCourseType === 'heritage-course' ? 'HERITAGE ASSESSMENT TEST II' : undefined}
+                  testDisplayName={isIndustryOrientedTests ? 'END COURSE TEST' : currentCourseType === 'standards-course' ? 'STANDARDS TEST II' : currentCourseType === 'audit-course' ? 'AUDIT TEST II' : currentCourseType === 'heritage-course' ? 'CA 2' : undefined}
                   isTwoTestCourse={isTwoTestCourse}
                   isSelfDevelopment={breakdown.courseType === 'self-development'}
                   actNo={displayedSubject.act2No}
@@ -1691,7 +1809,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
                   courseType={breakdown.courseType}
                   ese={currentSubject.ese}
                   onEseChange={(val) => updateCurrentSubject({ ese: val })}
-                  eseLab={displayedSubject.eseLab}
+                  eseLab={currentSubject.eseLab}
                   onEseLabChange={(val) => updateCurrentSubject({ eseLab: val })}
                   eseLabMax={currentSubject.eseLabMax}
                   onEseLabMaxChange={(val) => updateCurrentSubject({ eseLabMax: val })}
@@ -1702,7 +1820,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
                   eseLabWeight={breakdown.eseLabWeight}
                   internalTotal={breakdown.internal_total}
                   internalMax={breakdown.internalMax}
-                  estimatedLabMark={currentSubjectUsesEstimates && breakdown.eseLabWeight > 0}
+                  estimatedLabMark={currentSubjectUsesEstimates && breakdown.eseLabWeight > 0 && (currentSubject.eseLab === '' || currentSubject.eseLab === undefined)}
                 />}
                   </>
                   )}

@@ -159,7 +159,7 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
           </div>
         ) : (
           <div className="my-3 bg-white">
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,11rem),1fr))] divide-x divide-slate-200 border-x border-slate-200">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
               {Array.from({ length: numericCount }).map((_, idx) => {
                 const displayIndex = startIndex + idx;
                 const rawScore = scores[idx];
@@ -168,21 +168,21 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
                 return (
                   <div
                     key={idx}
-                    className="min-w-0 p-2.5 flex flex-col items-center justify-center hover:bg-slate-50 transition-colors"
+                    className="min-w-0 p-2 sm:p-2.5 rounded-lg border border-slate-200 bg-white flex flex-col items-center justify-center hover:bg-slate-50 transition-colors"
                   >
-                    <span className="text-[11px] font-bold text-[#172554] mb-1.5 whitespace-nowrap">
+                    <span className="text-[11px] sm:text-xs font-bold text-[#172554] mb-1.5 whitespace-nowrap">
                       {accessibleItemLabel === 'Assignment' || accessibleItemLabel === 'Lab Evaluation'
                         ? category === 'assignment' ? `Assignment ${displayIndex}` : `Lab ${displayIndex}`
                         : `${accessibleItemLabel} ${displayIndex}`}
                     </span>
 
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-0.5 sm:gap-1">
                       <button
                         type="button"
                         onClick={() => adjustBoxScore(idx, -0.5)}
                         disabled={estimatedMarks || Number(displayVal || 0) <= 0}
                         aria-label={`Decrease ${category === 'assignment' ? 'assignment' : 'lab'} ${displayIndex} mark by 0.5`}
-                        className="flex h-11 w-10 items-center justify-center border border-slate-300 text-base font-black text-[#172554] hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40 sm:h-11 sm:w-10"
+                        className="flex h-8 w-7 sm:h-9 sm:w-8 items-center justify-center border border-slate-300 text-sm sm:text-base font-black text-[#172554] hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         −
                       </button>
@@ -196,18 +196,18 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
                         readOnly={estimatedMarks}
                         onChange={(e) => handleBoxChange(idx, e.target.value)}
                         aria-label={`${accessibleItemLabel} ${displayIndex} mark out of ${maxMarkPerBox}`}
-                        className="h-11 w-16 min-w-16 px-1.5 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] text-center read-only:bg-blue-50 read-only:text-[#1e3a8a]"
+                        className="h-8 w-10 sm:h-9 sm:w-14 px-1 text-xs sm:text-sm font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] text-center read-only:bg-blue-50 read-only:text-[#1e3a8a]"
                       />
                       <button
                         type="button"
                         onClick={() => adjustBoxScore(idx, 0.5)}
                         disabled={estimatedMarks || Number(displayVal || 0) >= maxMarkPerBox}
                         aria-label={`Increase ${category === 'assignment' ? 'assignment' : 'lab'} ${displayIndex} mark by 0.5`}
-                        className="flex h-11 w-10 items-center justify-center border border-slate-300 text-base font-black text-[#172554] hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40 sm:h-11 sm:w-10"
+                        className="flex h-8 w-7 sm:h-9 sm:w-8 items-center justify-center border border-slate-300 text-sm sm:text-base font-black text-[#172554] hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         +
                       </button>
-                      <span className="text-xs font-bold text-[#1e3a8a]">/{maxMarkPerBox}</span>
+                      <span className="text-[10px] sm:text-xs font-bold text-[#1e3a8a]">/{maxMarkPerBox}</span>
                     </div>
                   </div>
                 );

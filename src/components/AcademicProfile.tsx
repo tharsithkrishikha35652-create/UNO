@@ -56,8 +56,8 @@ export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
       department,
     };
     const semesterValue = Number(semester);
-    if (Object.values(values).some((value) => !value)) {
-      setError('Enter your name and roll number to continue.');
+    if (!values.studentName || !values.rollNumber) {
+      setError('Enter your student name and roll number to continue.');
       return;
     }
     if (!semesterOptions.includes(semesterValue as SemesterNumber)) {
@@ -79,65 +79,81 @@ export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
 
   return (
     <form className="space-y-4" onSubmit={(event) => void handleSubmit(event)} noValidate>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="space-y-4">
         <label className="block">
-          <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#172554]">Student name</span>
+          <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#172554]">
+            Student name
+          </span>
           <input
             id="academic-student-name"
             name="studentName"
             type="text"
             autoComplete="name"
+            placeholder="Your full name"
             value={studentName}
             onChange={(event) => setStudentName(event.currentTarget.value)}
             aria-invalid={Boolean(error)}
             aria-describedby={error ? 'academic-profile-error' : undefined}
-            className="w-full border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900"
           />
         </label>
+
         <label className="block">
-          <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#172554]">Roll number</span>
+          <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#172554]">
+            Roll number
+          </span>
           <input
             id="academic-roll-number"
             name="rollNumber"
             type="text"
             autoComplete="off"
+            placeholder="Enter your roll number"
             value={rollNumber}
             onChange={(event) => setRollNumber(event.currentTarget.value)}
             aria-invalid={Boolean(error)}
             aria-describedby={error ? 'academic-profile-error' : undefined}
-            className="w-full border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900"
           />
         </label>
+
+        <div>
+          <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#172554]">
+            Email address
+          </span>
+          <p className="min-h-11 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 break-words">
+            {guestMode ? 'Temporary guest session' : email || 'Email unavailable'}
+          </p>
+        </div>
+
         <label className="block">
-          <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#172554]">Department</span>
+          <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#172554]">
+            Department
+          </span>
           <select
             id="academic-department"
             name="department"
             value={department}
             onChange={(event) => setDepartment(event.currentTarget.value)}
-            className="min-h-11 w-full border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900"
+            className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900"
           >
             <option value="CSE">Computer Science and Engineering (CSE)</option>
           </select>
+          <span className="mt-1 block text-[11px] text-slate-500">
+            Only CSE is currently supported.
+          </span>
         </label>
-      </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#172554]">Email address</span>
-          <p className="min-h-11 border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-700">
-            {guestMode ? 'Temporary guest session' : email || 'Email unavailable'}
-          </p>
-        </div>
         <label className="block">
-          <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#172554]">Current semester</span>
+          <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#172554]">
+            Current semester
+          </span>
           <select
             aria-label="Current semester"
             value={semester}
             onChange={(event) => setSemester(event.currentTarget.value)}
             aria-invalid={Boolean(error)}
             aria-describedby={error ? 'academic-profile-error' : undefined}
-            className="min-h-11 w-full border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900"
+            className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900"
           >
             <option value="">Choose semester…</option>
             {semesterOptions.map((option) => (
@@ -148,17 +164,18 @@ export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
       </div>
 
       {error && (
-        <p id="academic-profile-error" className="border border-rose-200 bg-rose-50 px-3 py-2.5 text-sm font-semibold text-rose-900" role="alert">
+        <p id="academic-profile-error" className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2.5 text-sm font-semibold text-rose-900" role="alert">
           {error}
         </p>
       )}
-      <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
+
+      <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
         {onCancel && (
           <button
             type="button"
             onClick={onCancel}
             disabled={saving}
-            className="min-h-11 border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-[#172554] hover:bg-slate-50 disabled:opacity-60"
+            className="min-h-11 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-[#172554] hover:bg-slate-50 disabled:opacity-60"
           >
             Cancel
           </button>
@@ -166,7 +183,7 @@ export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
         <button
           type="submit"
           disabled={saving}
-          className="min-h-11 bg-[#172554] px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-white hover:bg-[#1e3a8a] disabled:cursor-wait disabled:opacity-60"
+          className="min-h-11 rounded-lg bg-[#172554] px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-white hover:bg-[#1e3a8a] disabled:cursor-wait disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#172554]"
         >
           {saving ? 'Saving profile…' : submitLabel}
         </button>
@@ -182,17 +199,17 @@ interface AcademicSetupScreenProps extends Omit<AcademicProfileFormProps, 'submi
 
 export const AcademicSetupScreen: React.FC<AcademicSetupScreenProps> = ({ theme, onToggleTheme, ...props }) => (
   <main className="min-h-screen bg-slate-100 px-4 py-8 text-slate-900 sm:px-6 sm:py-12">
-    <section className="mx-auto w-full max-w-3xl border border-slate-300 bg-white p-5 shadow-sm sm:p-8">
+    <section className="mx-auto w-full max-w-xl rounded-2xl border border-slate-300 bg-white p-5 shadow-sm sm:p-8">
       <div className="mb-7 flex items-start justify-between gap-3 border-b border-slate-200 pb-5">
         <div className="flex min-w-0 items-start gap-3">
-          <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[#172554] text-blue-100">
+          <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#172554] text-blue-100">
             <span className="text-base font-black tracking-[-0.12em]" aria-hidden="true">CC</span>
             <span className="absolute bottom-1.5 h-0.5 w-2 rounded-full bg-cyan-300" aria-hidden="true" />
           </span>
           <div>
-            <p className="text-[11px] font-bold tracking-[0.08em] text-blue-800">CalCredit</p>
+            <p className="text-[11px] font-bold tracking-[0.08em] text-blue-800 uppercase">CALCREDIT</p>
             <h1 className="mt-1 text-xl font-black text-[#172554] sm:text-2xl">Academic Setup</h1>
-            <p className="mt-1 max-w-prose text-sm text-slate-600">Add your academic details to personalize your course workspace.</p>
+            <p className="mt-1 max-w-prose text-xs text-slate-600">Add your academic details to personalize your course workspace.</p>
           </div>
         </div>
         <ThemeToggle theme={theme} onToggle={onToggleTheme} />
@@ -281,14 +298,6 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
 
   if (!isOpen) return null;
 
-  const entries = [
-    ['Student name', profile?.studentName || (guestMode ? 'Guest Student' : 'Student')],
-    ['Roll number', profile?.rollNumber || 'Not provided'],
-    ['Email address', guestMode ? 'Not available in a guest session' : email || 'Email unavailable'],
-    ['Department', profile?.department || 'CSE'],
-    ['Current semester', initialSemester ? `Semester ${initialSemester}` : 'Not selected'],
-  ];
-
   return (
     <div className="fixed inset-0 z-[70] h-dvh max-h-dvh overflow-hidden" role="presentation">
       <button
@@ -303,14 +312,19 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="academic-profile-title"
-        className="absolute inset-y-0 left-0 flex h-full max-h-dvh w-[min(100%,26rem)] flex-col rounded-r-2xl border-r border-slate-300 bg-white shadow-2xl animate-[profile-slide-in_220ms_cubic-bezier(0.16,1,0.3,1)]"
+        className="absolute inset-y-0 left-0 flex h-full max-h-dvh w-[82vw] max-w-sm sm:max-w-md flex-col rounded-r-2xl border-r border-slate-300 bg-white shadow-2xl animate-[profile-slide-in_220ms_cubic-bezier(0.16,1,0.3,1)]"
       >
         <header className="flex items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
-          <div>
-            <h2 id="academic-profile-title" className="text-base font-black uppercase tracking-wide text-[#172554]">
-              {editing ? 'Edit academic profile' : 'Student profile'}
-            </h2>
-            <p className="mt-1 text-xs text-slate-600">{guestMode ? 'Temporary guest session' : 'Your saved academic information'}</p>
+          <div className="flex items-center gap-2.5">
+            <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#172554] text-blue-100">
+              <span className="text-xs font-black tracking-[-0.12em]" aria-hidden="true">CC</span>
+              <span className="absolute bottom-1 h-0.5 w-1.5 rounded-full bg-cyan-300" aria-hidden="true" />
+            </span>
+            <div>
+              <h2 id="academic-profile-title" className="text-sm font-black tracking-wider text-[#172554] uppercase">
+                {editing ? 'Edit Profile' : 'CALCREDIT'}
+              </h2>
+            </div>
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <ThemeToggle theme={theme} onToggle={onToggleTheme} />
@@ -319,21 +333,21 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
               type="button"
               onClick={onClose}
               aria-label="Close profile"
-              className="flex h-10 w-10 shrink-0 items-center justify-center border border-slate-300 text-[#172554] hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-[#172554]"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-300 text-[#172554] hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-[#172554]"
             >
               <X className="h-5 w-5" aria-hidden="true" />
             </button>
           </div>
         </header>
 
-        <div className="min-h-0 flex-1 overflow-y-auto p-5">
+        <div className="min-h-0 flex-1 overflow-y-auto p-5 space-y-4">
           {editing ? (
             <AcademicProfileForm
               profile={profile}
               initialSemester={initialSemester}
               email={email}
               guestMode={guestMode}
-              submitLabel="Save profile"
+              submitLabel="Save Changes"
               onSave={async (values) => {
                 await onSave(values);
                 setEditing(false);
@@ -346,58 +360,114 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
             />
           ) : (
             <>
-              <dl className="divide-y divide-slate-200">
-                {entries.map(([label, value]) => (
-                  <div key={label} className="py-3">
-                    <dt className="text-[11px] font-bold uppercase tracking-wide text-slate-500">{label}</dt>
-                    <dd className="mt-1 break-words text-sm font-semibold text-slate-900">{value}</dd>
-                  </div>
-                ))}
-              </dl>
-              {guestMode && (
-                <p className="mt-5 border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950" role="status">
-                  Guest profile details stay in this temporary session and are cleared when it ends. They are not sent to Firebase.
-                </p>
-              )}
+              {/* 1. Your Profile banner */}
+              <div className="rounded-xl bg-[#172554] px-4 py-3 text-white flex items-center justify-between shadow-sm">
+                <span className="text-xs font-black uppercase tracking-wider">YOUR PROFILE</span>
+                <span className="rounded-md bg-blue-900/60 border border-blue-400/30 px-2 py-0.5 text-[10px] font-bold text-cyan-300 uppercase">
+                  CSE
+                </span>
+              </div>
+
+              {/* 2-6. Profile Details Card: Student Name -> Roll Number -> Email -> Department -> Current Semester */}
+              <div className="rounded-xl border border-slate-300 bg-white p-4 shadow-sm divide-y divide-slate-200">
+                <div className="pb-3">
+                  <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Student Name</dt>
+                  <dd className="mt-1 text-sm font-bold text-[#172554] break-words">
+                    {profile?.studentName || (guestMode ? 'Guest Student' : 'Student')}
+                  </dd>
+                </div>
+                <div className="py-3">
+                  <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Roll Number</dt>
+                  <dd className="mt-1 text-sm font-bold text-[#172554] break-words">
+                    {profile?.rollNumber || 'Not provided'}
+                  </dd>
+                </div>
+                <div className="py-3">
+                  <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Email</dt>
+                  <dd className="mt-1 text-sm font-semibold text-slate-800 break-words">
+                    {guestMode ? 'Temporary guest session' : email || 'Email unavailable'}
+                  </dd>
+                </div>
+                <div className="py-3">
+                  <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Department</dt>
+                  <dd className="mt-1 text-sm font-bold text-[#172554]">
+                    {profile?.department || 'CSE'}
+                  </dd>
+                </div>
+                <div className="pt-3">
+                  <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Current Semester</dt>
+                  <dd className="mt-1 text-sm font-bold text-[#172554]">
+                    {initialSemester ? `Semester ${initialSemester}` : 'Not selected'}
+                  </dd>
+                </div>
+              </div>
+
+              {/* 7. Edit Profile */}
               <button
                 ref={editButtonRef}
                 type="button"
                 onClick={() => setEditing(true)}
-                className="mt-6 min-h-11 w-full bg-[#172554] px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-white hover:bg-[#1e3a8a] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#172554]"
+                className="min-h-11 w-full rounded-xl bg-[#172554] px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-[#1e3a8a] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#172554]"
               >
-                Edit profile
+                Edit Profile
               </button>
+
+              {/* 8. Feedback */}
+              <button
+                type="button"
+                onClick={onOpenFeedback}
+                className="flex min-h-12 w-full items-center justify-between rounded-xl border border-slate-300 bg-white p-3.5 text-left hover:bg-slate-50 transition-colors focus-visible:outline-2 focus-visible:outline-[#172554]"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-[#172554]">
+                    <MessageSquare className="h-4 w-4" aria-hidden="true" />
+                  </div>
+                  <div>
+                    <span className="block text-sm font-bold text-[#172554]">Feedback</span>
+                    <span className="block text-xs text-slate-500">Share feedback to help improve CALCREDIT</span>
+                  </div>
+                </div>
+              </button>
+
+              {/* 9. Credits */}
+              <button
+                type="button"
+                onClick={onOpenCredits}
+                className="flex min-h-12 w-full items-center justify-between rounded-xl border border-slate-300 bg-white p-3.5 text-left hover:bg-slate-50 transition-colors focus-visible:outline-2 focus-visible:outline-[#172554]"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-[#172554]">
+                    <UsersRound className="h-4 w-4" aria-hidden="true" />
+                  </div>
+                  <div>
+                    <span className="block text-sm font-bold text-[#172554]">Credits</span>
+                    <span className="block text-xs text-slate-500">Design &amp; development</span>
+                  </div>
+                </div>
+              </button>
+
+              {guestMode && (
+                <p className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs text-amber-950" role="status">
+                  Guest profile details stay in this temporary session and are cleared when it ends.
+                </p>
+              )}
             </>
           )}
         </div>
+
+        {/* 10. Logout at the bottom with subtle red styling */}
         {!editing && (
-          <footer className="shrink-0 space-y-2 border-t border-slate-200 bg-white p-5">
-            <button
-              type="button"
-              onClick={onOpenFeedback}
-              className="flex min-h-11 w-full items-center gap-3 border border-slate-300 px-3 py-2 text-left text-sm font-semibold text-[#172554] hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-[#172554]"
-            >
-              <MessageSquare className="h-4 w-4" aria-hidden="true" />
-              Feedback Hub
-            </button>
-            <button
-              type="button"
-              onClick={onOpenCredits}
-              className="flex min-h-11 w-full items-center gap-3 border border-slate-300 px-3 py-2 text-left text-sm font-semibold text-[#172554] hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-[#172554]"
-            >
-              <UsersRound className="h-4 w-4" aria-hidden="true" />
-              Credits
-            </button>
+          <footer className="shrink-0 border-t border-slate-200 bg-white p-4">
             <button
               type="button"
               onClick={onLogout}
               disabled={logoutPending}
-              className="flex min-h-11 w-full items-center gap-3 border border-slate-300 px-3 py-2 text-left text-sm font-semibold text-[#172554] hover:bg-slate-50 disabled:cursor-wait disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-[#172554]"
+              className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-rose-300 bg-rose-50/70 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-rose-600 hover:bg-rose-100 transition-colors disabled:cursor-wait disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-rose-500"
             >
               {logoutPending
                 ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" />
                 : <LogOut className="h-4 w-4" aria-hidden="true" />}
-              {logoutPending ? 'Signing out…' : guestMode ? 'Exit guest session' : 'Log out'}
+              {logoutPending ? 'Signing out…' : guestMode ? 'Exit Guest Session' : 'Log out'}
             </button>
           </footer>
         )}

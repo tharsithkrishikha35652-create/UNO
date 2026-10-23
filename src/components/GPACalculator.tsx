@@ -105,13 +105,18 @@ function scoresCompleteOrEstimated(
     return Number.isInteger(count) && count >= 0;
 }
 
-function estimateScores(
-    countValue: number | string,
-    estimatePercentage: number
-  ): (number | string)[] {
-    const count = Math.max(0, Math.floor(Number(countValue) || 0));
-    const estimateMark = (10 * estimatePercentage) / 100;
-    return Array.from({ length: count === 0 ? 1 : count }, () => estimateMark);
+function fillEstimatedScores(
+  countValue: number | string,
+  existingScores: (number | string)[] | undefined,
+  estimatePercentage: number
+): (number | string)[] {
+  const count = Math.max(0, Math.floor(Number(countValue) || 0));
+  const finalCount = count === 0 ? 1 : count;
+  const estimateMark = (10 * estimatePercentage) / 100;
+  return Array.from({ length: finalCount }, (_, i): number | string => {
+    const existing = existingScores?.[i];
+    return existing !== undefined && entered(existing) ? existing : estimateMark;
+  });
 }
 
 function estimatedCount(countValue: number | string): number | string {
@@ -119,36 +124,39 @@ function estimatedCount(countValue: number | string): number | string {
 }
 
 export function applyEstimatedScores(subject: SubjectData, estimatePercentage: number): SubjectData {
-    const weights = getCourseWeights(getCourseType(subject));
-    return {
-      ...subject,
-      ...(weights.actWeight > 0
-        ? {
-            act1No: estimatedCount(subject.act1No),
-            act2No: estimatedCount(subject.act2No),
-            act1Scores: estimateScores(subject.act1No, estimatePercentage),
-            act2Scores: estimateScores(subject.act2No, estimatePercentage),
-          }
-        : {}),
-      ...(weights.labWeight > 0
-        ? {
-            lab1No: estimatedCount(subject.lab1No),
-            lab2No: estimatedCount(subject.lab2No),
-          }
-        : {}),
-      lab1Scores: weights.labWeight > 0
-        ? estimateScores(subject.lab1No, estimatePercentage)
-        : subject.lab1Scores,
-      lab2Scores: weights.labWeight > 0
-        ? estimateScores(subject.lab2No, estimatePercentage)
-        : subject.lab2Scores,
-      ...(weights.eseLabWeight > 0
-        ? {
-            eseLab:
-              ((Number(subject.eseLabMax) > 0 ? Number(subject.eseLabMax) : 100) * estimatePercentage) / 100,
-          }
-        : {}),
-    };
+  const weights = getCourseWeights(getCourseType(subject));
+  const hasEnteredEseLab = entered(subject.eseLab);
+  const eseLabMax = Number(subject.eseLabMax) > 0 ? Number(subject.eseLabMax) : 100;
+  const estimatedEseLab = (eseLabMax * estimatePercentage) / 100;
+
+  return {
+    ...subject,
+    ...(weights.actWeight > 0
+      ? {
+          act1No: estimatedCount(subject.act1No),
+          act2No: estimatedCount(subject.act2No),
+          act1Scores: fillEstimatedScores(subject.act1No, subject.act1Scores, estimatePercentage),
+          act2Scores: fillEstimatedScores(subject.act2No, subject.act2Scores, estimatePercentage),
+        }
+      : {}),
+    ...(weights.labWeight > 0
+      ? {
+          lab1No: estimatedCount(subject.lab1No),
+          lab2No: estimatedCount(subject.lab2No),
+        }
+      : {}),
+    lab1Scores: weights.labWeight > 0
+      ? fillEstimatedScores(subject.lab1No, subject.lab1Scores, estimatePercentage)
+      : subject.lab1Scores,
+    lab2Scores: weights.labWeight > 0
+      ? fillEstimatedScores(subject.lab2No, subject.lab2Scores, estimatePercentage)
+      : subject.lab2Scores,
+    ...(weights.eseLabWeight > 0
+      ? {
+          eseLab: hasEnteredEseLab ? subject.eseLab : estimatedEseLab,
+        }
+      : {}),
+  };
 }
 
 export function hasEstimateableComponents(subject: SubjectData): boolean {

@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { BookOpen, CheckCircle2, Circle, Pencil, PencilLine, X } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { BookOpen, Check, CheckCircle2, Circle, Pencil, PencilLine, X } from 'lucide-react';
 import type { SubjectData } from '../types';
 import type { PresetCourse, SemesterNumber } from './SubjectSelectionDialog';
 import type {
@@ -60,7 +60,7 @@ export const MobileCoursesSheet: React.FC<MobileCoursesSheetProps> = ({
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const restoreFocusRef = useRef(true);
-  const [expandedElectiveSlot, setExpandedElectiveSlot] = React.useState<string | null>(null);
+  const [expandedElectiveSlot, setExpandedElectiveSlot] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -107,6 +107,144 @@ export const MobileCoursesSheet: React.FC<MobileCoursesSheetProps> = ({
   if (!isOpen) return null;
 
   const courseCount = courses.length + electiveSlots.length + otherCourses.length;
+
+  const professionalElectiveSlots = electiveSlots.filter(
+    (entry) => !entry.slot.toLowerCase().includes('open')
+  );
+  const openElectiveSlots = electiveSlots.filter(
+    (entry) => entry.slot.toLowerCase().includes('open')
+  );
+
+  const renderElectiveSlotRow = ({ slot, course, subject, progress }: SemesterElectiveRow) => {
+    const isExpanded = expandedElectiveSlot === slot;
+    const options = electiveOptions[slot] ?? [];
+
+    return (
+      <li
+        key={slot}
+        className={`rounded-xl border transition-colors ${
+          isExpanded
+            ? 'border-indigo-400 bg-indigo-50/50'
+            : subject?.id === selectedSubjectId
+              ? 'border-blue-200 bg-blue-50/50'
+              : 'border-slate-200 bg-white'
+        }`}
+      >
+        <div className="flex min-h-14 items-center justify-between gap-3 p-3">
+          <button
+            type="button"
+            onClick={() => {
+              if (course) {
+                onSelectCourse(course);
+              } else {
+                setExpandedElectiveSlot((current) => current === slot ? null : slot);
+              }
+            }}
+            aria-pressed={subject?.id === selectedSubjectId}
+            aria-expanded={isExpanded}
+            aria-controls={`elective-options-${slot.replace(/\s+/g, '-').toLowerCase()}`}
+            className="flex min-w-0 flex-1 items-center justify-between gap-3 text-left focus-visible:outline-2 focus-visible:outline-[#172554]"
+          >
+            <span className="min-w-0">
+              <span className="block text-[11px] font-bold text-slate-500">{slot}</span>
+              <span className="mt-0.5 block truncate text-sm font-bold text-[#172554]">
+                {course?.name ?? 'Choose elective'}
+              </span>
+              {course && (course.code || course.type) && (
+                <span className="mt-0.5 block text-[11px] text-slate-500">
+                  {course.code}{course.code && course.type ? ' · ' : ''}{course.type}
+                </span>
+              )}
+            </span>
+            {course ? (
+              <ProgressIndicator progress={progress} />
+            ) : (
+              <BookOpen className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setExpandedElectiveSlot((current) => current === slot ? null : slot)}
+            aria-label={`${isExpanded ? 'Hide' : 'Change'} choices for ${slot}`}
+            aria-expanded={isExpanded}
+            aria-controls={`elective-options-${slot.replace(/\s+/g, '-').toLowerCase()}`}
+            className="flex h-9 items-center gap-1.5 rounded-lg border border-slate-300 px-2.5 text-xs font-bold text-[#172554] hover:bg-slate-50 transition-colors focus-visible:outline-2 focus-visible:outline-[#172554]"
+          >
+            <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
+            <span>{isExpanded ? 'Close' : course ? 'Change' : 'Choose'}</span>
+          </button>
+        </div>
+
+        {isExpanded && (
+          <div className="elective-options-expansion border-t border-slate-200 p-3 pt-2">
+            <div className="mb-2">
+              <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+                Available in Semester {semester}
+              </p>
+              <p className="mt-0.5 text-[10px] text-slate-500">
+                Only choices for this semester and slot are shown.
+              </p>
+            </div>
+
+            <ul
+              id={`elective-options-${slot.replace(/\s+/g, '-').toLowerCase()}`}
+              className="max-h-64 space-y-1.5 overflow-y-auto pr-1"
+            >
+              {options.map((option) => {
+                const isSelectedInThisSlot = option.id === course?.id || option.code === course?.code;
+                const isChosenInOtherSlot = electiveSlots.some(
+                  (s) => s.slot !== slot && s.course && (s.course.id === option.id || (Boolean(s.course.code) && s.course.code === option.code))
+                );
+
+                return (
+                  <li key={option.id}>
+                    <button
+                      type="button"
+                      disabled={isChosenInOtherSlot}
+                      onClick={() => {
+                        onSelectCourse(option);
+                        setExpandedElectiveSlot(null);
+                      }}
+                      className={`flex min-h-12 w-full items-center justify-between gap-3 rounded-lg border px-3 py-2 text-left transition-colors focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[#172554] ${
+                        isSelectedInThisSlot
+                          ? 'border-[#172554] bg-blue-50/80'
+                          : isChosenInOtherSlot
+                            ? 'cursor-not-allowed border-slate-200 bg-slate-100/60 opacity-60'
+                            : 'border-slate-300 bg-white hover:bg-slate-50'
+                      }`}
+                    >
+                      <span className="min-w-0">
+                        <span className="block truncate text-xs font-bold text-[#172554]">
+                          {option.name}
+                        </span>
+                        <span className="block text-[10px] text-slate-500">
+                          {option.code} · {option.type}
+                        </span>
+                      </span>
+
+                      {isSelectedInThisSlot ? (
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#172554] text-white">
+                          <Check className="h-3 w-3 stroke-[3]" aria-label="Selected" />
+                        </span>
+                      ) : isChosenInOtherSlot ? (
+                        <span className="shrink-0 text-[10px] font-bold text-slate-400">
+                          Already selected
+                        </span>
+                      ) : (
+                        <span className="h-4 w-4 shrink-0 rounded-full border-2 border-slate-300" aria-hidden="true" />
+                      )}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+      </li>
+    );
+  };
+
   return (
     <div className="fixed inset-0 z-50 md:hidden">
       <button
@@ -132,7 +270,9 @@ export const MobileCoursesSheet: React.FC<MobileCoursesSheetProps> = ({
           <div className="min-w-0">
             <h2 id="mobile-courses-title" className="text-base font-black text-[#172554]">Courses</h2>
             {semester !== null && (
-              <p className="mt-0.5 text-xs text-slate-600">Semester {semester} · {courseCount} courses</p>
+              <p className="mt-0.5 text-xs text-slate-600">
+                Semester {semester} · {courseCount} courses
+              </p>
             )}
           </div>
           <button
@@ -140,7 +280,7 @@ export const MobileCoursesSheet: React.FC<MobileCoursesSheetProps> = ({
             type="button"
             onClick={onClose}
             aria-label="Close courses"
-            className="flex h-10 w-10 shrink-0 items-center justify-center border border-slate-300 text-[#172554] hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-[#172554]"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-300 text-[#172554] hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-[#172554]"
           >
             <X className="h-5 w-5" aria-hidden="true" />
           </button>
@@ -148,30 +288,35 @@ export const MobileCoursesSheet: React.FC<MobileCoursesSheetProps> = ({
 
         <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-4 py-4">
           {semester === null ? (
-            <p className="border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
+            <p className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
               Select a semester from the menu at the top right to see its courses and start entering marks.
             </p>
           ) : (
             <>
+              {/* 1. Core Courses */}
               <section aria-labelledby="mobile-core-courses-heading">
                 <h3 id="mobile-core-courses-heading" className="mb-2 text-xs font-black uppercase tracking-wide text-slate-600">
                   Core courses
                 </h3>
-                <ul className="divide-y divide-slate-200 border-y border-slate-200">
+                <ul className="divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
                   {courses.map(({ course, subject, progress }) => (
                     <li key={course.id}>
                       <button
                         type="button"
                         onClick={() => onSelectCourse(course)}
                         aria-pressed={subject?.id === selectedSubjectId}
-                        className={`flex min-h-14 w-full items-center justify-between gap-3 rounded-md px-2 py-2.5 text-left focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[#172554] ${
-                          subject?.id === selectedSubjectId ? 'bg-blue-50' : 'hover:bg-slate-50'
+                        className={`flex min-h-14 w-full items-center justify-between gap-3 px-3 py-2.5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[#172554] ${
+                          subject?.id === selectedSubjectId
+                            ? 'bg-blue-50/80'
+                            : 'hover:bg-slate-50'
                         }`}
                       >
                         <span className="min-w-0">
-                          <span className="block truncate text-sm font-bold text-[#172554]">{course.name}</span>
+                          <span className="block truncate text-sm font-bold text-[#172554]">
+                            {course.name}
+                          </span>
                           {(course.code || course.type) && (
-                            <span className="mt-0.5 block truncate text-[11px] text-slate-600">
+                            <span className="mt-0.5 block truncate text-[11px] text-slate-500">
                               {course.code}{course.code && course.type ? ' · ' : ''}{course.type}
                             </span>
                           )}
@@ -183,109 +328,58 @@ export const MobileCoursesSheet: React.FC<MobileCoursesSheetProps> = ({
                 </ul>
               </section>
 
-              {electiveSlots.length > 0 && (
-                <section aria-labelledby="mobile-electives-heading">
-                  <h3 id="mobile-electives-heading" className="mb-2 text-xs font-black uppercase tracking-wide text-slate-600">
-                    Electives
+              {/* 2. Professional Electives (kept distinct) */}
+              {professionalElectiveSlots.length > 0 && (
+                <section aria-labelledby="mobile-professional-electives-heading">
+                  <h3 id="mobile-professional-electives-heading" className="mb-2 text-xs font-black uppercase tracking-wide text-slate-600">
+                    Professional Electives
                   </h3>
-                  <ul className="divide-y divide-slate-200 border-y border-slate-200">
-                    {electiveSlots.map(({ slot, course, subject, progress }) => (
-                      <li key={slot} className={`flex min-h-14 flex-wrap items-center gap-2 rounded-md px-2 py-2 ${expandedElectiveSlot === slot ? 'border border-indigo-400 bg-indigo-50' : ''}`}>
-                        <button
-                          type="button"
-                          onClick={() => course
-                            ? onSelectCourse(course)
-                            : setExpandedElectiveSlot((current) => current === slot ? null : slot)}
-                          aria-pressed={subject?.id === selectedSubjectId}
-                          aria-expanded={expandedElectiveSlot === slot}
-                          aria-controls={`elective-options-${slot.replace(/\s+/g, '-').toLowerCase()}`}
-                          className="flex min-h-11 min-w-0 flex-1 items-center justify-between gap-3 text-left focus-visible:outline-2 focus-visible:outline-[#172554]"
-                        >
-                          <span className="min-w-0">
-                            <span className="block text-[11px] font-bold text-slate-600">{slot}</span>
-                            <span className="mt-0.5 block truncate text-sm font-bold text-[#172554]">
-                              {course?.name ?? 'Choose elective'}
-                            </span>
-                          </span>
-                          {course
-                            ? <ProgressIndicator progress={progress} />
-                            : <BookOpen className="h-4 w-4 shrink-0 text-slate-500" aria-hidden="true" />}
-                        </button>
-                        {course && (
-                          <button
-                            type="button"
-                            onClick={() => setExpandedElectiveSlot((current) => current === slot ? null : slot)}
-                            aria-label={`Change ${slot}`}
-                            aria-expanded={expandedElectiveSlot === slot}
-                            aria-controls={`elective-options-${slot.replace(/\s+/g, '-').toLowerCase()}`}
-                            className="flex h-10 w-10 shrink-0 items-center justify-center border border-slate-300 text-slate-600 hover:border-[#172554] hover:text-[#172554] focus-visible:outline-2 focus-visible:outline-[#172554]"
-                          >
-                            <Pencil className="h-4 w-4" aria-hidden="true" />
-                          </button>
-                        )}
-                        {expandedElectiveSlot === slot && (
-                          <div className="elective-options-expansion basis-full">
-                            <div className="min-h-0 overflow-hidden">
-                              <div className="py-1">
-                                <p className="text-[10px] font-bold uppercase tracking-wide text-slate-600">
-                                  Available in Semester {semester}
-                                </p>
-                                <p className="mt-0.5 text-[10px] text-slate-500">
-                                  Only choices for this semester and slot are shown.
-                                </p>
-                              </div>
-                              <ul
-                                id={`elective-options-${slot.replace(/\s+/g, '-').toLowerCase()}`}
-                                className="space-y-1.5"
-                              >
-                                {(electiveOptions[slot] ?? []).map((option) => (
-                                  <li key={option.id}>
-                                    <button
-                                      type="button"
-                                      onClick={() => onSelectCourse(option)}
-                                      className={`flex min-h-12 w-full items-center justify-between gap-3 rounded-md border px-2.5 py-2 text-left focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[#172554] ${
-                                        option.id === course?.id
-                                          ? 'border-[#172554] bg-slate-50'
-                                          : 'border-slate-300 bg-white hover:bg-slate-50'
-                                      }`}
-                                    >
-                                      <span className="min-w-0">
-                                        <span className="block truncate text-sm font-semibold text-[#172554]">{option.name}</span>
-                                        <span className="block text-[11px] text-slate-600">{option.code} · {option.type}</span>
-                                      </span>
-                                      {option.id === course?.id && <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-700" aria-label="Selected" />}
-                                    </button>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          </div>
-                        )}
-                      </li>
-                    ))}
+                  <ul className="space-y-2">
+                    {professionalElectiveSlots.map(renderElectiveSlotRow)}
                   </ul>
                 </section>
               )}
 
+              {/* 3. Open Electives (kept distinct) */}
+              {openElectiveSlots.length > 0 && (
+                <section aria-labelledby="mobile-open-electives-heading">
+                  <h3 id="mobile-open-electives-heading" className="mb-2 text-xs font-black uppercase tracking-wide text-slate-600">
+                    Open Electives
+                  </h3>
+                  <ul className="space-y-2">
+                    {openElectiveSlots.map(renderElectiveSlotRow)}
+                  </ul>
+                </section>
+              )}
+
+              {/* 4. Other courses */}
               {otherCourses.length > 0 && (
                 <section aria-labelledby="mobile-other-courses-heading">
                   <h3 id="mobile-other-courses-heading" className="mb-2 text-xs font-black uppercase tracking-wide text-slate-600">
                     Other courses
                   </h3>
-                  <ul className="divide-y divide-slate-200 border-y border-slate-200">
+                  <ul className="divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
                     {otherCourses.map(({ subject, progress }) => (
                       <li key={subject.id}>
                         <button
                           type="button"
                           onClick={() => onSelectOtherCourse(subject)}
                           aria-pressed={subject.id === selectedSubjectId}
-                          className={`flex min-h-14 w-full items-center justify-between gap-3 rounded-md px-2 py-2.5 text-left focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[#172554] ${
-                            subject.id === selectedSubjectId ? 'bg-blue-50' : 'hover:bg-slate-50'
+                          className={`flex min-h-14 w-full items-center justify-between gap-3 px-3 py-2.5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[#172554] ${
+                            subject.id === selectedSubjectId
+                              ? 'bg-blue-50/80'
+                              : 'hover:bg-slate-50'
                           }`}
                         >
                           <span className="min-w-0">
-                            <span className="block truncate text-sm font-bold text-[#172554]">{subject.name || 'Other course'}</span>
-                            {subject.code && <span className="mt-0.5 block font-mono text-[11px] text-slate-600">{subject.code}</span>}
+                            <span className="block truncate text-sm font-bold text-[#172554]">
+                              {subject.name || 'Other course'}
+                            </span>
+                            {subject.code && (
+                              <span className="mt-0.5 block font-mono text-[11px] text-slate-500">
+                                {subject.code}
+                              </span>
+                            )}
                           </span>
                           <ProgressIndicator progress={progress} />
                         </button>
@@ -303,7 +397,7 @@ export const MobileCoursesSheet: React.FC<MobileCoursesSheetProps> = ({
             <button
               type="button"
               onClick={onCalculateGpa}
-              className="min-h-11 w-full border border-[#172554] bg-white px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-[#172554] hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-[#172554]"
+              className="min-h-11 w-full rounded-xl border border-[#172554] bg-white px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-[#172554] hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-[#172554]"
             >
               Calculate GPA
             </button>
