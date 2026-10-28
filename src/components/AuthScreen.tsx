@@ -4,7 +4,7 @@ import {
   GoogleAuthProvider,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
-  signInWithRedirect,
+  signInWithPopup,
 } from 'firebase/auth';
 import { AlertCircle, BookOpen, Eye, EyeOff, LoaderCircle } from 'lucide-react';
 import { auth } from '../firebase';
@@ -100,7 +100,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
       if (forceGoogleAccountSelection) {
         provider.setCustomParameters({ prompt: 'select_account' });
       }
-      await signInWithRedirect(auth, provider);
+      await signInWithPopup(auth, provider);
     } catch (authError) {
       const code = typeof authError === 'object' && authError !== null && 'code' in authError
         ? String(authError.code)
