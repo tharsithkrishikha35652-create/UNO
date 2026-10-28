@@ -41,6 +41,18 @@ const getGpaCourseSemester = (subject: SubjectData): number | null => {
   return match ? match.semester : null;
 };
 
+const getHistorySemester = (entry: GpaHistoryEntry): number | null => {
+  if (Number.isInteger(entry.semester)) return entry.semester ?? null;
+  const semesters = entry.courses.map((savedCourse) =>
+    GPA_COURSES.find((course) =>
+      (Boolean(course.code) && course.code === savedCourse.code) ||
+      course.name.trim().toLowerCase() === savedCourse.name.trim().toLowerCase()
+    )?.semester
+  );
+  if (semesters.length === 0 || semesters.some((semester) => semester === undefined)) return null;
+  return semesters.every((semester) => semester === semesters[0]) ? semesters[0] ?? null : null;
+};
+
 const entered = (value: unknown): boolean =>
   value !== '' &&
   value !== null &&
@@ -216,12 +228,14 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
   const gpaReady = isGpaReady(subjects, includeEstimates, selectedSemester, calculatedSignatures);
   const inputSignature = JSON.stringify({
     semester: selectedSemester,
-    subjects,
+    courses: semesterCourses.map((course) => ({
+      courseCode: course.code,
+      subject: findCourseSubject(subjects, course) ?? null,
+    })),
     includeEstimates,
     estimatePercentage,
   });
   const isBusy = calculationState === 'calculating' || calculationState === 'saving';
-  const hasCalculated = gpaReady && calculatedInputSignature === inputSignature && calculationState === 'success';
   const rows = semesterCourses.map((course) => {
     const subject = findCourseSubject(subjects, course);
     const complete = Boolean(subject && (
@@ -252,6 +266,20 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
   const completedCourses = rows.filter((row) => row.complete).length;
   const incompleteCourses = rows.filter((row) => !row.complete);
   const totalSemesterCourses = rows.length;
+  const hasCalculated = gpaReady && (
+    (calculatedInputSignature === inputSignature && calculationState === 'success') ||
+    history.some((entry) => {
+      if (entry.semester === selectedSemester && entry.inputSignature === inputSignature) return true;
+      if (entry.inputSignature || getHistorySemester(entry) !== selectedSemester || entry.courses.length !== rows.length) return false;
+      return rows.every((row) => {
+        const savedCourse = entry.courses.find((course) => course.code === row.code);
+        return Boolean(savedCourse) &&
+          savedCourse?.mark === row.mark &&
+          savedCourse.grade === row.grade &&
+          savedCourse.gradePoint === row.gradePoint;
+      });
+    })
+  );
   const handleCalculateGpa = async () => {
     if (!gpaReady || isBusy) return;
     setCalculatedInputSignature(null);
@@ -260,6 +288,8 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
     try {
       const entry: GpaHistoryEntry = {
         id: `gpa_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+        semester: selectedSemester,
+        inputSignature,
         gpa,
         totalCredits,
         weightedGradePoints: totalWeightedPoints,
@@ -356,17 +386,19 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
         </div>
 
         <div className="border-t border-slate-200 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <p className="text-xs text-slate-600">
-            {gpaReady
+          {!hasCalculated && (
+            <p className="text-xs text-slate-600">
+              {gpaReady
               ? includeEstimates && rows.some((row) => row.usedEstimate)
                 ? `Lab/activity marks calculated at ${estimatePercentage}%.`
                 : `All ${totalSemesterCourses} courses in Semester ${selectedSemester} are complete. You can calculate your GPA.`
               : `Complete the missing marks in Semester ${selectedSemester} before calculating.`}
-          </p>
+            </p>
+          )}
           <button
             type="button"
             onClick={handleCalculateGpa}
-            disabled={!gpaReady || isBusy}
+            disabled={!gpaReady || isBusy || hasCalculated}
             className="inline-flex items-center justify-center gap-2 px-5 py-3 text-xs font-bold bg-[#172554] text-white hover:bg-[#1e3a8a] disabled:bg-slate-300 disabled:text-slate-600 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
             <GraduationCap className="w-4 h-4" aria-hidden="true" />
@@ -375,7 +407,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
               : calculationState === 'saving'
                 ? 'Saving result…'
                 : hasCalculated
-                  ? 'Recalculate GPA'
+                  ? 'GPA already calculated'
                   : 'Calculate GPA'}
           </button>
         </div>
