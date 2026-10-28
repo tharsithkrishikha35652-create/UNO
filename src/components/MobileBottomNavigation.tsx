@@ -2,11 +2,11 @@ import React from 'react';
 import {
   BookOpen,
   Calculator,
+  ChartColumnIncreasing,
   GraduationCap,
-  TableProperties,
 } from 'lucide-react';
 
-type WorkspaceTab = 'calculator' | 'grades' | 'gpa';
+type WorkspaceTab = 'calculator' | 'grades' | 'gpa' | 'cgpa';
 
 interface MobileBottomNavigationProps {
   activeTab: WorkspaceTab | null;
@@ -20,7 +20,7 @@ const destinations = [
   { label: 'Calculator', tab: 'calculator', Icon: Calculator },
   { label: 'Courses', tab: null, Icon: BookOpen },
   { label: 'GPA Hub', tab: 'gpa', Icon: GraduationCap },
-  { label: 'Grading', tab: 'grades', Icon: TableProperties },
+  { label: 'CGPA Hub', tab: 'cgpa', Icon: ChartColumnIncreasing },
 ] as const;
 
 export const MobileBottomNavigation: React.FC<MobileBottomNavigationProps> = ({

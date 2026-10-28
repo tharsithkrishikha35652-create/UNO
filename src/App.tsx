@@ -40,6 +40,7 @@ import { DesktopCoursesPanel } from './components/DesktopCoursesPanel';
 import { AcademicProfileFormValues, AcademicSetupScreen, ProfileDrawer } from './components/AcademicProfile';
 import { StickyResultSummary } from './components/StickyResultSummary';
 import { ThemeToggle, type AppTheme } from './components/ThemeToggle';
+import { CGPAHub } from './components/CGPAHub';
 import { GPA_COURSES } from './gpaCourses';
 import { AuthScreen } from './components/AuthScreen';
 import { FeedbackHub } from './components/FeedbackHub';
@@ -59,7 +60,6 @@ import {
 import {
   BookOpen,
   Calculator,
-  TableProperties,
   ArrowDown,
   GraduationCap,
   LoaderCircle,
@@ -411,7 +411,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
   const [selectedSemester, setSelectedSemester] = useState<SemesterNumber | null>(null);
   const [isSemesterMenuOpen, setIsSemesterMenuOpen] = useState(false);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'calculator' | 'grades' | 'gpa'>('calculator');
+  const [activeTab, setActiveTab] = useState<'calculator' | 'grades' | 'gpa' | 'cgpa'>('calculator');
   const [isMobileCoursesOpen, setIsMobileCoursesOpen] = useState(false);
   const [isDesktopCoursesOpen, setIsDesktopCoursesOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -741,7 +741,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
     }
     setSelectedSemester(semester);
     setIsEditorOpen(false);
-    setActiveTab('calculator');
+    if (activeTab !== 'cgpa') setActiveTab('calculator');
     setIsDesktopCoursesOpen(false);
     setShowFeedbackHub(false);
   };
@@ -854,6 +854,15 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
     setIsDesktopCoursesOpen(false);
     setShowCredits(false);
     setShowFeedbackHub(true);
+  };
+
+  const handleOpenGrades = () => {
+    setIsProfileOpen(false);
+    setIsMobileCoursesOpen(false);
+    setIsDesktopCoursesOpen(false);
+    setShowCredits(false);
+    setShowFeedbackHub(false);
+    setActiveTab('grades');
   };
 
   const handleOpenCredits = () => {
@@ -1304,25 +1313,21 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
             </button>
             <button
               type="button"
-              onClick={() => { setIsDesktopCoursesOpen(false); setShowFeedbackHub(false); setShowCredits(false); setActiveTab('grades'); }}
-              aria-label="Grading System"
-              className={`transition-colors flex items-center gap-2 py-1 cursor-pointer ${
-                activeTab === 'grades'
-                  ? 'text-[#172554] font-black border-b-2 border-[#172554]'
-                  : 'text-slate-600 hover:text-[#172554]'
-              }`}
-            >
-              <TableProperties className="w-5 h-5" />
-              <span className="hidden lg:inline">Grading System</span>
-            </button>
-            <button
-              type="button"
               onClick={() => { setIsDesktopCoursesOpen(false); setShowFeedbackHub(false); setShowCredits(false); setActiveTab('gpa'); }}
             aria-label="GPA Calculator"
             className={`transition-colors flex items-center gap-2 py-1 cursor-pointer ${activeTab === 'gpa' ? 'text-[#172554] font-black border-b-2 border-[#172554]' : 'text-slate-600 hover:text-[#172554]'}`}
             >
             <GraduationCap className="w-5 h-5" />
             <span className="hidden lg:inline">GPA Calculator</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => { setIsDesktopCoursesOpen(false); setShowFeedbackHub(false); setShowCredits(false); setActiveTab('cgpa'); }}
+              aria-label="CGPA Hub"
+              className={`transition-colors flex items-center gap-2 py-1 cursor-pointer ${activeTab === 'cgpa' ? 'text-[#172554] font-black border-b-2 border-[#172554]' : 'text-slate-600 hover:text-[#172554]'}`}
+            >
+              <GraduationCap className="w-5 h-5" aria-hidden="true" />
+              <span className="hidden lg:inline">CGPA Hub</span>
             </button>
           </nav>
 
@@ -1975,6 +1980,9 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
             guestMode={guestMode}
           />
         )}
+        <div className={!showFeedbackHub && !showCredits && activeTab === 'cgpa' ? '' : 'hidden'}>
+          <CGPAHub />
+        </div>
 </main>
 
 <MobileCoursesSheet
@@ -2011,6 +2019,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
   onSave={handleSaveAcademicProfile}
   theme={theme}
   onToggleTheme={onToggleTheme}
+  onOpenGrades={handleOpenGrades}
   onOpenFeedback={handleOpenFeedbackHub}
   onOpenCredits={handleOpenCredits}
   onLogout={handleProfileLogout}
