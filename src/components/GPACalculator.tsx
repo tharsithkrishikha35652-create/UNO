@@ -250,6 +250,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
   const totalWeightedPoints = rows.reduce((sum, row) => sum + (row.weightedPoints ?? 0), 0);
   const gpa = totalCredits ? totalWeightedPoints / totalCredits : 0;
   const completedCourses = rows.filter((row) => row.complete).length;
+  const incompleteCourses = rows.filter((row) => !row.complete);
   const totalSemesterCourses = rows.length;
   const handleCalculateGpa = async () => {
     if (!gpaReady || isBusy) return;
@@ -310,6 +311,14 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
           <p className="text-xs font-bold text-[#172554] mt-3" aria-live="polite">
             {completedCourses} of {totalSemesterCourses} courses complete
           </p>
+          {incompleteCourses.length > 0 && (
+            <div className="mt-2 rounded-lg border border-[#E4DDD2] bg-[#FCFAF6] px-3 py-2.5 text-xs leading-relaxed text-[#6E6E73]" role="status">
+              <span className="font-bold text-[#2C2C30]">Still missing marks: </span>
+              {incompleteCourses.slice(0, 3).map((course) => course.name).join(', ')}
+              {incompleteCourses.length > 3 ? ` and ${incompleteCourses.length - 3} more` : ''}.
+              <span className="block mt-1">Complete these courses before calculating GPA. Your GPA is not calculated from incomplete marks.</span>
+            </div>
+          )}
       </div>
 
       <div className="bg-white border border-slate-300 shadow-sm overflow-hidden">

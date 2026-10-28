@@ -86,9 +86,9 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
     : (Number(testMax) === 30 ? 30 : 50);
 
   return (
-    <section className="overflow-hidden rounded-xl bg-white border border-slate-300 mb-5 shadow-sm">
+    <section className="overflow-hidden rounded-xl bg-white border border-slate-300 mb-3 sm:mb-4 shadow-sm">
       {/* Section Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 sm:px-4 bg-[#172554] text-white">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3 py-2 sm:px-4 bg-[#172554] text-white">
         <div className="flex items-center gap-3">
           <span className="px-2.5 py-0.5 bg-white text-[#172554] font-black text-sm uppercase">
             {isTwoTestCourse ? `TEST ${number}` : isSingleAssessment ? 'ASSESSMENT' : `CA ${number}`}
@@ -113,10 +113,10 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
       {/* Categories separated by simple vertical formal navy line */}
       <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-200">
         {/* Category 1: Written Examination (weight depends on course type) */}
-        <div className={`${testColumnClass} p-3 sm:p-4 flex flex-col justify-between bg-white`}>
+        <div className={`${testColumnClass} p-2.5 sm:p-3 flex flex-col justify-between bg-white`}>
           <div>
             {/* Header - no horizontal underline */}
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <div className="p-1.5 bg-blue-50 text-[#172554] border border-blue-100 shrink-0">
                   <FileCheck className="w-5 h-5" />
