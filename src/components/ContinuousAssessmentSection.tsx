@@ -86,20 +86,20 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
     : (Number(testMax) === 30 ? 30 : 50);
 
   return (
-    <section className="overflow-hidden rounded-xl bg-white border border-slate-300 mb-5 shadow-sm">
+    <section className="overflow-hidden rounded-xl bg-white border border-slate-300 mb-3 sm:mb-4 shadow-sm">
       {/* Section Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 sm:px-4 bg-[#172554] text-white">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3 py-2 sm:px-4 bg-[#172554] text-white">
         <div className="flex items-center gap-3">
-          <span className="px-2.5 py-0.5 bg-white text-[#172554] font-black text-sm uppercase">
-            {isTwoTestCourse ? `TEST ${number}` : isSingleAssessment ? 'ASSESSMENT' : `CA ${number}`}
+          <span className="px-2.5 py-0.5 bg-white text-[#172554] font-black text-sm">
+            {isTwoTestCourse ? `Test ${number}` : isSingleAssessment ? 'Assessment' : `CA ${number}`}
           </span>
           <h3 className="text-base sm:text-lg font-bold tracking-wide">{isTwoTestCourse ? testDisplayName : title}</h3>
         </div>
 
         {/* Subtotal without enclosing rectangular border box */}
         <div className="flex items-baseline gap-2 self-start sm:self-auto text-white">
-          <span className="text-xs uppercase font-bold tracking-wider text-slate-200">
-            MARKS CONTRIBUTED:
+          <span className="text-xs font-bold text-slate-200">
+            Marks contributed:
           </span>
           <span className="text-lg font-black tabular-nums">
             {subtotal.toFixed(2)}{' '}
@@ -113,16 +113,16 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
       {/* Categories separated by simple vertical formal navy line */}
       <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-200">
         {/* Category 1: Written Examination (weight depends on course type) */}
-        <div className={`${testColumnClass} p-3 sm:p-4 flex flex-col justify-between bg-white`}>
+        <div className={`${testColumnClass} p-2.5 sm:p-3 flex flex-col justify-between bg-white`}>
           <div>
             {/* Header - no horizontal underline */}
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <div className="p-1.5 bg-blue-50 text-[#172554] border border-blue-100 shrink-0">
                   <FileCheck className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-[#172554] uppercase tracking-wide">
+                  <h4 className="text-sm font-bold text-[#172554]">
                     {testDisplayName ?? `CA Test ${number}`}
                   </h4>
                   <span className="text-xs font-semibold text-[#1e3a8a]">
@@ -138,9 +138,9 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
                 <div className="flex items-center justify-between mb-1">
                   <label
                     htmlFor={`test-max-input-${number}`}
-                    className="text-xs font-bold text-[#172554] uppercase tracking-wider"
+                    className="text-xs font-bold text-[#172554]"
                   >
-                    Maximum Test Marks:
+                    Maximum test marks:
                   </label>
                   {/* Preset quick buttons */}
                   <div className="flex items-center gap-1">
@@ -189,8 +189,8 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
               </div>
             ) : (
               <div className="mb-3">
-                <label className="block text-xs font-bold text-[#172554] uppercase tracking-wider mb-1.5">
-                  Maximum Test Marks:
+                <label className="block text-xs font-bold text-[#172554] mb-1.5">
+                  Maximum test marks:
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   {[50, 30].map((val) => {
@@ -218,9 +218,9 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
             <div className="mb-3">
               <label
                 htmlFor={`test-scored-${number}`}
-                className="block text-xs font-bold text-[#172554] uppercase tracking-wider mb-1.5"
+                className="block text-xs font-bold text-[#172554] mb-1.5"
               >
-                Marks Scored:
+                Marks scored:
               </label>
               <div className="relative">
                 <input
@@ -249,8 +249,8 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
           {/* Marks Contributed for Total at bottom of Category 1: NO horizontal line and NO rectangular box */}
           <div className="mt-4 pt-1">
             <div className="flex items-baseline justify-between text-[#172554]">
-              <span className="text-xs font-bold uppercase tracking-wider">
-                MARKS CONTRIBUTED:
+              <span className="text-xs font-bold">
+                Marks contributed:
               </span>
               <div className="flex items-baseline gap-1">
                 <span className="text-lg font-black tabular-nums">

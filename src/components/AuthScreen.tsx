@@ -4,7 +4,7 @@ import {
   GoogleAuthProvider,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
-  signInWithRedirect,
+  signInWithPopup,
 } from 'firebase/auth';
 import { AlertCircle, BookOpen, Eye, EyeOff, LoaderCircle } from 'lucide-react';
 import { auth } from '../firebase';
@@ -100,7 +100,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
       if (forceGoogleAccountSelection) {
         provider.setCustomParameters({ prompt: 'select_account' });
       }
-      await signInWithRedirect(auth, provider);
+      await signInWithPopup(auth, provider);
     } catch (authError) {
       const code = typeof authError === 'object' && authError !== null && 'code' in authError
         ? String(authError.code)
@@ -122,7 +122,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
   };
 
   return (
-    <main className="min-h-screen bg-slate-100 text-slate-900 flex items-center justify-center px-4 py-10 font-sans">
+    <main className="min-h-screen bg-transparent text-slate-900 flex items-center justify-center px-4 py-10 font-sans">
       <section className="w-full max-w-md bg-white border border-slate-300 shadow-sm">
         <div className="bg-[#172554] text-white px-5 py-5 flex items-center justify-between gap-3 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
@@ -163,7 +163,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
           {!configurationError && (
             <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
               <label className="block">
-                <span className="block text-xs font-bold uppercase tracking-wide text-[#172554] mb-1.5">Email address</span>
+                <span className="block text-xs font-bold text-[#172554] mb-1.5">Email address</span>
                 <input
                   type="email"
                   autoComplete="email"
@@ -177,7 +177,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
 
               {mode !== 'reset' && (
                 <div className="block">
-                  <label htmlFor="auth-password" className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#172554]">Password</label>
+                  <label htmlFor="auth-password" className="mb-1.5 block text-xs font-bold text-[#172554]">Password</label>
                   <div className="relative">
                     <input
                       id="auth-password"
@@ -206,7 +206,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
               <button
                 type="submit"
                 disabled={busy || !auth}
-                className="w-full inline-flex items-center justify-center gap-2 bg-[#172554] px-4 py-3 text-xs font-bold uppercase tracking-wider text-white hover:bg-[#1e3a8a] disabled:opacity-60 disabled:cursor-wait"
+                className="w-full inline-flex items-center justify-center gap-2 bg-[#172554] px-4 py-3 text-xs font-bold text-white hover:bg-[#1e3a8a] disabled:opacity-60 disabled:cursor-wait"
               >
                 {busy ? <LoaderCircle className="w-4 h-4 animate-spin" aria-hidden="true" /> : <BookOpen className="w-4 h-4" aria-hidden="true" />}
                 {busy ? 'Please wait…' : mode === 'signup' ? 'Create account' : mode === 'reset' ? 'Send reset link' : 'Log in'}
@@ -218,14 +218,14 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
             <div className="mt-5">
               <div className="flex items-center gap-3" aria-hidden="true">
                 <span className="h-px flex-1 bg-slate-200" />
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">or</span>
+                <span className="text-[10px] font-bold text-slate-500">or</span>
                 <span className="h-px flex-1 bg-slate-200" />
               </div>
               <button
                 type="button"
                 onClick={() => void handleGoogleSignIn()}
                 disabled={busy || googleBusy || !auth}
-                className="mt-4 w-full inline-flex items-center justify-center gap-3 border border-slate-300 bg-white px-4 py-3 text-xs font-bold uppercase tracking-wider text-[#172554] hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#172554] disabled:cursor-wait disabled:opacity-60"
+                className="mt-4 w-full inline-flex items-center justify-center gap-3 border border-slate-300 bg-white px-4 py-3 text-xs font-bold text-[#172554] hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#172554] disabled:cursor-wait disabled:opacity-60"
               >
                 {googleBusy ? (
                   <LoaderCircle className="w-4 h-4 animate-spin" aria-hidden="true" />
@@ -251,7 +251,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
             <button
               type="button"
               onClick={onContinueAsGuest}
-              className="w-full border border-[#172554] bg-white px-4 py-3 text-xs font-bold uppercase tracking-wider text-[#172554] hover:bg-slate-50"
+              className="w-full border border-[#172554] bg-white px-4 py-3 text-xs font-bold text-[#172554] hover:bg-slate-50"
             >
               Continue as guest
             </button>

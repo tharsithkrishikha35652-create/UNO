@@ -88,7 +88,7 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
   const maxPossibleSum = numericCount * maxMarkPerBox;
 
   return (
-    <div className="p-3 sm:p-4 flex flex-col justify-between h-full bg-white">
+    <div className="p-2.5 sm:p-3 flex flex-col justify-between h-full bg-white">
       {/* Category Header - no horizontal underline */}
       <div>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
@@ -101,7 +101,7 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
               )}
             </div>
             <div>
-              <h4 className="text-sm font-bold text-[#172554] uppercase tracking-wide">{title}</h4>
+              <h4 className="text-sm font-bold text-[#172554]">{title}</h4>
               <span className="text-xs font-semibold text-[#1e3a8a]">
                 Weightage: {weight}%
               </span>
@@ -112,7 +112,7 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
           <div className="flex items-center gap-2 self-start sm:self-auto">
             <label
               htmlFor={`count-${category}-${caName}`}
-              className="text-xs font-bold text-[#172554] uppercase tracking-wider"
+              className="text-xs font-bold text-[#172554]"
             >
               Number:
             </label>
@@ -158,7 +158,7 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
             </p>
           </div>
         ) : (
-          <div className="my-3 bg-white">
+          <div className="my-2 bg-white">
             <div className="grid grid-cols-2 gap-2 sm:gap-3">
               {Array.from({ length: numericCount }).map((_, idx) => {
                 const displayIndex = startIndex + idx;
@@ -168,9 +168,9 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
                 return (
                   <div
                     key={idx}
-                    className="min-w-0 p-2 sm:p-2.5 rounded-lg border border-slate-200 bg-white flex flex-col items-center justify-center hover:bg-slate-50 transition-colors"
+                    className="min-w-0 p-1.5 sm:p-2 rounded-lg border border-slate-200 bg-white flex flex-col items-center justify-center hover:bg-slate-50 transition-colors"
                   >
-                    <span className="text-[11px] sm:text-xs font-bold text-[#172554] mb-1.5 whitespace-nowrap">
+                    <span className="text-[10px] sm:text-xs font-bold text-[#172554] mb-1 whitespace-normal text-center leading-tight">
                       {accessibleItemLabel === 'Assignment' || accessibleItemLabel === 'Lab Evaluation'
                         ? category === 'assignment' ? `Assignment ${displayIndex}` : `Lab ${displayIndex}`
                         : `${accessibleItemLabel} ${displayIndex}`}
@@ -218,7 +218,7 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
       </div>
 
       {/* Marks Contributed for Total at bottom: NO horizontal line and NO rectangular box */}
-      <div className="mt-3 pt-2.5 space-y-1 border-t border-slate-200">
+      <div className="mt-2 pt-2 space-y-1 border-t border-slate-200">
         <div className="flex items-center justify-between text-xs text-[#172554]">
           <span className="font-medium">Total Marks Obtained:</span>
           <span className="font-bold">
@@ -227,8 +227,8 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
         </div>
 
         <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-[#172554] pt-1">
-          <span className="min-w-0 text-xs font-bold uppercase tracking-wider">
-            {estimatedMarks ? 'MARKS CONTRIBUTED (ESTIMATE):' : 'MARKS CONTRIBUTED:'}
+          <span className="min-w-0 text-xs font-bold">
+            {estimatedMarks ? 'Marks contributed (estimate):' : 'Marks contributed:'}
           </span>
           <div className="flex shrink-0 items-baseline gap-1">
             <span className="text-lg font-black tabular-nums">

@@ -141,6 +141,8 @@ export interface GpaHistoryEntry {
     grade: string;
     gradePoint: number;
   }>;
+  semester?: number;
+  inputSignature?: string;
   estimate?: {
     enabled: boolean;
     percentage: number;

@@ -41,6 +41,18 @@ const getGpaCourseSemester = (subject: SubjectData): number | null => {
   return match ? match.semester : null;
 };
 
+const getHistorySemester = (entry: GpaHistoryEntry): number | null => {
+  if (Number.isInteger(entry.semester)) return entry.semester ?? null;
+  const semesters = entry.courses.map((savedCourse) =>
+    GPA_COURSES.find((course) =>
+      (Boolean(course.code) && course.code === savedCourse.code) ||
+      course.name.trim().toLowerCase() === savedCourse.name.trim().toLowerCase()
+    )?.semester
+  );
+  if (semesters.length === 0 || semesters.some((semester) => semester === undefined)) return null;
+  return semesters.every((semester) => semester === semesters[0]) ? semesters[0] ?? null : null;
+};
+
 const entered = (value: unknown): boolean =>
   value !== '' &&
   value !== null &&
@@ -216,12 +228,14 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
   const gpaReady = isGpaReady(subjects, includeEstimates, selectedSemester, calculatedSignatures);
   const inputSignature = JSON.stringify({
     semester: selectedSemester,
-    subjects,
+    courses: semesterCourses.map((course) => ({
+      courseCode: course.code,
+      subject: findCourseSubject(subjects, course) ?? null,
+    })),
     includeEstimates,
     estimatePercentage,
   });
   const isBusy = calculationState === 'calculating' || calculationState === 'saving';
-  const hasCalculated = gpaReady && calculatedInputSignature === inputSignature && calculationState === 'success';
   const rows = semesterCourses.map((course) => {
     const subject = findCourseSubject(subjects, course);
     const complete = Boolean(subject && (
@@ -250,7 +264,22 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
   const totalWeightedPoints = rows.reduce((sum, row) => sum + (row.weightedPoints ?? 0), 0);
   const gpa = totalCredits ? totalWeightedPoints / totalCredits : 0;
   const completedCourses = rows.filter((row) => row.complete).length;
+  const incompleteCourses = rows.filter((row) => !row.complete);
   const totalSemesterCourses = rows.length;
+  const hasCalculated = gpaReady && (
+    (calculatedInputSignature === inputSignature && calculationState === 'success') ||
+    history.some((entry) => {
+      if (entry.semester === selectedSemester && entry.inputSignature === inputSignature) return true;
+      if (entry.inputSignature || getHistorySemester(entry) !== selectedSemester || entry.courses.length !== rows.length) return false;
+      return rows.every((row) => {
+        const savedCourse = entry.courses.find((course) => course.code === row.code);
+        return Boolean(savedCourse) &&
+          savedCourse?.mark === row.mark &&
+          savedCourse.grade === row.grade &&
+          savedCourse.gradePoint === row.gradePoint;
+      });
+    })
+  );
   const handleCalculateGpa = async () => {
     if (!gpaReady || isBusy) return;
     setCalculatedInputSignature(null);
@@ -259,6 +288,8 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
     try {
       const entry: GpaHistoryEntry = {
         id: `gpa_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+        semester: selectedSemester,
+        inputSignature,
         gpa,
         totalCredits,
         weightedGradePoints: totalWeightedPoints,
@@ -295,7 +326,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
             <GraduationCap className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-500">
+            <p className="text-xs font-bold text-slate-500">
               Semester {selectedSemester} · B.E. CSE
             </p>
             <h2 className="text-xl sm:text-2xl font-black text-[#172554]">
@@ -310,12 +341,20 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
           <p className="text-xs font-bold text-[#172554] mt-3" aria-live="polite">
             {completedCourses} of {totalSemesterCourses} courses complete
           </p>
+          {incompleteCourses.length > 0 && (
+            <div className="mt-2 rounded-lg border border-[#E4DDD2] bg-[#FCFAF6] px-3 py-2.5 text-xs leading-relaxed text-[#6E6E73]" role="status">
+              <span className="font-bold text-[#2C2C30]">Still missing marks: </span>
+              {incompleteCourses.slice(0, 3).map((course) => course.name).join(', ')}
+              {incompleteCourses.length > 3 ? ` and ${incompleteCourses.length - 3} more` : ''}.
+              <span className="block mt-1">Complete these courses before calculating GPA. Your GPA is not calculated from incomplete marks.</span>
+            </div>
+          )}
       </div>
 
       <div className="bg-white border border-slate-300 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="bg-[#172554] text-white text-xs uppercase tracking-wide">
+            <thead className="bg-[#172554] text-white text-xs">
               <tr>
                 <th scope="col" className="px-4 py-3">Course</th>
                 <th scope="col" className="px-4 py-3 text-center">Credits</th>
@@ -347,18 +386,20 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
         </div>
 
         <div className="border-t border-slate-200 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <p className="text-xs text-slate-600">
-            {gpaReady
+          {!hasCalculated && (
+            <p className="text-xs text-slate-600">
+              {gpaReady
               ? includeEstimates && rows.some((row) => row.usedEstimate)
                 ? `Lab/activity marks calculated at ${estimatePercentage}%.`
                 : `All ${totalSemesterCourses} courses in Semester ${selectedSemester} are complete. You can calculate your GPA.`
               : `Complete the missing marks in Semester ${selectedSemester} before calculating.`}
-          </p>
+            </p>
+          )}
           <button
             type="button"
             onClick={handleCalculateGpa}
-            disabled={!gpaReady || isBusy}
-            className="inline-flex items-center justify-center gap-2 px-5 py-3 text-xs font-bold uppercase tracking-wider bg-[#172554] text-white hover:bg-[#1e3a8a] disabled:bg-slate-300 disabled:text-slate-600 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            disabled={!gpaReady || isBusy || hasCalculated}
+            className="inline-flex items-center justify-center gap-2 px-5 py-3 text-xs font-bold bg-[#172554] text-white hover:bg-[#1e3a8a] disabled:bg-slate-300 disabled:text-slate-600 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
             <GraduationCap className="w-4 h-4" aria-hidden="true" />
             {calculationState === 'calculating'
@@ -366,7 +407,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
               : calculationState === 'saving'
                 ? 'Saving result…'
                 : hasCalculated
-                  ? 'Recalculate GPA'
+                  ? 'GPA already calculated'
                   : 'Calculate GPA'}
           </button>
         </div>
@@ -382,17 +423,17 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
         <>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="bg-white border border-slate-300 p-4">
-              <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Semester GPA</p>
+              <p className="text-xs font-bold text-slate-500">Semester GPA</p>
               <p className="text-3xl font-black text-[#172554] mt-1">{gpa.toFixed(2)}</p>
               <p className="text-xs text-slate-500">Out of 10.00</p>
             </div>
             <div className="bg-white border border-slate-300 p-4">
-              <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Total Credits</p>
+              <p className="text-xs font-bold text-slate-500">Total Credits</p>
               <p className="text-3xl font-black text-[#172554] mt-1">{totalCredits}</p>
               <p className="text-xs text-slate-500">Across {totalSemesterCourses} courses</p>
             </div>
             <div className="bg-white border border-slate-300 p-4">
-              <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Weighted Grade Points</p>
+              <p className="text-xs font-bold text-slate-500">Weighted Grade Points</p>
               <p className="text-3xl font-black text-[#172554] mt-1">{totalWeightedPoints.toFixed(2)}</p>
               <p className="text-xs text-slate-500">Credits × grade points</p>
             </div>
@@ -400,7 +441,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
 
           <div className="bg-white border border-slate-300 shadow-sm overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="bg-[#172554] text-white text-xs uppercase tracking-wide">
+              <thead className="bg-[#172554] text-white text-xs">
                 <tr>
                   <th scope="col" className="px-4 py-3">Course</th>
                   <th scope="col" className="px-4 py-3 text-center">Credits</th>
@@ -450,7 +491,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
             <h3 id="gpa-history-heading" className="font-black text-[#172554]">GPA history</h3>
           </div>
           <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-600">
+            <thead className="bg-slate-50 text-xs text-slate-600">
               <tr>
                 <th scope="col" className="px-4 py-3">Calculated</th>
                 <th scope="col" className="px-4 py-3 text-center">Credits</th>

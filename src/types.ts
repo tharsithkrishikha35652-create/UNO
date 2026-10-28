@@ -26,6 +26,7 @@ export interface SubjectData {
   id: string;
   name: string;
   code: string;
+  semester?: number;
   courseType?: CourseType;
   projectWorkMarks?: ProjectWorkMarks;
   selfLearningPassMark?: number | string;
