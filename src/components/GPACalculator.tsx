@@ -296,7 +296,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
             <GraduationCap className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-500">
+            <p className="text-xs font-bold text-slate-500">
               Semester {selectedSemester} · B.E. CSE
             </p>
             <h2 className="text-xl sm:text-2xl font-black text-[#172554]">
@@ -324,7 +324,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
       <div className="bg-white border border-slate-300 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="bg-[#172554] text-white text-xs uppercase tracking-wide">
+            <thead className="bg-[#172554] text-white text-xs">
               <tr>
                 <th scope="col" className="px-4 py-3">Course</th>
                 <th scope="col" className="px-4 py-3 text-center">Credits</th>
@@ -367,7 +367,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
             type="button"
             onClick={handleCalculateGpa}
             disabled={!gpaReady || isBusy}
-            className="inline-flex items-center justify-center gap-2 px-5 py-3 text-xs font-bold uppercase tracking-wider bg-[#172554] text-white hover:bg-[#1e3a8a] disabled:bg-slate-300 disabled:text-slate-600 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 px-5 py-3 text-xs font-bold bg-[#172554] text-white hover:bg-[#1e3a8a] disabled:bg-slate-300 disabled:text-slate-600 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
             <GraduationCap className="w-4 h-4" aria-hidden="true" />
             {calculationState === 'calculating'
@@ -391,17 +391,17 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
         <>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="bg-white border border-slate-300 p-4">
-              <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Semester GPA</p>
+              <p className="text-xs font-bold text-slate-500">Semester GPA</p>
               <p className="text-3xl font-black text-[#172554] mt-1">{gpa.toFixed(2)}</p>
               <p className="text-xs text-slate-500">Out of 10.00</p>
             </div>
             <div className="bg-white border border-slate-300 p-4">
-              <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Total Credits</p>
+              <p className="text-xs font-bold text-slate-500">Total Credits</p>
               <p className="text-3xl font-black text-[#172554] mt-1">{totalCredits}</p>
               <p className="text-xs text-slate-500">Across {totalSemesterCourses} courses</p>
             </div>
             <div className="bg-white border border-slate-300 p-4">
-              <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Weighted Grade Points</p>
+              <p className="text-xs font-bold text-slate-500">Weighted Grade Points</p>
               <p className="text-3xl font-black text-[#172554] mt-1">{totalWeightedPoints.toFixed(2)}</p>
               <p className="text-xs text-slate-500">Credits × grade points</p>
             </div>
@@ -409,7 +409,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
 
           <div className="bg-white border border-slate-300 shadow-sm overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="bg-[#172554] text-white text-xs uppercase tracking-wide">
+              <thead className="bg-[#172554] text-white text-xs">
                 <tr>
                   <th scope="col" className="px-4 py-3">Course</th>
                   <th scope="col" className="px-4 py-3 text-center">Credits</th>
@@ -459,7 +459,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
             <h3 id="gpa-history-heading" className="font-black text-[#172554]">GPA history</h3>
           </div>
           <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-600">
+            <thead className="bg-slate-50 text-xs text-slate-600">
               <tr>
                 <th scope="col" className="px-4 py-3">Calculated</th>
                 <th scope="col" className="px-4 py-3 text-center">Credits</th>

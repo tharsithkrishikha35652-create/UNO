@@ -60,7 +60,7 @@ export const DesktopCoursesPanel: React.FC<DesktopCoursesPanelProps> = ({
   if (semester === null) {
     return (
       <section className="mx-auto my-6 max-w-xl rounded-2xl border border-slate-300 bg-white px-6 py-6 text-center shadow-sm">
-        <h1 className="text-lg font-black uppercase tracking-wide text-[#172554]">Choose your semester</h1>
+        <h1 className="text-lg font-black text-[#172554]">Choose your semester</h1>
         <p className="mx-auto mt-2 max-w-md text-sm text-slate-600">
           Select a semester from the menu at the top right to see its courses and start entering marks.
         </p>
@@ -129,7 +129,7 @@ export const DesktopCoursesPanel: React.FC<DesktopCoursesPanelProps> = ({
         {expanded && (
           <div className="border-t border-slate-200 p-4 pt-3">
             <div className="mb-2.5">
-              <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+              <p className="text-[10px] font-black text-slate-500">
                 Available choices in Semester {semester}
               </p>
               <p className="mt-0.5 text-xs text-slate-500">
@@ -190,8 +190,8 @@ export const DesktopCoursesPanel: React.FC<DesktopCoursesPanelProps> = ({
     <section className="mx-auto max-w-4xl" aria-labelledby="desktop-courses-title">
       <header className="mb-4 flex items-end justify-between gap-4">
         <div>
-          <h1 id="desktop-courses-title" className="text-xl font-black uppercase tracking-wide text-[#172554]">
-            Semester {semester} courses
+          <h1 id="desktop-courses-title" className="text-xl font-black text-[#172554]">
+            Semester {semester} Courses
           </h1>
           <p className="mt-1 text-sm text-slate-600">Select a course to edit its marks.</p>
         </div>
@@ -203,8 +203,8 @@ export const DesktopCoursesPanel: React.FC<DesktopCoursesPanelProps> = ({
       <div className="space-y-6">
         {/* Core Courses */}
         <section aria-labelledby="desktop-core-courses-title">
-          <h2 id="desktop-core-courses-title" className="mb-2 text-xs font-black uppercase tracking-wide text-slate-600">
-            Core courses
+          <h2 id="desktop-core-courses-title" className="mb-2 text-xs font-black text-slate-600">
+            Core Courses
           </h2>
           <ul className="divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white overflow-hidden">
             {courses.map(({ course, subject, progress }) => (
@@ -235,7 +235,7 @@ export const DesktopCoursesPanel: React.FC<DesktopCoursesPanelProps> = ({
         {/* Professional Electives (kept distinct) */}
         {professionalElectiveSlots.length > 0 && (
           <section aria-labelledby="desktop-professional-electives-title">
-            <h2 id="desktop-professional-electives-title" className="mb-2 text-xs font-black uppercase tracking-wide text-slate-600">
+            <h2 id="desktop-professional-electives-title" className="mb-2 text-xs font-black text-slate-600">
               Professional Electives
             </h2>
             <ul className="space-y-2">
@@ -247,7 +247,7 @@ export const DesktopCoursesPanel: React.FC<DesktopCoursesPanelProps> = ({
         {/* Open Electives (kept distinct) */}
         {openElectiveSlots.length > 0 && (
           <section aria-labelledby="desktop-open-electives-title">
-            <h2 id="desktop-open-electives-title" className="mb-2 text-xs font-black uppercase tracking-wide text-slate-600">
+            <h2 id="desktop-open-electives-title" className="mb-2 text-xs font-black text-slate-600">
               Open Electives
             </h2>
             <ul className="space-y-2">
@@ -259,8 +259,8 @@ export const DesktopCoursesPanel: React.FC<DesktopCoursesPanelProps> = ({
         {/* Other courses */}
         {otherCourses.length > 0 && (
           <section aria-labelledby="desktop-other-courses-title">
-            <h2 id="desktop-other-courses-title" className="mb-2 text-xs font-black uppercase tracking-wide text-slate-600">
-              Other courses
+            <h2 id="desktop-other-courses-title" className="mb-2 text-xs font-black text-slate-600">
+              Other Courses
             </h2>
             <ul className="divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white overflow-hidden">
               {otherCourses.map(({ subject, progress }) => (
@@ -294,7 +294,7 @@ export const DesktopCoursesPanel: React.FC<DesktopCoursesPanelProps> = ({
           <button
             type="button"
             onClick={onCalculateGpa}
-            className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-[#172554] px-4 py-2 text-xs font-bold uppercase tracking-wide text-white hover:bg-[#1e3a8a] focus-visible:outline-2 focus-visible:outline-[#172554]"
+            className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-[#172554] px-4 py-2 text-xs font-bold text-white hover:bg-[#1e3a8a] focus-visible:outline-2 focus-visible:outline-[#172554]"
           >
             <GraduationCap className="h-4 w-4" aria-hidden="true" />
             Calculate GPA

@@ -531,7 +531,7 @@ input[type="number"]::-webkit-outer-spin-button {
 
 }
 
-/* Ambient background layer: Warm Scholar background image */
+/* Ambient background layer: Warm Scholar background image in light & dark modes */
 #calcredit-ambient-bg {
   position: fixed;
   inset: 0;
@@ -539,11 +539,19 @@ input[type="number"]::-webkit-outer-spin-button {
   height: 100vh;
   z-index: 0;
   pointer-events: none;
-  background-color: #F7F5F0;
-  background-image: url('./assets/warm-scholar-bg.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+}
+
+:root:not([data-theme="dark"]) #calcredit-ambient-bg {
+  background-color: #F7F5F0;
+  background-image: url('/warm-scholar-bg.png');
+}
+
+[data-theme="dark"] #calcredit-ambient-bg {
+  background-color: #161618;
+  background-image: url('/dark-scholar-bg.png');
 }
 
 #root {
@@ -551,10 +559,8 @@ input[type="number"]::-webkit-outer-spin-button {
   z-index: 1;
 }
 
-:root:not([data-theme="dark"]) .min-h-screen { background-color: transparent !important; }
-
-[data-theme="dark"] #calcredit-ambient-bg {
-  display: none !important;
+.min-h-screen {
+  background-color: transparent !important;
 }
 
 [data-theme="dark"] body {

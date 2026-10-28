@@ -32,9 +32,9 @@ export const CreditsScreen: React.FC = () => (
     <div className="mb-5 border-b border-[#E4DDD2] pb-4 sm:mb-7 sm:pb-5">
       <div className="mb-2 flex items-center gap-3">
         <span className="h-px w-8 bg-[#3B4D66]" aria-hidden="true" />
-        <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#B95F43]">Credits</span>
+        <span className="text-[10px] font-extrabold text-[#B95F43]">Credits</span>
       </div>
-      <h1 className="text-2xl font-extrabold leading-tight tracking-tight text-[#2C2C30] sm:text-3xl">People behind CALCREDIT.</h1>
+      <h1 className="text-2xl font-extrabold leading-tight tracking-tight text-[#2C2C30] sm:text-3xl">People behind CalCredit.</h1>
       <p className="mt-1.5 text-sm text-[#6E6E73]">Designed and developed with care.</p>
     </div>
 
@@ -51,15 +51,15 @@ export const CreditsScreen: React.FC = () => (
             <div className={isDeveloper
               ? 'mb-4 flex items-center justify-between gap-3 rounded-lg border border-[#4A4A50] bg-[#26364B] px-3 py-2'
               : 'mb-4 flex items-center justify-between gap-3 rounded-lg border border-[#E9C7B9] bg-[#F3E5DB] px-3 py-2'}>
-              <span className={isDeveloper ? 'text-[9px] font-extrabold uppercase tracking-[0.12em] text-[#D8E4ED]' : 'text-[9px] font-extrabold uppercase tracking-[0.12em] text-[#B95F43]'}>
+              <span className={isDeveloper ? 'text-[9px] font-extrabold text-[#D8E4ED]' : 'text-[9px] font-extrabold text-[#B95F43]'}>
                 {isDeveloper ? 'Engineering / Build' : 'Design Studio / Interface'}
               </span>
               <span className={isDeveloper ? 'text-[9px] font-bold tabular-nums text-[#B8B8BE]' : 'text-[9px] font-bold tabular-nums text-[#B95F43]'}>
-                {isDeveloper ? '01 / LOGIC' : '02 / CANVAS'}
+                {isDeveloper ? '01 / Logic' : '02 / Canvas'}
               </span>
             </div>
 
-            <div className="flex items-center gap-2 text-[10px] font-extrabold uppercase tracking-[0.12em]">
+            <div className="flex items-center gap-2 text-[10px] font-extrabold">
               <RoleIcon className={isDeveloper ? 'h-4 w-4 text-[#93C5FD]' : 'h-4 w-4 text-[#D97757]'} aria-hidden="true" />
               <span className={isDeveloper ? 'text-[#93C5FD]' : 'text-[#B95F43]'}>{role}</span>
             </div>
@@ -74,7 +74,7 @@ export const CreditsScreen: React.FC = () => (
                     <span className="h-2 w-2 rounded-full bg-[#D9A15B]" />
                     <span className="h-2 w-2 rounded-full bg-[#5B8C5A]" />
                   </div>
-                  <span className="text-[9px] font-semibold uppercase tracking-wider text-[#B8B8BE]">calculateMarks.ts</span>
+                  <span className="text-[9px] font-semibold text-[#B8B8BE]">calculateMarks.ts</span>
                   <Braces className="h-3.5 w-3.5 text-[#93C5FD]" aria-hidden="true" />
                 </div>
                 <pre className="overflow-hidden px-3 py-3 text-[10px] leading-relaxed text-[#D8E4ED]"><code><span className="text-[#93C5FD]">const</span> result = <span className="text-[#E08564]">calculateMarks</span>(subject);<br /><span className="text-[#5B8C5A]">// weighted marks â†’ grade â†’ grade point</span><br /><span className="text-[#93C5FD]">return</span> result;</code></pre>
@@ -83,12 +83,12 @@ export const CreditsScreen: React.FC = () => (
               <div className="mt-4 overflow-hidden rounded-xl border border-[#E4DDD2] bg-[#FCFAF6] p-3" aria-label="Designer canvas and visual-system specialty">
                 <div className="relative grid h-20 grid-cols-6 gap-0 overflow-hidden rounded-lg border border-[#DDD5C9] bg-white" style={{ backgroundImage: 'linear-gradient(#E4DDD2 1px, transparent 1px), linear-gradient(90deg, #E4DDD2 1px, transparent 1px)', backgroundSize: '22px 18px' }}>
                   <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 rounded-lg border border-[#D97757] bg-[#F3E5DB] px-3 py-2 text-center shadow-sm">
-                    <span className="block text-[9px] font-extrabold uppercase tracking-widest text-[#B95F43]">CA Marks UI</span>
+                    <span className="block text-[9px] font-extrabold text-[#B95F43]">CA Marks UI</span>
                     <span className="mt-0.5 block text-[8px] font-medium text-[#6E6E73]">Type Â· Spacing Â· State</span>
                   </div>
                 </div>
                 <div className="mt-2 flex items-center justify-between gap-3">
-                  <span className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wide text-[#6E6E73]"><Palette className="h-3.5 w-3.5" aria-hidden="true" /> Palette / foundations</span>
+                  <span className="flex items-center gap-1.5 text-[9px] font-bold text-[#6E6E73]"><Palette className="h-3.5 w-3.5" aria-hidden="true" /> Palette / foundations</span>
                   <Grid3X3 className="h-3.5 w-3.5 text-[#B95F43]" aria-hidden="true" />
                 </div>
                 <div className="mt-2 flex items-center gap-2" aria-label="Warm Scholar color palette">
@@ -100,11 +100,11 @@ export const CreditsScreen: React.FC = () => (
 
             <dl className={isDeveloper ? 'mt-4 grid grid-cols-2 gap-3 border-t border-[#4A4A50] pt-3' : 'mt-4 grid grid-cols-2 gap-3 border-t border-[#E4DDD2] pt-3'}>
               <div className="min-w-0">
-                <dt className={isDeveloper ? 'text-[9px] font-bold uppercase tracking-wider text-[#B8B8BE]' : 'text-[9px] font-bold uppercase tracking-wider text-[#6E6E73]'}>Department</dt>
+                <dt className={isDeveloper ? 'text-[9px] font-bold text-[#B8B8BE]' : 'text-[9px] font-bold text-[#6E6E73]'}>Department</dt>
                 <dd className={isDeveloper ? 'mt-1 break-words text-xs font-semibold text-[#F1F1F3]' : 'mt-1 break-words text-xs font-semibold text-[#2C2C30]'}>{department}</dd>
               </div>
               <div className="min-w-0">
-                <dt className={isDeveloper ? 'text-[9px] font-bold uppercase tracking-wider text-[#B8B8BE]' : 'text-[9px] font-bold uppercase tracking-wider text-[#6E6E73]'}>Registration No.</dt>
+                <dt className={isDeveloper ? 'text-[9px] font-bold text-[#B8B8BE]' : 'text-[9px] font-bold text-[#6E6E73]'}>Registration No.</dt>
                 <dd className={isDeveloper ? 'mt-1 break-words text-xs font-semibold tabular-nums text-[#F1F1F3]' : 'mt-1 break-words text-xs font-semibold tabular-nums text-[#2C2C30]'}>{registration}</dd>
               </div>
             </dl>

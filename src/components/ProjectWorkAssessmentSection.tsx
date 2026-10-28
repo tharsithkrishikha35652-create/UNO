@@ -31,7 +31,7 @@ export const ProjectWorkAssessmentSection: React.FC<ProjectWorkAssessmentSection
     return (
       <section className="border border-slate-300 bg-white" aria-label={`${section} assessment components`}>
         <div className="flex items-center justify-between gap-3 bg-[#172554] px-4 py-3 text-white">
-          <h3 className="text-sm font-black uppercase tracking-wide">{section}</h3>
+          <h3 className="text-sm font-black">{section}</h3>
           <span className="text-xs font-bold">Total weight: {maxWeight}%</span>
         </div>
         <div className="divide-y divide-slate-200">

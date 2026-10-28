@@ -71,8 +71,8 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
   <section className="mx-auto min-w-0 max-w-full" aria-labelledby="semester-courses-heading">
     <div className="mb-3.5 flex items-end justify-between gap-3">
       <div>
-        <h1 id="semester-courses-heading" className="text-lg font-black uppercase tracking-wide text-[#172554] sm:text-xl">
-          Semester {semester} courses
+        <h1 id="semester-courses-heading" className="text-lg font-black text-[#172554] sm:text-xl">
+          Semester {semester} Courses
         </h1>
         <p className="mt-0.5 text-xs text-slate-600">Select a course to edit its marks.</p>
       </div>
@@ -111,7 +111,7 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
                 <div className="min-w-0 flex-1">
                   {course.code && (
                     <span
-                      className={`block text-[10px] font-bold uppercase tracking-wider mb-0.5 ${
+                      className={`block text-[10px] font-bold mb-0.5 ${
                         isSelected ? 'text-blue-100/80' : 'text-slate-500'
                       }`}
                     >
@@ -141,7 +141,7 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
               className={`w-[89%] ${isEven ? 'self-start mr-auto ml-0' : 'self-end ml-auto mr-0'} sm:w-full sm:m-0 sm:self-auto`}
             >
               <div
-                className={`flex min-h-[3.25rem] w-full items-stretch rounded-xl border transition-all shadow-xs ${
+                className={`group flex min-h-[3.25rem] w-full items-center justify-between gap-3 rounded-xl border p-3 text-left transition-all shadow-xs ${
                   isSelected
                     ? 'border-[#172554] bg-[#172554] text-white shadow-sm'
                     : 'border-slate-300 bg-white text-[#172554] hover:border-[#172554]'
@@ -153,49 +153,72 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
                   aria-pressed={isSelected}
                   aria-label={`${slot}${course ? `: ${course.name}` : ', choose course'}${course ? `, ${progress}` : ''}`}
                   title={course ? `${slot}: ${course.name} — ${progress}` : `${slot}: choose an option`}
-                  className={`flex min-w-0 flex-1 items-center justify-between gap-3 p-3 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#172554] cursor-pointer rounded-l-xl ${
-                    !course ? 'rounded-r-xl' : ''
-                  } ${isSelected ? 'text-white' : 'text-[#172554] hover:bg-slate-50'}`}
+                  className="min-w-0 flex-1 text-left cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#172554]"
                 >
-                  <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 mb-0.5 flex-wrap">
                     <span
-                      className={`block text-[10px] font-bold uppercase tracking-wider mb-0.5 ${
-                        isSelected ? 'text-blue-100/80' : 'text-slate-500'
+                      className={`inline-block text-[10px] font-bold tracking-wide uppercase ${
+                        isSelected ? 'text-blue-100/90' : 'text-slate-500'
                       }`}
                     >
                       {slot}
                     </span>
-                    <span
-                      className={`block text-xs sm:text-sm font-bold leading-snug break-words whitespace-normal ${
-                        !course ? 'italic font-medium text-slate-500' : ''
-                      }`}
-                    >
-                      {course ? course.name : 'Choose elective course…'}
-                    </span>
-                  </div>
-                  <div className="shrink-0 flex items-center gap-1.5 pl-2">
-                    {course ? (
-                      <ProgressMark progress={progress} isSelected={isSelected} />
-                    ) : (
-                      <BookOpen className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+                    {course?.code && (
+                      <span
+                        className={`inline-block text-[10px] font-bold ${
+                          isSelected ? 'text-blue-200/80' : 'text-slate-400'
+                        }`}
+                      >
+                        · {course.code}
+                      </span>
                     )}
                   </div>
-                </button>
-                {course && (
-                  <button
-                    type="button"
-                    onClick={() => onSelectElective(slot)}
-                    aria-label={`Change ${slot} option`}
-                    title={`Change ${slot} option`}
-                    className={`flex w-11 shrink-0 items-center justify-center border-l transition-colors focus-visible:outline-2 focus-visible:outline-[#172554] cursor-pointer rounded-r-xl ${
-                      isSelected
-                        ? 'border-white/20 text-white/90 hover:bg-white/10'
-                        : 'border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-[#172554]'
+                  <span
+                    className={`block text-xs sm:text-sm font-bold leading-snug break-words whitespace-normal ${
+                      !course ? 'italic font-medium text-slate-500' : ''
                     }`}
                   >
-                    <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
-                  </button>
-                )}
+                    {course ? course.name : 'Choose elective course…'}
+                  </span>
+                </button>
+                <div className="shrink-0 flex items-center gap-2 pl-1.5">
+                  {course ? (
+                    <>
+                      <ProgressMark progress={progress} isSelected={isSelected} />
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSelectElective(slot);
+                        }}
+                        aria-label={`Change ${slot} course`}
+                        title={`Change ${slot} course`}
+                        className={`flex h-8 w-8 items-center justify-center rounded-lg border transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-[#172554] ${
+                          isSelected
+                            ? 'border-white/30 text-white/90 hover:bg-white/15'
+                            : 'border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-[#172554]'
+                        }`}
+                      >
+                        <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => onSelectElective(slot)}
+                      aria-label={`Choose course for ${slot}`}
+                      title={`Choose course for ${slot}`}
+                      className={`flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-bold transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-[#172554] ${
+                        isSelected
+                          ? 'border-white/30 text-white hover:bg-white/15'
+                          : 'border-slate-300 text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      <BookOpen className="h-3.5 w-3.5 text-slate-400" aria-hidden="true" />
+                      <span className="text-[11px]">Choose</span>
+                    </button>
+                  )}
+                </div>
               </div>
             </li>
           );
@@ -226,7 +249,7 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
                 <div className="min-w-0 flex-1">
                   {subject.code && (
                     <span
-                      className={`block text-[10px] font-bold uppercase tracking-wider mb-0.5 ${
+                      className={`block text-[10px] font-bold mb-0.5 ${
                         isSelected ? 'text-blue-100/80' : 'text-slate-500'
                       }`}
                     >
@@ -255,7 +278,7 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
         <button
           type="button"
           onClick={onCalculateGpa}
-          className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-[#172554] px-4 py-2 text-xs font-bold uppercase tracking-wide text-white hover:bg-[#1e3a8a] focus-visible:outline-2 focus-visible:outline-[#172554] cursor-pointer shadow-xs"
+          className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-[#172554] px-4 py-2 text-xs font-bold text-white hover:bg-[#1e3a8a] focus-visible:outline-2 focus-visible:outline-[#172554] cursor-pointer shadow-xs"
         >
           <GraduationCap className="h-4 w-4" aria-hidden="true" />
           Calculate GPA

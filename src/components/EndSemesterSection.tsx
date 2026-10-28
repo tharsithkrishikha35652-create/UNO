@@ -87,7 +87,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
       {/* Section Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 sm:px-5 bg-[#172554] text-white">
         <div className="flex items-center gap-3">
-          <span className="px-2.5 py-0.5 bg-white text-[#172554] font-black text-sm uppercase">
+          <span className="px-2.5 py-0.5 bg-white text-[#172554] font-black text-sm">
             ESE
           </span>
           <div>
@@ -104,8 +104,8 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
 
         {/* Subtotal */}
         <div className="flex items-baseline gap-2 self-start sm:self-auto text-white">
-          <span className="text-xs uppercase font-bold tracking-wider text-slate-200">
-            MARKS CONTRIBUTED:
+          <span className="text-xs font-bold text-slate-200">
+            Marks contributed:
           </span>
           <span className="text-lg font-black tabular-nums">
             {esePoints.toFixed(2)}{' '}
@@ -126,7 +126,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                   <GraduationCap className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-[#172554] uppercase tracking-wide">
+                  <h4 className="text-sm font-bold text-[#172554]">
                     ESE Theory Exam
                   </h4>
                   <span className="text-[11px] font-bold text-[#1e3a8a]">
@@ -137,9 +137,9 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
 
               <label
                 htmlFor="ese-theory-input"
-                className="block text-xs font-bold text-[#172554] uppercase tracking-wider mb-1.5"
+                className="block text-xs font-bold text-[#172554] mb-1.5"
               >
-                Theory Marks Scored:
+                Theory marks scored:
               </label>
               <div className="relative mb-3">
                 <input
@@ -179,8 +179,8 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
 
             <div className="pt-4 border-t border-slate-200 mt-4">
               <div className="flex items-baseline justify-between text-[#172554]">
-                <span className="text-xs font-bold uppercase tracking-wider">
-                  MARKS CONTRIBUTED:
+                <span className="text-xs font-bold">
+                  Marks contributed:
                 </span>
                 <div className="flex items-baseline gap-1">
                   <span className="text-lg font-black tabular-nums">
@@ -201,7 +201,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                   <FlaskConical className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-[#172554] uppercase tracking-wide">
+                  <h4 className="text-sm font-bold text-[#172554]">
                     {isPracticalOnly || courseType === 'self-development' ? 'ESE Practical Exam' : 'ESE Lab Exam'}
                   </h4>
                   <span className="text-[11px] font-bold text-[#1e3a8a]">
@@ -213,9 +213,9 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
               {/* Lab Marks Scored Input */}
               <label
                 htmlFor="ese-lab-input"
-                className="block text-xs font-bold text-[#172554] uppercase tracking-wider mb-1.5"
+                className="block text-xs font-bold text-[#172554] mb-1.5"
               >
-                {labName} Marks Scored:
+                {labName} marks scored:
               </label>
               <div className="relative mb-3">
                 <input
@@ -258,8 +258,8 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
 
             <div className="pt-4 border-t border-slate-200 mt-4">
               <div className="flex items-baseline justify-between text-[#172554]">
-                <span className="text-xs font-bold uppercase tracking-wider">
-                  {estimatedLabMark ? 'MARKS CONTRIBUTED (ESTIMATE):' : 'MARKS CONTRIBUTED:'}
+                <span className="text-xs font-bold">
+                  {estimatedLabMark ? 'Marks contributed (estimate):' : 'Marks contributed:'}
                 </span>
                 <div className="flex items-baseline gap-1">
                   <span className="text-lg font-black tabular-nums">
@@ -279,7 +279,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                   <Target className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-[#172554] uppercase tracking-wide">
+                  <h4 className="text-sm font-bold text-[#172554]">
                     Target Grade Simulator
                   </h4>
                   <span className="text-[11px] font-semibold text-slate-500">
@@ -370,8 +370,8 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                 <div className="p-1.5 bg-[#172554] text-white shrink-0">
                   <GraduationCap className="w-5 h-5" />
                 </div>
-                <h4 className="text-sm font-bold text-[#172554] uppercase tracking-wide">
-                  End Semester Marks Scored
+                <h4 className="text-sm font-bold text-[#172554]">
+                  End-Semester marks scored
                 </h4>
                 <span className="text-xs font-semibold text-[#1e3a8a] ml-auto">
                   Weightage: {eseTheoryWeight}%
@@ -380,9 +380,9 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
 
               <label
                 htmlFor="ese-marks-input"
-                className="block text-xs font-bold text-[#172554] uppercase tracking-wider mb-1.5"
+                className="block text-xs font-bold text-[#172554] mb-1.5"
               >
-                Marks Scored:
+                Marks scored:
               </label>
               <div className="relative mb-3">
                 <input
@@ -422,9 +422,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
             {/* Marks Contributed for Total at bottom */}
             <div className="pt-1">
               <div className="flex items-baseline justify-between text-[#172554]">
-                <span className="text-xs font-bold uppercase tracking-wider">
-                  MARKS CONTRIBUTED:
-                </span>
+                <span className="text-xs font-bold">Marks contributed:</span>
                 <div className="flex items-baseline gap-1">
                   <span className="text-lg font-black tabular-nums">
                     {esePoints.toFixed(2)}
@@ -442,9 +440,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                 <div className="p-1.5 bg-[#172554] text-white shrink-0">
                   <Target className="w-5 h-5" />
                 </div>
-                <h4 className="text-sm font-bold text-[#172554] uppercase tracking-wide">
-                  Target Grade Simulator
-                </h4>
+                <h4 className="text-sm font-bold text-[#172554]">Target Grade Simulator</h4>
                 <ChevronDown className="ml-auto h-4 w-4 shrink-0 text-[#172554] transition-transform group-open:rotate-180" aria-hidden="true" />
               </summary>
 

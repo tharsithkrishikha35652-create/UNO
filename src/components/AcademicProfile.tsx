@@ -81,7 +81,7 @@ export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
     <form className="space-y-4" onSubmit={(event) => void handleSubmit(event)} noValidate>
       <div className="space-y-4">
         <label className="block">
-          <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#172554]">
+          <span className="mb-1.5 block text-xs font-bold text-[#172554]">
             Student name
           </span>
           <input
@@ -99,7 +99,7 @@ export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
         </label>
 
         <label className="block">
-          <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#172554]">
+          <span className="mb-1.5 block text-xs font-bold text-[#172554]">
             Roll number
           </span>
           <input
@@ -117,7 +117,7 @@ export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
         </label>
 
         <div>
-          <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#172554]">
+          <span className="mb-1.5 block text-xs font-bold text-[#172554]">
             Email address
           </span>
           <p className="min-h-11 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 break-words">
@@ -126,7 +126,7 @@ export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
         </div>
 
         <label className="block">
-          <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#172554]">
+          <span className="mb-1.5 block text-xs font-bold text-[#172554]">
             Department
           </span>
           <select
@@ -144,7 +144,7 @@ export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
         </label>
 
         <label className="block">
-          <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#172554]">
+          <span className="mb-1.5 block text-xs font-bold text-[#172554]">
             Current semester
           </span>
           <select
@@ -175,7 +175,7 @@ export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
             type="button"
             onClick={onCancel}
             disabled={saving}
-            className="min-h-11 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-[#172554] hover:bg-slate-50 disabled:opacity-60"
+            className="min-h-11 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold text-[#172554] hover:bg-slate-50 disabled:opacity-60"
           >
             Cancel
           </button>
@@ -183,7 +183,7 @@ export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
         <button
           type="submit"
           disabled={saving}
-          className="min-h-11 rounded-lg bg-[#172554] px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-white hover:bg-[#1e3a8a] disabled:cursor-wait disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#172554]"
+          className="min-h-11 rounded-lg bg-[#172554] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#1e3a8a] disabled:cursor-wait disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#172554]"
         >
           {saving ? 'Saving profile…' : submitLabel}
         </button>
@@ -207,7 +207,7 @@ export const AcademicSetupScreen: React.FC<AcademicSetupScreenProps> = ({ theme,
             <span className="absolute bottom-1.5 h-0.5 w-2 rounded-full bg-cyan-300" aria-hidden="true" />
           </span>
           <div>
-            <p className="text-[11px] font-bold tracking-[0.08em] text-blue-800 uppercase">CALCREDIT</p>
+            <p className="text-[11px] font-bold tracking-[0.08em] text-blue-800">CalCredit</p>
             <h1 className="mt-1 text-xl font-black text-[#172554] sm:text-2xl">Academic Setup</h1>
             <p className="mt-1 max-w-prose text-xs text-slate-600">Add your academic details to personalize your course workspace.</p>
           </div>
@@ -321,8 +321,8 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
               <span className="absolute bottom-1 h-0.5 w-1.5 rounded-full bg-cyan-300" aria-hidden="true" />
             </span>
             <div>
-              <h2 id="academic-profile-title" className="text-sm font-black tracking-wider text-[#172554] uppercase">
-                {editing ? 'Edit Profile' : 'CALCREDIT'}
+              <h2 id="academic-profile-title" className="text-sm font-black text-[#172554]">
+                {editing ? 'Edit Profile' : 'CalCredit'}
               </h2>
             </div>
           </div>
@@ -362,7 +362,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
             <>
               {/* 1. Your Profile banner */}
               <div className="rounded-xl bg-[#172554] px-4 py-3 text-white flex items-center justify-between shadow-sm">
-                <span className="text-xs font-black uppercase tracking-wider">YOUR PROFILE</span>
+                <span className="text-xs font-black">Your Profile</span>
                 <span className="rounded-md bg-blue-900/60 border border-blue-400/30 px-2 py-0.5 text-[10px] font-bold text-cyan-300 uppercase">
                   CSE
                 </span>
@@ -371,31 +371,31 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
               {/* 2-6. Profile Details Card: Student Name -> Roll Number -> Email -> Department -> Current Semester */}
               <div className="rounded-xl border border-slate-300 bg-white p-4 shadow-sm divide-y divide-slate-200">
                 <div className="pb-3">
-                  <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Student Name</dt>
+                  <dt className="text-[10px] font-bold text-slate-500">Student Name</dt>
                   <dd className="mt-1 text-sm font-bold text-[#172554] break-words">
                     {profile?.studentName || (guestMode ? 'Guest Student' : 'Student')}
                   </dd>
                 </div>
                 <div className="py-3">
-                  <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Roll Number</dt>
+                  <dt className="text-[10px] font-bold text-slate-500">Roll Number</dt>
                   <dd className="mt-1 text-sm font-bold text-[#172554] break-words">
                     {profile?.rollNumber || 'Not provided'}
                   </dd>
                 </div>
                 <div className="py-3">
-                  <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Email</dt>
+                  <dt className="text-[10px] font-bold text-slate-500">Email</dt>
                   <dd className="mt-1 text-sm font-semibold text-slate-800 break-words">
                     {guestMode ? 'Temporary guest session' : email || 'Email unavailable'}
                   </dd>
                 </div>
                 <div className="py-3">
-                  <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Department</dt>
+                  <dt className="text-[10px] font-bold text-slate-500">Department</dt>
                   <dd className="mt-1 text-sm font-bold text-[#172554]">
                     {profile?.department || 'CSE'}
                   </dd>
                 </div>
                 <div className="pt-3">
-                  <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Current Semester</dt>
+                  <dt className="text-[10px] font-bold text-slate-500">Current Semester</dt>
                   <dd className="mt-1 text-sm font-bold text-[#172554]">
                     {initialSemester ? `Semester ${initialSemester}` : 'Not selected'}
                   </dd>
@@ -407,7 +407,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
                 ref={editButtonRef}
                 type="button"
                 onClick={() => setEditing(true)}
-                className="min-h-11 w-full rounded-xl bg-[#172554] px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-[#1e3a8a] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#172554]"
+                className="min-h-11 w-full rounded-xl bg-[#172554] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#1e3a8a] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#172554]"
               >
                 Edit Profile
               </button>
@@ -462,7 +462,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
               type="button"
               onClick={onLogout}
               disabled={logoutPending}
-              className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-rose-300 bg-rose-50/70 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-rose-600 hover:bg-rose-100 transition-colors disabled:cursor-wait disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-rose-500"
+              className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-rose-300 bg-rose-50/70 px-4 py-2.5 text-xs font-bold text-rose-600 hover:bg-rose-100 transition-colors disabled:cursor-wait disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-rose-500"
             >
               {logoutPending
                 ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" />

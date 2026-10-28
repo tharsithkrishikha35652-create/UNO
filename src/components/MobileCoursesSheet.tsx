@@ -179,7 +179,7 @@ export const MobileCoursesSheet: React.FC<MobileCoursesSheetProps> = ({
         {isExpanded && (
           <div className="elective-options-expansion border-t border-slate-200 p-3 pt-2">
             <div className="mb-2">
-              <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+              <p className="text-[10px] font-black text-slate-500">
                 Available in Semester {semester}
               </p>
               <p className="mt-0.5 text-[10px] text-slate-500">
@@ -295,8 +295,8 @@ export const MobileCoursesSheet: React.FC<MobileCoursesSheetProps> = ({
             <>
               {/* 1. Core Courses */}
               <section aria-labelledby="mobile-core-courses-heading">
-                <h3 id="mobile-core-courses-heading" className="mb-2 text-xs font-black uppercase tracking-wide text-slate-600">
-                  Core courses
+                <h3 id="mobile-core-courses-heading" className="mb-2 text-xs font-black text-slate-600">
+                  Core Courses
                 </h3>
                 <ul className="divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
                   {courses.map(({ course, subject, progress }) => (
@@ -331,7 +331,7 @@ export const MobileCoursesSheet: React.FC<MobileCoursesSheetProps> = ({
               {/* 2. Professional Electives (kept distinct) */}
               {professionalElectiveSlots.length > 0 && (
                 <section aria-labelledby="mobile-professional-electives-heading">
-                  <h3 id="mobile-professional-electives-heading" className="mb-2 text-xs font-black uppercase tracking-wide text-slate-600">
+                  <h3 id="mobile-professional-electives-heading" className="mb-2 text-xs font-black text-slate-600">
                     Professional Electives
                   </h3>
                   <ul className="space-y-2">
@@ -343,7 +343,7 @@ export const MobileCoursesSheet: React.FC<MobileCoursesSheetProps> = ({
               {/* 3. Open Electives (kept distinct) */}
               {openElectiveSlots.length > 0 && (
                 <section aria-labelledby="mobile-open-electives-heading">
-                  <h3 id="mobile-open-electives-heading" className="mb-2 text-xs font-black uppercase tracking-wide text-slate-600">
+                  <h3 id="mobile-open-electives-heading" className="mb-2 text-xs font-black text-slate-600">
                     Open Electives
                   </h3>
                   <ul className="space-y-2">
@@ -355,8 +355,8 @@ export const MobileCoursesSheet: React.FC<MobileCoursesSheetProps> = ({
               {/* 4. Other courses */}
               {otherCourses.length > 0 && (
                 <section aria-labelledby="mobile-other-courses-heading">
-                  <h3 id="mobile-other-courses-heading" className="mb-2 text-xs font-black uppercase tracking-wide text-slate-600">
-                    Other courses
+                  <h3 id="mobile-other-courses-heading" className="mb-2 text-xs font-black text-slate-600">
+                    Other Courses
                   </h3>
                   <ul className="divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
                     {otherCourses.map(({ subject, progress }) => (
@@ -397,7 +397,7 @@ export const MobileCoursesSheet: React.FC<MobileCoursesSheetProps> = ({
             <button
               type="button"
               onClick={onCalculateGpa}
-              className="min-h-11 w-full rounded-xl border border-[#172554] bg-white px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-[#172554] hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-[#172554]"
+              className="min-h-11 w-full rounded-xl border border-[#172554] bg-white px-4 py-2.5 text-xs font-bold text-[#172554] hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-[#172554]"
             >
               Calculate GPA
             </button>

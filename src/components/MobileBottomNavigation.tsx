@@ -45,7 +45,7 @@ export const MobileBottomNavigation: React.FC<MobileBottomNavigationProps> = ({
           aria-pressed={isActive}
           aria-expanded={tab === null ? coursesOpen : undefined}
           aria-controls={tab === null && coursesOpen ? 'mobile-courses-sheet' : undefined}
-          className={`flex min-h-[4.25rem] flex-col items-center justify-center gap-1 border-t-2 px-1 py-2 text-[9px] font-bold uppercase tracking-wide transition-colors focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[#172554] ${
+          className={`flex min-h-[4.25rem] flex-col items-center justify-center gap-1 border-t-2 px-1 py-2 text-[9px] font-bold transition-colors focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[#172554] ${
             isActive ? 'border-[#172554] text-[#172554]' : 'border-transparent text-slate-600 hover:bg-slate-50 hover:text-[#172554]'
           }`}
         >

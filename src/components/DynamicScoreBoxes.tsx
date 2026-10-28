@@ -101,7 +101,7 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
               )}
             </div>
             <div>
-              <h4 className="text-sm font-bold text-[#172554] uppercase tracking-wide">{title}</h4>
+              <h4 className="text-sm font-bold text-[#172554]">{title}</h4>
               <span className="text-xs font-semibold text-[#1e3a8a]">
                 Weightage: {weight}%
               </span>
@@ -112,7 +112,7 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
           <div className="flex items-center gap-2 self-start sm:self-auto">
             <label
               htmlFor={`count-${category}-${caName}`}
-              className="text-xs font-bold text-[#172554] uppercase tracking-wider"
+              className="text-xs font-bold text-[#172554]"
             >
               Number:
             </label>
@@ -227,8 +227,8 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
         </div>
 
         <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-[#172554] pt-1">
-          <span className="min-w-0 text-xs font-bold uppercase tracking-wider">
-            {estimatedMarks ? 'MARKS CONTRIBUTED (ESTIMATE):' : 'MARKS CONTRIBUTED:'}
+          <span className="min-w-0 text-xs font-bold">
+            {estimatedMarks ? 'Marks contributed (estimate):' : 'Marks contributed:'}
           </span>
           <div className="flex shrink-0 items-baseline gap-1">
             <span className="text-lg font-black tabular-nums">

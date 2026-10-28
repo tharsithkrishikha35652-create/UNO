@@ -379,7 +379,7 @@ export default function App() {
       <main className="min-h-screen bg-transparent flex items-center justify-center p-6">
         <section className="max-w-lg w-full bg-white border border-rose-200 p-6 shadow-sm text-sm text-rose-900" role="alert">
           {authError}
-          <button type="button" onClick={() => window.location.reload()} className="mt-4 block bg-[#172554] px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-white">
+          <button type="button" onClick={() => window.location.reload()} className="mt-4 block bg-[#172554] px-4 py-2.5 text-xs font-bold text-white">
             Reload
           </button>
         </section>
@@ -1204,10 +1204,10 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
             <p className="text-sm" role="alert">{dataError}</p>
           </div>
           <div className="flex gap-3 mt-5">
-            <button type="button" onClick={() => setLoadAttempt((count) => count + 1)} className="bg-[#172554] px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-white hover:bg-[#1e3a8a]">
+            <button type="button" onClick={() => setLoadAttempt((count) => count + 1)} className="bg-[#172554] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#1e3a8a]">
               Retry
             </button>
-            <button type="button" onClick={onSignOut} className="border border-slate-300 px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-[#172554] hover:bg-slate-50">
+            <button type="button" onClick={onSignOut} className="border border-slate-300 px-4 py-2.5 text-xs font-bold text-[#172554] hover:bg-slate-50">
               Log out
             </button>
           </div>
@@ -1269,7 +1269,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
           </div>
 
           {/* Navigation Links */}
-          <nav className="hidden md:flex items-center gap-4 text-xs font-bold uppercase tracking-wider text-[#172554]">
+          <nav className="hidden md:flex items-center gap-4 text-xs font-bold text-[#172554]">
             <button
               type="button"
               onClick={() => { setIsDesktopCoursesOpen(false); setShowFeedbackHub(false); setShowCredits(false); setActiveTab('calculator'); }}
@@ -1326,7 +1326,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
             </button>
           </nav>
 
-          <label className="ml-auto flex shrink-0 items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-[#172554] sm:gap-2">
+          <label className="ml-auto flex shrink-0 items-center gap-1.5 text-[11px] font-bold text-[#172554] sm:gap-2">
             <span className="hidden md:inline">Semester</span>
             <div ref={semesterMenuRef} className="relative">
               <button
@@ -1398,12 +1398,12 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
         ) : (
           <div
             key={currentSubject.id}
-            className="border-b border-slate-200 bg-white px-3 py-2 sm:px-6 sm:py-2.5 shadow-xs animate-[sticky-result-in_160ms_ease-out]"
+            className="w-full border-b border-slate-200 bg-white shadow-xs animate-[sticky-result-in_160ms_ease-out]"
             role="status"
             aria-live="polite"
             aria-label="Current subject status"
           >
-            <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
+            <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 px-3 py-2 sm:px-6 lg:px-8 sm:py-2.5">
               <span className="truncate text-xs sm:text-sm font-black text-[#172554]" title={currentSubject.name}>
                 {currentSubject.name}
               </span>
@@ -1476,11 +1476,11 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
             </p>
             {migrationError && <p className="mt-2 text-sm font-semibold text-rose-800" role="alert">{migrationError}</p>}
             <div className="mt-4 flex flex-wrap gap-2">
-              <button type="button" onClick={() => void handleImportLegacy()} disabled={migrationBusy} className="inline-flex items-center gap-2 bg-[#172554] px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-white hover:bg-[#1e3a8a] disabled:opacity-60">
+              <button type="button" onClick={() => void handleImportLegacy()} disabled={migrationBusy} className="inline-flex items-center gap-2 bg-[#172554] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#1e3a8a] disabled:opacity-60">
                 {migrationBusy && <LoaderCircle className="w-4 h-4 animate-spin" aria-hidden="true" />}
                 Import a copy
               </button>
-              <button type="button" onClick={() => void handleSkipLegacy()} disabled={migrationBusy} className="border border-slate-400 bg-white px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-[#172554] hover:bg-slate-50 disabled:opacity-60">
+              <button type="button" onClick={() => void handleSkipLegacy()} disabled={migrationBusy} className="border border-slate-400 bg-white px-4 py-2.5 text-xs font-bold text-[#172554] hover:bg-slate-50 disabled:opacity-60">
                 Keep account separate
               </button>
             </div>
@@ -1518,7 +1518,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
         <div className={isDesktopCoursesOpen ? 'md:hidden' : ''}>
         {!showFeedbackHub && !showCredits && activeTab === 'calculator' && selectedSemester === null && (
           <section className="mx-auto my-6 max-w-xl border border-slate-300 bg-white px-4 py-5 text-center shadow-sm sm:px-6 sm:py-6">
-            <h1 className="text-lg font-black uppercase tracking-wide text-[#172554]">Choose your semester</h1>
+            <h1 className="text-lg font-black text-[#172554]">Choose your semester</h1>
             <p className="mx-auto mt-2 max-w-md text-sm text-slate-600">Select a semester from the menu at the top right to see its courses and start entering marks.</p>
           </section>
         )}
@@ -1550,8 +1550,8 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
                 {/* Course Type Specification */}
                 <div>
                   {breakdown.courseType !== 'heritage-course' && (
-                    <div className="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#172554] mb-2.5">
-                      Course Type = {breakdown.courseTypeLabel}
+                    <div className="text-xs sm:text-sm font-bold text-[#172554] mb-2.5">
+                      Course type: {breakdown.courseTypeLabel}
                     </div>
                   )}
 
@@ -1641,19 +1641,19 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
 
                   {isLaboratoryCourse ? (
                     <section className="space-y-3 border border-slate-300 bg-white p-4 sm:p-5" aria-labelledby="lab-course-heading">
-                      <h3 id="lab-course-heading" className="font-black uppercase tracking-wide text-[#172554]">Laboratory Course Assessment</h3>
+                      <h3 id="lab-course-heading" className="font-black text-[#172554]">Laboratory Course Assessment</h3>
                       <p className="text-sm text-slate-600">Regulation 17.6: work/observation/record 45%, midterm practical test 15%, and end-semester practical examination 40%.</p>
-                      <label className="block text-xs font-bold uppercase tracking-wide text-[#172554]" htmlFor="lab-course-work">Student work, observation and record — 45%</label>
+                      <label className="block text-xs font-bold text-[#172554]" htmlFor="lab-course-work">Student work, observation and record — 45%</label>
                       <input id="lab-course-work" type="number" min={0} max={100} step={0.5} value={currentSubject.labCourseWorkMark ?? ''} onChange={(event) => {
                         const raw = event.currentTarget.value;
                         updateCurrentSubject({ labCourseWorkMark: raw === '' ? '' : Math.min(100, Math.max(0, Number(raw) || 0)) });
                       }} className="w-full max-w-xs border border-[#172554] bg-white px-3 py-2 text-base font-bold text-[#172554]" placeholder="Score out of 100" />
-                      <label className="block text-xs font-bold uppercase tracking-wide text-[#172554]" htmlFor="lab-course-midterm">Midterm practical test — 15%</label>
+                      <label className="block text-xs font-bold text-[#172554]" htmlFor="lab-course-midterm">Midterm practical test — 15%</label>
                       <input id="lab-course-midterm" type="number" min={0} max={100} step={0.5} value={currentSubject.labCourseMidtermMark ?? ''} onChange={(event) => {
                         const raw = event.currentTarget.value;
                         updateCurrentSubject({ labCourseMidtermMark: raw === '' ? '' : Math.min(100, Math.max(0, Number(raw) || 0)) });
                       }} className="w-full max-w-xs border border-[#172554] bg-white px-3 py-2 text-base font-bold text-[#172554]" placeholder="Score out of 100" />
-                      <label className="block text-xs font-bold uppercase tracking-wide text-[#172554]" htmlFor="lab-course-exam">End-semester practical examination — 40%</label>
+                      <label className="block text-xs font-bold text-[#172554]" htmlFor="lab-course-exam">End-semester practical examination — 40%</label>
                       <input id="lab-course-exam" type="number" min={0} max={100} step={0.5} value={currentSubject.labCourseExamMark ?? ''} onChange={(event) => {
                         const raw = event.currentTarget.value;
                         updateCurrentSubject({ labCourseExamMark: raw === '' ? '' : Math.min(100, Math.max(0, Number(raw) || 0)) });
@@ -1661,9 +1661,9 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
                     </section>
                   ) : isSelfLearning ? (
                     <section className="border border-slate-300 bg-white p-4 sm:p-5" aria-labelledby="slc-result-heading">
-                      <h3 id="slc-result-heading" className="font-black uppercase tracking-wide text-[#172554]">Self-Learning Course Result</h3>
+                      <h3 id="slc-result-heading" className="font-black text-[#172554]">Self-Learning Course Result</h3>
                       <p className="mt-1 text-sm text-slate-600">Enter the final mark reported by the approved learning provider. No CA or ESE is calculated in this app.</p>
-                      <label className="mt-4 block text-xs font-bold uppercase tracking-wide text-[#172554]" htmlFor="slc-final-mark">External result out of 100</label>
+                      <label className="mt-4 block text-xs font-bold text-[#172554]" htmlFor="slc-final-mark">External result out of 100</label>
                       <input
                         id="slc-final-mark"
                         type="number"
@@ -1677,7 +1677,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
                         }}
                         className="mt-1 w-full max-w-xs border border-[#172554] bg-white px-3 py-2 text-base font-bold text-[#172554]"
                       />
-                      <label className="mt-4 flex max-w-sm flex-col gap-1 text-xs font-bold uppercase tracking-wide text-[#172554]" htmlFor="slc-pass-mark">
+                      <label className="mt-4 flex max-w-sm flex-col gap-1 text-xs font-bold text-[#172554]" htmlFor="slc-pass-mark">
                         Passing threshold
                         <select
                           id="slc-pass-mark"
@@ -1774,7 +1774,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
                     testPoints={breakdown.test1_p}
                     testWeight={breakdown.testWeight}
                     allowCustomTestMax={isComputationalThinking || isTwoTestCourse}
-                    testDisplayName={isIndustryOrientedTests ? 'MID TERM TEST' : currentCourseType === 'standards-course' ? 'STANDARDS TEST I' : currentCourseType === 'audit-course' ? 'AUDIT TEST I' : currentCourseType === 'heritage-course' ? 'CA 1' : undefined}
+                    testDisplayName={isIndustryOrientedTests ? 'Mid Term Test' : currentCourseType === 'standards-course' ? 'Standards Test I' : currentCourseType === 'audit-course' ? 'Audit Test I' : currentCourseType === 'heritage-course' ? 'CA 1' : undefined}
                     isTwoTestCourse={isTwoTestCourse}
                     isSelfDevelopment={breakdown.courseType === 'self-development'}
                     actNo={displayedSubject.act1No}
@@ -1811,7 +1811,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
                   testPoints={breakdown.test2_p}
                   testWeight={breakdown.testWeight}
                   allowCustomTestMax={isComputationalThinking || isTwoTestCourse}
-                  testDisplayName={isIndustryOrientedTests ? 'END COURSE TEST' : currentCourseType === 'standards-course' ? 'STANDARDS TEST II' : currentCourseType === 'audit-course' ? 'AUDIT TEST II' : currentCourseType === 'heritage-course' ? 'CA 2' : undefined}
+                  testDisplayName={isIndustryOrientedTests ? 'End Course Test' : currentCourseType === 'standards-course' ? 'Standards Test II' : currentCourseType === 'audit-course' ? 'Audit Test II' : currentCourseType === 'heritage-course' ? 'CA 2' : undefined}
                   isTwoTestCourse={isTwoTestCourse}
                   isSelfDevelopment={breakdown.courseType === 'self-development'}
                   actNo={displayedSubject.act2No}
@@ -1865,7 +1865,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
                       type="button"
                       onClick={() => void handleCalculateMarks()}
                       disabled={calculationState === 'calculating' || calculationState === 'saving'}
-                      className="inline-flex items-center justify-center gap-2 px-5 py-3 text-xs font-bold uppercase tracking-wider bg-[#172554] text-white hover:bg-[#1e3a8a] disabled:opacity-60 transition-colors cursor-pointer"
+                      className="inline-flex items-center justify-center gap-2 px-5 py-3 text-xs font-bold bg-[#172554] text-white hover:bg-[#1e3a8a] disabled:opacity-60 transition-colors cursor-pointer"
                     >
                       {calculationState === 'calculating' || calculationState === 'saving' ? <LoaderCircle className="w-4 h-4 animate-spin" aria-hidden="true" /> : <Calculator className="w-4 h-4" aria-hidden="true" />}
                       {calculationState === 'calculating'
@@ -1906,7 +1906,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
         {!showFeedbackHub && !showCredits && activeTab === 'grades' && (
           <div className="max-w-4xl mx-auto">
             <div className="bg-white border border-slate-300 p-3 sm:p-5 shadow-sm">
-              <h2 className="text-lg font-black text-[#172554] mb-2 uppercase tracking-wide">
+              <h2 className="text-lg font-black text-[#172554] mb-2">
                 Grading of Courses
               </h2>
               <p className="mb-3 border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs text-amber-950">
@@ -1915,7 +1915,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
               <div className="border border-slate-200">
                 <table className="w-full table-fixed text-left text-sm border-collapse">
                   <thead>
-                    <tr className="bg-[#172554] text-white border-b-2 border-[#172554] text-xs font-extrabold uppercase tracking-wider">
+                    <tr className="bg-[#172554] text-white border-b-2 border-[#172554] text-xs font-extrabold">
                       <th className="w-[20%] py-2 px-2">Grade</th>
                       <th className="w-[50%] py-2 px-2">Description</th>
                       <th className="w-[30%] py-2 px-1 text-center text-[10px] leading-tight sm:px-2 sm:text-xs">Grade Points</th>

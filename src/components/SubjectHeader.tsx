@@ -19,7 +19,7 @@ export const SubjectHeader: React.FC<SubjectHeaderProps> = ({
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         {/* Course Details Selection Dialog Trigger */}
         <div className="flex-1">
-          <label className="block text-xs font-bold uppercase tracking-wider text-[#172554] mb-1.5">
+          <label className="block text-xs font-bold text-[#172554] mb-1.5">
             Course / Subject Name:
           </label>
 
@@ -29,7 +29,7 @@ export const SubjectHeader: React.FC<SubjectHeaderProps> = ({
                 <span className="text-sm sm:text-base font-black text-[#172554]">
                   {subject.name}
                 </span>
-                <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider px-2 py-0.5 bg-[#172554] text-white">
+                <span className="text-[10px] sm:text-xs font-bold px-2 py-0.5 bg-[#172554] text-white">
                   {courseTypeLabel}
                 </span>
                 {subject.code && (
@@ -47,12 +47,12 @@ export const SubjectHeader: React.FC<SubjectHeaderProps> = ({
           )}
         </div>
 
-        {/* Action: Clear / Blank Form */}
+        {/* Action: Clear form */}
         <div className="flex items-center gap-2 pt-3 lg:pt-0 border-t lg:border-t-0 border-slate-200">
           <button
             type="button"
             onClick={onResetToBlank}
-            className="rounded-md text-xs px-3.5 py-2.5 border border-slate-300 bg-white hover:border-[#172554] hover:bg-slate-50 text-[#172554] font-bold uppercase tracking-wider transition-colors inline-flex items-center gap-2 cursor-pointer"
+            className="rounded-md text-xs px-3.5 py-2.5 border border-slate-300 bg-white hover:border-[#172554] hover:bg-slate-50 text-[#172554] font-bold transition-colors inline-flex items-center gap-2 cursor-pointer"
             title="Clear all fields to enter fresh marks"
           >
             <RotateCcw className="w-4 h-4 text-[#172554]" />
