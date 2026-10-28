@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Academic Marks Calculator</title>
+    <meta name="description" content="Calculate Continuous Assessment (CA) and End Semester Examination (ESE) marks and grades for academic courses." />
+    <meta property="og:title" content="Academic Marks Calculator" />
+    <meta property="og:description" content="Calculate Continuous Assessment (CA) and End Semester Examination (ESE) marks and grades for academic courses." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      try {
+        var savedTheme = localStorage.getItem('calcredit_theme') || 'light';
+        document.documentElement.dataset.theme = savedTheme;
+        if (savedTheme === 'dark') {
+          document.documentElement.classList.add('dark');
+        }
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

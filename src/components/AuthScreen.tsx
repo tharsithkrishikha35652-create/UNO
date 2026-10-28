@@ -122,7 +122,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
   };
 
   return (
-    <main className="min-h-screen bg-slate-100 text-slate-900 flex items-center justify-center px-4 py-10 font-sans">
+    <main className="min-h-screen bg-transparent text-slate-900 flex items-center justify-center px-4 py-10 font-sans">
       <section className="w-full max-w-md bg-white border border-slate-300 shadow-sm">
         <div className="bg-[#172554] text-white px-5 py-5 flex items-center justify-between gap-3 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">

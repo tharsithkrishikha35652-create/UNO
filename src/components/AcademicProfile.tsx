@@ -198,7 +198,7 @@ interface AcademicSetupScreenProps extends Omit<AcademicProfileFormProps, 'submi
 }
 
 export const AcademicSetupScreen: React.FC<AcademicSetupScreenProps> = ({ theme, onToggleTheme, ...props }) => (
-  <main className="min-h-screen bg-slate-100 px-4 py-8 text-slate-900 sm:px-6 sm:py-12">
+  <main className="min-h-screen bg-transparent px-4 py-8 text-slate-900 sm:px-6 sm:py-12">
     <section className="mx-auto w-full max-w-xl rounded-2xl border border-slate-300 bg-white p-5 shadow-sm sm:p-8">
       <div className="mb-7 flex items-start justify-between gap-3 border-b border-slate-200 pb-5">
         <div className="flex min-w-0 items-start gap-3">

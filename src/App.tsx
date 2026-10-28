@@ -97,6 +97,29 @@ function findPresetForSubject(subject: SubjectData): PresetCourse | undefined {
   });
 }
 
+function getSubjectSemester(subject: SubjectData): number | null {
+  if (typeof subject.semester === 'number' && subject.semester >= 1 && subject.semester <= 8) {
+    return subject.semester;
+  }
+  const preset = findPresetForSubject(subject);
+  if (preset?.semester) {
+    return preset.semester;
+  }
+  const gpaMatch = GPA_COURSES.find(
+    (c) => (Boolean(c.code) && subject.code === c.code) ||
+      c.name.trim().toLowerCase() === subject.name.trim().toLowerCase()
+  );
+  if (gpaMatch?.semester) {
+    return gpaMatch.semester;
+  }
+  const match = subject.name.match(/(?:sem|semester)[-.\s_]*([1-8])/i) ||
+                (subject.code && subject.code.match(/(?:sem|semester)[-.\s_]*([1-8])/i));
+  if (match) {
+    return parseInt(match[1], 10);
+  }
+  return null;
+}
+
 function normalizeSubjectForSyllabus(subject: SubjectData): SubjectData {
   const normalizedName = subject.name.trim().toLowerCase().replace(/[–—-]/g, ' ').replace(/\s+/g, ' ');
   if (normalizedName === 'universal human values') return { ...subject, courseType: 'universal-human-values' };
@@ -221,7 +244,7 @@ function parseLegacySubjects(): SubjectData[] {
 
 function WorkspaceLoading({ message }: { message: string }) {
   return (
-    <main className="min-h-screen bg-slate-100 flex items-center justify-center p-6">
+    <main className="min-h-screen bg-transparent flex items-center justify-center p-6">
       <div className="flex items-center gap-3 text-sm font-semibold text-[#172554]">
         <LoaderCircle className="w-5 h-5 animate-spin" aria-hidden="true" />
         {message}
@@ -353,7 +376,7 @@ export default function App() {
 
   if (authError) {
     return (
-      <main className="min-h-screen bg-slate-100 flex items-center justify-center p-6">
+      <main className="min-h-screen bg-transparent flex items-center justify-center p-6">
         <section className="max-w-lg w-full bg-white border border-rose-200 p-6 shadow-sm text-sm text-rose-900" role="alert">
           {authError}
           <button type="button" onClick={() => window.location.reload()} className="mt-4 block bg-[#172554] px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-white">
@@ -770,6 +793,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
         id: stableId,
         name: course.name,
         code: course.code,
+        semester: course.semester,
         courseType: isHeritageCourse ? 'heritage-course' : course.courseType,
         ...(course.courseType === 'universal-human-values'
           ? { act1No: 1, act1Scores: [''], act2No: 1, act2Scores: [''] }
@@ -1093,10 +1117,19 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
     ])
   ), [selectedSemester]);
 
-  const otherCourseRows = useMemo(() => subjects
-    .filter((subject) => subject.name.trim() && !findPresetForSubject(subject))
-    .map((subject) => ({ subject, progress: getCourseProgress(subject, calculatedSignatures) })),
-  [subjects, calculatedSignatures]);
+  const otherCourseRows = useMemo(() => {
+    if (selectedSemester === null) return [];
+    return subjects
+      .filter((subject) => {
+        if (!subject.name.trim() || findPresetForSubject(subject)) return false;
+        const courseSemester = getSubjectSemester(subject);
+        if (courseSemester !== null) {
+          return courseSemester === selectedSemester;
+        }
+        return false;
+      })
+      .map((subject) => ({ subject, progress: getCourseProgress(subject, calculatedSignatures) }));
+  }, [subjects, calculatedSignatures, selectedSemester]);
 
   const courseFlow = useMemo(() => [
     ...semesterCourseRows.map((row) => ({ kind: 'course' as const, course: row.course, subject: row.subject })),
@@ -1164,7 +1197,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
 
   if (dataError) {
     return (
-      <main className="min-h-screen bg-slate-100 flex items-center justify-center p-6">
+      <main className="min-h-screen bg-transparent flex items-center justify-center p-6">
         <section className="max-w-lg w-full bg-white border border-slate-300 p-6 shadow-sm">
           <div className="flex items-start gap-3 text-rose-900">
             <AlertCircle className="w-5 h-5 mt-0.5 shrink-0" aria-hidden="true" />
@@ -1198,7 +1231,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900 flex flex-col font-sans">
+    <div className="min-h-screen bg-transparent text-slate-900 flex flex-col font-sans">
       {/* Top Bar */}
       <div className="sticky top-0 z-30">
       <header className="bg-white border-b border-slate-200 shadow-sm pt-[env(safe-area-inset-top)]">

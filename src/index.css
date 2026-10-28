@@ -531,6 +531,37 @@ input[type="number"]::-webkit-outer-spin-button {
 
 }
 
+/* Ambient background layer: Warm Scholar background image */
+#calcredit-ambient-bg {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+  background-color: #F7F5F0;
+  background-image: url('./assets/warm-scholar-bg.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+:root:not([data-theme="dark"]) .min-h-screen { background-color: transparent !important; }
+
+[data-theme="dark"] #calcredit-ambient-bg {
+  display: none !important;
+}
+
+[data-theme="dark"] body {
+  background-color: #161618 !important;
+  color: #F1F1F3 !important;
+}
+
 /* Warm Scholar palette overrides */
 :root:not([data-theme="dark"]) body { color: var(--app-primary-text); background: var(--app-background); }
 :root:not([data-theme="dark"]) .bg-slate-50 { background-color: #FCFAF6; }
