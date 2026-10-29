@@ -336,7 +336,8 @@ export function calculateMarks(data: SubjectData): CalculationBreakdown {
   }
 
   if (courseType === 'universal-human-values') {
-    const testMax = Math.max(1, parseNum(data.test1Max) || 50);
+    const rawTestMax = parseNum(data.test1Max);
+    const testMax = rawTestMax > 0 ? rawTestMax : 50;
     const test = Math.max(0, Math.min(testMax, parseNum(data.test1)));
     const activity1Count = Math.max(0, Math.floor(parseNum(data.act1No)));
     const activity2Count = Math.max(0, Math.floor(parseNum(data.act2No)));
@@ -481,43 +482,46 @@ export function calculateMarks(data: SubjectData): CalculationBreakdown {
 
   let ese_lab_p = 0;
   if (weights.eseLabWeight > 0) {
-    const eseLabMax = Math.max(1, parseNum(data.eseLabMax) || 100);
+    const rawEseLabMax = parseNum(data.eseLabMax);
+    const eseLabMax = rawEseLabMax > 0 ? rawEseLabMax : 100;
     const eseLab = Math.max(0, Math.min(eseLabMax, parseNum(data.eseLab)));
-    ese_lab_p = eseLabMax > 0 ? (eseLab / eseLabMax) * weights.eseLabWeight : 0;
+    ese_lab_p = (eseLab / eseLabMax) * weights.eseLabWeight;
   }
 
   const ese_p = ese_theory_p + ese_lab_p;
 
   // 2. Test 1: test1_p = (test1 / test1_max) * testWeight (max = testWeight of the course type)
-  const test1Max = Math.max(1, parseNum(data.test1Max) || 50);
+  const rawTest1Max = parseNum(data.test1Max);
+  const test1Max = rawTest1Max > 0 ? rawTest1Max : 50;
   const test1 = Math.max(0, Math.min(test1Max, parseNum(data.test1)));
-  const test1_p = test1Max > 0 ? (test1 / test1Max) * weights.testWeight : 0;
+  const test1_p = (test1 / test1Max) * weights.testWeight;
 
   // 3. Test 2: test2_p = (test2 / test2_max) * testWeight (max = testWeight of the course type)
-  const test2Max = Math.max(1, parseNum(data.test2Max) || 50);
+  const rawTest2Max = parseNum(data.test2Max);
+  const test2Max = rawTest2Max > 0 ? rawTest2Max : 50;
   const test2 = Math.max(0, Math.min(test2Max, parseNum(data.test2)));
-  const test2_p = test2Max > 0 ? (test2 / test2Max) * weights.testWeight : 0;
+  const test2_p = (test2 / test2Max) * weights.testWeight;
 
   // 4. Activity 1: act1_p = (act1 / (act1_no * 10)) * actWeight (max 2.5)
-  const act1No = Math.max(0, parseNum(data.act1No));
+  const act1No = Math.max(0, Math.floor(parseNum(data.act1No)));
   const act1Scores = syncScoresArray(data.act1Scores, act1No);
   const act1_sum = act1Scores.reduce<number>((acc, curr) => acc + Math.max(0, Math.min(10, parseNum(curr))), 0);
   const act1_p = act1No > 0 ? (act1_sum / (act1No * 10)) * weights.actWeight : 0;
 
   // 5. Activity 2: act2_p = (act2 / (act2_no * 10)) * actWeight (max 2.5)
-  const act2No = Math.max(0, parseNum(data.act2No));
+  const act2No = Math.max(0, Math.floor(parseNum(data.act2No)));
   const act2Scores = syncScoresArray(data.act2Scores, act2No);
   const act2_sum = act2Scores.reduce<number>((acc, curr) => acc + Math.max(0, Math.min(10, parseNum(curr))), 0);
   const act2_p = act2No > 0 ? (act2_sum / (act2No * 10)) * weights.actWeight : 0;
 
   // 6. Lab 1: lab1_p = (lab1 / (lab1_no * 10)) * labWeight (max = labWeight of the course type)
-  const lab1No = Math.max(0, parseNum(data.lab1No));
+  const lab1No = Math.max(0, Math.floor(parseNum(data.lab1No)));
   const lab1Scores = syncScoresArray(data.lab1Scores, lab1No);
   const lab1_sum = lab1Scores.reduce<number>((acc, curr) => acc + Math.max(0, Math.min(10, parseNum(curr))), 0);
   const lab1_p = lab1No > 0 ? (lab1_sum / (lab1No * 10)) * weights.labWeight : 0;
 
   // 7. Lab 2: lab2_p = (lab2 / (lab2_no * 10)) * labWeight (max = labWeight of the course type)
-  const lab2No = Math.max(0, parseNum(data.lab2No));
+  const lab2No = Math.max(0, Math.floor(parseNum(data.lab2No)));
   const lab2Scores = syncScoresArray(data.lab2Scores, lab2No);
   const lab2_sum = lab2Scores.reduce<number>((acc, curr) => acc + Math.max(0, Math.min(10, parseNum(curr))), 0);
   const lab2_p = lab2No > 0 ? (lab2_sum / (lab2No * 10)) * weights.labWeight : 0;
@@ -610,3 +614,22 @@ export const DEFAULT_SUBJECT: SubjectData = {
   lab2No: '',
   lab2Scores: [],
 };
+
+export interface CourseGradeEntry {
+  credits: number;
+  gradePoint: number;
+}
+
+/**
+ * Calculates GPA from a list of courses with credits and grade points.
+ * Returns 0 if total credits is 0.
+ */
+export function calculateGPA(courses: Array<CourseGradeEntry>): number {
+  const totalCredits = courses.reduce((sum, c) => sum + (Number(c.credits) || 0), 0);
+  if (totalCredits <= 0) return 0;
+  const totalWeightedPoints = courses.reduce(
+    (sum, c) => sum + (Number(c.credits) || 0) * (Number(c.gradePoint) || 0),
+    0
+  );
+  return round2(totalWeightedPoints / totalCredits);
+}

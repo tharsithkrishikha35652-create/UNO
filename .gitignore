@@ -11,3 +11,10 @@ node_modules/.tmp
 .env.*
 !.env.example
 !**/.env.example
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
