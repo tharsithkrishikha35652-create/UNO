@@ -159,7 +159,7 @@ export interface UserWorkspaceData {
   migrationResolved: boolean;
   preferences: {
     currentSubjectId: string;
-    activeTab: 'calculator' | 'grades' | 'gpa';
+    activeTab: 'calculator' | 'grades' | 'gpa' | 'cgpa';
     includeEstimates: boolean;
     estimatePercentage: number;
     selectedSemester: number | null;
@@ -229,8 +229,8 @@ export async function loadUserWorkspace(uid: string): Promise<UserWorkspaceData>
       currentSubjectId: typeof preferencesSnapshot.data()?.currentSubjectId === 'string'
         ? preferencesSnapshot.data()!.currentSubjectId as string
         : '',
-      activeTab: ['calculator', 'grades', 'gpa'].includes(preferencesSnapshot.data()?.activeTab)
-        ? preferencesSnapshot.data()!.activeTab as 'calculator' | 'grades' | 'gpa'
+      activeTab: ['calculator', 'grades', 'gpa', 'cgpa'].includes(preferencesSnapshot.data()?.activeTab)
+        ? preferencesSnapshot.data()!.activeTab as 'calculator' | 'grades' | 'gpa' | 'cgpa'
         : 'calculator',
       includeEstimates: preferencesSnapshot.data()?.includeEstimates === true,
       estimatePercentage: typeof preferencesSnapshot.data()?.estimatePercentage === 'number'
@@ -250,7 +250,7 @@ export async function saveUserAcademicProfile(
   profile: AcademicProfileData,
   preferences: {
     currentSubjectId: string;
-    activeTab: 'calculator' | 'grades' | 'gpa';
+    activeTab: 'calculator' | 'grades' | 'gpa' | 'cgpa';
     includeEstimates: boolean;
     estimatePercentage: number;
     selectedSemester: number;

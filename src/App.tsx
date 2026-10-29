@@ -40,6 +40,7 @@ import { DesktopCoursesPanel } from './components/DesktopCoursesPanel';
 import { AcademicProfileFormValues, AcademicSetupScreen, ProfileDrawer } from './components/AcademicProfile';
 import { StickyResultSummary } from './components/StickyResultSummary';
 import { ThemeToggle, type AppTheme } from './components/ThemeToggle';
+import { CGPAHub } from './components/CGPAHub';
 import { GPA_COURSES } from './gpaCourses';
 import { AuthScreen } from './components/AuthScreen';
 import { FeedbackHub } from './components/FeedbackHub';
@@ -59,13 +60,13 @@ import {
 import {
   BookOpen,
   Calculator,
-  TableProperties,
   ArrowDown,
   GraduationCap,
   LoaderCircle,
   AlertCircle,
   ChevronDown,
   HelpCircle,
+  Check,
 } from 'lucide-react';
 
 const LEGACY_STORAGE_KEY = 'ca_ese_calculator_sem1_user_selected_v18';
@@ -98,6 +99,11 @@ function findPresetForSubject(subject: SubjectData): PresetCourse | undefined {
 }
 
 function getSubjectSemester(subject: SubjectData): number | null {
+  const match = subject.name.match(/(?:sem|semester)[-.\s_]*([1-8])/i) ||
+                (subject.code && subject.code.match(/(?:sem|semester)[-.\s_]*([1-8])/i));
+  if (match) {
+    return parseInt(match[1], 10);
+  }
   if (typeof subject.semester === 'number' && subject.semester >= 1 && subject.semester <= 8) {
     return subject.semester;
   }
@@ -111,11 +117,6 @@ function getSubjectSemester(subject: SubjectData): number | null {
   );
   if (gpaMatch?.semester) {
     return gpaMatch.semester;
-  }
-  const match = subject.name.match(/(?:sem|semester)[-.\s_]*([1-8])/i) ||
-                (subject.code && subject.code.match(/(?:sem|semester)[-.\s_]*([1-8])/i));
-  if (match) {
-    return parseInt(match[1], 10);
   }
   return null;
 }
@@ -411,7 +412,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
   const [selectedSemester, setSelectedSemester] = useState<SemesterNumber | null>(null);
   const [isSemesterMenuOpen, setIsSemesterMenuOpen] = useState(false);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'calculator' | 'grades' | 'gpa'>('calculator');
+  const [activeTab, setActiveTab] = useState<'calculator' | 'grades' | 'gpa' | 'cgpa'>('calculator');
   const [isMobileCoursesOpen, setIsMobileCoursesOpen] = useState(false);
   const [isDesktopCoursesOpen, setIsDesktopCoursesOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -741,7 +742,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
     }
     setSelectedSemester(semester);
     setIsEditorOpen(false);
-    setActiveTab('calculator');
+    if (activeTab !== 'cgpa') setActiveTab('calculator');
     setIsDesktopCoursesOpen(false);
     setShowFeedbackHub(false);
   };
@@ -854,6 +855,15 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
     setIsDesktopCoursesOpen(false);
     setShowCredits(false);
     setShowFeedbackHub(true);
+  };
+
+  const handleOpenGrades = () => {
+    setIsProfileOpen(false);
+    setIsMobileCoursesOpen(false);
+    setIsDesktopCoursesOpen(false);
+    setShowCredits(false);
+    setShowFeedbackHub(false);
+    setActiveTab('grades');
   };
 
   const handleOpenCredits = () => {
@@ -1304,25 +1314,21 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
             </button>
             <button
               type="button"
-              onClick={() => { setIsDesktopCoursesOpen(false); setShowFeedbackHub(false); setShowCredits(false); setActiveTab('grades'); }}
-              aria-label="Grading System"
-              className={`transition-colors flex items-center gap-2 py-1 cursor-pointer ${
-                activeTab === 'grades'
-                  ? 'text-[#172554] font-black border-b-2 border-[#172554]'
-                  : 'text-slate-600 hover:text-[#172554]'
-              }`}
-            >
-              <TableProperties className="w-5 h-5" />
-              <span className="hidden lg:inline">Grading System</span>
-            </button>
-            <button
-              type="button"
               onClick={() => { setIsDesktopCoursesOpen(false); setShowFeedbackHub(false); setShowCredits(false); setActiveTab('gpa'); }}
             aria-label="GPA Calculator"
             className={`transition-colors flex items-center gap-2 py-1 cursor-pointer ${activeTab === 'gpa' ? 'text-[#172554] font-black border-b-2 border-[#172554]' : 'text-slate-600 hover:text-[#172554]'}`}
             >
             <GraduationCap className="w-5 h-5" />
             <span className="hidden lg:inline">GPA Calculator</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => { setIsDesktopCoursesOpen(false); setShowFeedbackHub(false); setShowCredits(false); setActiveTab('cgpa'); }}
+              aria-label="CGPA Hub"
+              className={`transition-colors flex items-center gap-2 py-1 cursor-pointer ${activeTab === 'cgpa' ? 'text-[#172554] font-black border-b-2 border-[#172554]' : 'text-slate-600 hover:text-[#172554]'}`}
+            >
+              <GraduationCap className="w-5 h-5" aria-hidden="true" />
+              <span className="hidden lg:inline">CGPA Hub</span>
             </button>
           </nav>
 
@@ -1342,7 +1348,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
                     setIsSemesterMenuOpen(true);
                   }
                 }}
-                className="inline-flex h-10 min-w-24 items-center justify-between gap-2 rounded-full border border-slate-300 bg-slate-50 pl-3 pr-3 text-xs font-bold text-[#172554] shadow-sm transition-colors hover:border-slate-400 hover:bg-white focus:border-[#172554] focus:outline-2 focus:outline-[#172554] sm:min-w-28 sm:pl-4"
+                className="inline-flex h-10 min-w-24 items-center justify-between gap-2 rounded-full border border-[var(--app-divider)] bg-[var(--app-surface)] pl-3 pr-3 text-xs font-bold text-[var(--app-primary-text)] shadow-sm transition-colors hover:border-[var(--app-action-accent)] focus:border-[var(--app-action-accent)] focus:outline-2 focus:outline-[var(--app-action-accent)] sm:min-w-28 sm:pl-4"
               >
                 <span>{selectedSemester ? `Semester ${selectedSemester}` : 'Choose…'}</span>
                 <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isSemesterMenuOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
@@ -1351,29 +1357,42 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
                 <div
                   role="listbox"
                   aria-label="Semester options"
-                  className="absolute right-0 z-40 mt-2 w-32 overflow-hidden rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg ring-1 ring-slate-950/5"
+                  className="absolute right-0 z-40 mt-2 w-36 overflow-hidden rounded-xl border border-[var(--app-divider)] bg-[var(--app-surface)] p-1.5 shadow-lg ring-1 ring-black/5"
                 >
                   <button
                     type="button"
                     role="option"
                     aria-selected={selectedSemester === null}
                     onClick={() => { handleSemesterChange(''); setIsSemesterMenuOpen(false); }}
-                    className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-[#172554] aria-selected:bg-blue-50 aria-selected:text-[#172554]"
+                    className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-semibold transition-colors ${
+                      selectedSemester === null
+                        ? 'bg-[var(--app-soft-accent)] text-[var(--app-action-accent-strong)] font-bold'
+                        : 'text-[var(--app-primary-text)] hover:bg-[var(--app-structural-accent)]/10 hover:text-[var(--app-action-accent-strong)]'
+                    }`}
                   >
-                    Choose…
+                    <span>Choose…</span>
+                    {selectedSemester === null && <Check className="h-3.5 w-3.5 text-[var(--app-action-accent-strong)]" aria-hidden="true" />}
                   </button>
-                  {[1, 2, 3, 4, 5, 6, 7, 8].map((semester) => (
-                    <button
-                      key={semester}
-                      type="button"
-                      role="option"
-                      aria-selected={selectedSemester === semester}
-                      onClick={() => { handleSemesterChange(String(semester)); setIsSemesterMenuOpen(false); }}
-                      className="block w-full rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 hover:text-[#172554] aria-selected:bg-blue-50 aria-selected:text-[#172554]"
-                    >
-                      Semester {semester}
-                    </button>
-                  ))}
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map((semester) => {
+                    const isSelected = selectedSemester === semester;
+                    return (
+                      <button
+                        key={semester}
+                        type="button"
+                        role="option"
+                        aria-selected={isSelected}
+                        onClick={() => { handleSemesterChange(String(semester)); setIsSemesterMenuOpen(false); }}
+                        className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-semibold transition-colors ${
+                          isSelected
+                            ? 'bg-[var(--app-soft-accent)] text-[var(--app-action-accent-strong)] font-bold'
+                            : 'text-[var(--app-primary-text)] hover:bg-[var(--app-structural-accent)]/10 hover:text-[var(--app-action-accent-strong)]'
+                        }`}
+                      >
+                        <span>Semester {semester}</span>
+                        {isSelected && <Check className="h-3.5 w-3.5 text-[var(--app-action-accent-strong)]" aria-hidden="true" />}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -1975,6 +1994,9 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
             guestMode={guestMode}
           />
         )}
+        <div className={!showFeedbackHub && !showCredits && activeTab === 'cgpa' ? '' : 'hidden'}>
+          <CGPAHub />
+        </div>
 </main>
 
 <MobileCoursesSheet
@@ -2011,6 +2033,7 @@ function AuthenticatedApp({ user, guestMode, onSignOut, onExitGuest, signOutPend
   onSave={handleSaveAcademicProfile}
   theme={theme}
   onToggleTheme={onToggleTheme}
+  onOpenGrades={handleOpenGrades}
   onOpenFeedback={handleOpenFeedbackHub}
   onOpenCredits={handleOpenCredits}
   onLogout={handleProfileLogout}

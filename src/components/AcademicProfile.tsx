@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, type FormEvent } from 'react';
-import { LoaderCircle, LogOut, MessageSquare, UsersRound, X } from 'lucide-react';
+import { LoaderCircle, LogOut, MessageSquare, TableProperties, UsersRound, X } from 'lucide-react';
 import type { AcademicProfileData } from '../types';
 import type { SemesterNumber } from './SubjectSelectionDialog';
 import { ThemeToggle, type AppTheme } from './ThemeToggle';
@@ -224,6 +224,7 @@ interface ProfileDrawerProps extends Omit<AcademicProfileFormProps, 'submitLabel
   onClose: () => void;
   theme: AppTheme;
   onToggleTheme: () => void;
+  onOpenGrades: () => void;
   onOpenFeedback: () => void;
   onOpenCredits: () => void;
   onLogout: () => void;
@@ -240,6 +241,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
   onSave,
   theme,
   onToggleTheme,
+  onOpenGrades,
   onOpenFeedback,
   onOpenCredits,
   onLogout,
@@ -412,7 +414,24 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
                 Edit Profile
               </button>
 
-              {/* 8. Feedback */}
+              {/* Grading reference, directly above Feedback */}
+              <button
+                type="button"
+                onClick={onOpenGrades}
+                className="flex min-h-12 w-full items-center justify-between rounded-xl border border-slate-300 bg-white p-3.5 text-left transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-[#172554]"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-[#172554]">
+                    <TableProperties className="h-4 w-4" aria-hidden="true" />
+                  </div>
+                  <div>
+                    <span className="block text-sm font-bold text-[#172554]">Grading</span>
+                    <span className="block text-xs text-slate-500">View grade bands and grade points</span>
+                  </div>
+                </div>
+              </button>
+
+              {/* Feedback */}
               <button
                 type="button"
                 onClick={onOpenFeedback}

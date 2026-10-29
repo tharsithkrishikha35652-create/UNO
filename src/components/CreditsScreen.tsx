@@ -1,142 +1,359 @@
-import React from 'react';
-import { Code2, Instagram, Linkedin, PanelsTopLeft, ExternalLink, Braces, Palette, Grid3X3 } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Instagram, Linkedin } from 'lucide-react';
 
-const developers = [
+const creators = [
   {
     name: 'Tharsith R',
     role: 'App Developer',
-    RoleIcon: Code2,
-    department: 'CSE â€“ N Batch',
-    registration: '2026103054',
+    branch: 'CSE – N Batch',
+    rollNo: '2026103054',
     links: [
-      { label: 'LinkedIn', href: 'https://www.linkedin.com/in/tharsith-r-b0702a372', Icon: Linkedin },
+      { label: 'LinkedIn', href: 'https://www.linkedin.com/in/tharsith-r-b0702a372' },
     ],
   },
   {
     name: 'Raghu Nandan S',
     role: 'UI/UX Designer',
-    RoleIcon: PanelsTopLeft,
-    department: 'EE â€“ VLSI',
-    registration: '2026123013',
+    branch: 'EE – VLSI',
+    rollNo: '2026123013',
     links: [
-      { label: 'Instagram', href: 'https://www.instagram.com/the.creato.lab?vrfl=MXhxYWNlcG05bjI3eg==', Icon: Instagram },
-      { label: 'LinkedIn', href: 'https://www.linkedin.com/in/raghu-nandan-sudhakar-15b85b381', Icon: Linkedin },
+      { label: 'Instagram', href: 'https://www.instagram.com/the.creato.lab?vrfl=MXhxYWNlcG05bjI3eg==' },
+      { label: 'LinkedIn', href: 'https://www.linkedin.com/in/raghu-nandan-sudhakar-15b85b381' },
     ],
   },
 ] as const;
 
-const warmPalette = ['#F7F5F0', '#FFFFFF', '#3B4D66', '#D97757', '#5B8C5A'];
+const linkIcons = { LinkedIn: Linkedin, Instagram } as const;
 
-export const CreditsScreen: React.FC = () => (
-  <section className="mx-auto w-full max-w-6xl px-4 py-5 sm:px-6 sm:py-7" aria-label="Credits">
-    <div className="mb-5 border-b border-[#E4DDD2] pb-4 sm:mb-7 sm:pb-5">
-      <div className="mb-2 flex items-center gap-3">
-        <span className="h-px w-8 bg-[#3B4D66]" aria-hidden="true" />
-        <span className="text-[10px] font-extrabold text-[#B95F43]">Credits</span>
-      </div>
-      <h1 className="text-2xl font-extrabold leading-tight tracking-tight text-[#2C2C30] sm:text-3xl">People behind CalCredit.</h1>
-      <p className="mt-1.5 text-sm text-[#6E6E73]">Designed and developed with care.</p>
-    </div>
+const cssVars = (vars: Record<string, string | number>) => vars as React.CSSProperties;
 
-    <section className="grid min-w-0 gap-4 md:grid-cols-2 md:gap-5" aria-label="Developer profiles">
-      {developers.map(({ name, role, RoleIcon, department, registration, links }, index) => {
-        const isDeveloper = index === 0;
+/* Elevation of the Main Building in a 640 x 280 box, symmetric about x = 320.
+   Window bays repeat every 39 units; the right wing mirrors the left (x -> 640 - x). */
+const BAYS = [58, 97, 136, 175, 214, 253] as const;
+const WING_ROWS = [
+  { id: 'u', sill: 210 },
+  { id: 'l', sill: 254 },
+] as const;
+const WING_WINDOWS = WING_ROWS.flatMap(({ id, sill }) =>
+  BAYS.flatMap((x, i) => [
+    { key: `L-${id}${i}`, x, sill },
+    { key: `R-${id}${i}`, x: 640 - x, sill },
+  ]),
+);
+const CENTRE_WINDOWS = [
+  { key: 'C-0', x: 290, sill: 206 },
+  { key: 'C-1', x: 320, sill: 206 },
+  { key: 'C-2', x: 350, sill: 206 },
+] as const;
+/* Windows appear outward from the centre line, ground floor a beat after the upper floor. */
+const WINDOWS = [...WING_WINDOWS, ...CENTRE_WINDOWS].map((w) => ({
+  ...w,
+  order: Math.round(Math.abs(w.x - 320) / 39) * 2 + (w.sill > 230 ? 1 : 0),
+}));
+/* Night theme: lights switch on one by one in this order. Uneven on purpose. */
+const LIT_ORDER = ['C-1', 'L-u4', 'R-u3', 'R-l4', 'L-l2', 'L-u1', 'R-u0', 'R-u5', 'R-l1', 'L-l0'];
+const FLICKER = new Set(['L-u4', 'R-l4', 'L-u1', 'R-u5']);
+
+const STARS = [
+  [72, 34, 1.2], [118, 70, 1], [160, 24, 1.3], [196, 58, 1], [232, 30, 1.1], [262, 84, 1],
+  [372, 28, 1.2], [404, 66, 1], [436, 22, 1.3], [476, 88, 1], [512, 40, 1.2], [548, 70, 1.1],
+  [586, 26, 1], [600, 96, 1.2], [88, 108, 1], [610, 60, 1],
+] as const;
+
+const CLOUDS = [
+  { y: 40, t: '84s', delay: '-12s', scale: 1 },
+  { y: 78, t: '118s', delay: '-70s', scale: 0.8 },
+  { y: 120, t: '100s', delay: '-38s', scale: 0.9 },
+] as const;
+
+const MainBuilding: React.FC<{ hourAngle: number; minuteAngle: number }> = ({ hourAngle, minuteAngle }) => (
+  <svg
+    viewBox="0 0 640 280"
+    preserveAspectRatio="xMidYMid slice"
+    role="img"
+    aria-label="Elevation of the Main Building at the College of Engineering, Guindy: a red-brick façade with pale bands, a central clock tower and a dome."
+    className="block h-full w-full"
+  >
+    <defs>
+      <path id="cc-window" d="M-7 0V-19A7 7 0 0 1 7-19V0Z" />
+    </defs>
+
+    <rect className="cp-sky cp-fade" width="640" height="280" style={cssVars({ '--d': '0s' })} />
+
+    {/* Night sky: stars twinkle, the moon drifts in */}
+    <g className="cp-far cp-night" aria-hidden="true">
+      {STARS.map(([x, y, r], i) => (
+        <circle key={i} className="cp-star" cx={x} cy={y} r={r} style={cssVars({ '--i': i, '--sd': `${2.6 + (i % 4) * 0.8}s` })} />
+      ))}
+      <g className="cp-moon">
+        <circle className="cp-moon-disc" cx="456" cy="52" r="13" />
+        <circle className="cp-sky" cx="462" cy="48" r="11" />
+      </g>
+    </g>
+
+    {/* Day sky: clouds drift slowly behind the building */}
+    <g className="cp-far cp-day" aria-hidden="true">
+      {CLOUDS.map(({ y, t, delay, scale }) => (
+        <g key={y} transform={`translate(0 ${y}) scale(${scale})`}>
+          <g className="cp-cloud" style={cssVars({ '--t': t, '--dl': delay })}>
+            <ellipse cx="0" cy="0" rx="28" ry="8" />
+            <ellipse cx="15" cy="-6" rx="17" ry="8" />
+            <ellipse cx="-13" cy="-4" rx="13" ry="6" />
+          </g>
+        </g>
+      ))}
+    </g>
+
+    <g className="cp-near">
+      <rect className="cp-ground cp-fade" x="-20" y="260" width="680" height="20" style={cssVars({ '--d': '0.1s' })} />
+
+      {/* Masonry rises from the ground, wings first, then the tower */}
+      <g className="cp-brick">
+        <rect className="cp-rise" style={cssVars({ '--i': 0 })} x="40" y="168" width="230" height="92" />
+        <rect className="cp-rise" style={cssVars({ '--i': 0 })} x="370" y="168" width="230" height="92" />
+        <rect className="cp-rise" style={cssVars({ '--i': 1 })} x="40" y="156" width="36" height="104" />
+        <rect className="cp-rise" style={cssVars({ '--i': 1 })} x="564" y="156" width="36" height="104" />
+        <rect className="cp-rise" style={cssVars({ '--i': 2 })} x="270" y="130" width="100" height="130" />
+        <rect className="cp-rise" style={cssVars({ '--i': 3 })} x="282" y="78" width="76" height="52" />
+        <rect className="cp-rise" style={cssVars({ '--i': 4 })} x="288" y="60" width="64" height="18" />
+      </g>
+
+      {/* Pale bands slide out from their centres */}
+      <g className="cp-band">
+        <rect className="cp-slide" style={cssVars({ '--i': 0 })} x="40" y="254" width="560" height="6" />
+        <rect className="cp-slide" style={cssVars({ '--i': 1 })} x="40" y="214" width="560" height="6" />
+        <rect className="cp-slide" style={cssVars({ '--i': 2 })} x="76" y="168" width="194" height="6" />
+        <rect className="cp-slide" style={cssVars({ '--i': 2 })} x="370" y="168" width="194" height="6" />
+        <rect className="cp-slide" style={cssVars({ '--i': 3 })} x="76" y="176" width="194" height="2" />
+        <rect className="cp-slide" style={cssVars({ '--i': 3 })} x="370" y="176" width="194" height="2" />
+        <rect className="cp-slide" style={cssVars({ '--i': 3 })} x="36" y="156" width="44" height="6" />
+        <rect className="cp-slide" style={cssVars({ '--i': 3 })} x="560" y="156" width="44" height="6" />
+        <rect className="cp-slide" style={cssVars({ '--i': 4 })} x="266" y="130" width="108" height="6" />
+        <rect className="cp-slide" style={cssVars({ '--i': 4 })} x="270" y="154" width="100" height="4" />
+        <rect className="cp-slide" style={cssVars({ '--i': 5 })} x="278" y="78" width="84" height="5" />
+      </g>
+
+      {/* Windows and entrance */}
+      {WINDOWS.map(({ key, x, sill, order }) => {
+        const lit = LIT_ORDER.indexOf(key);
+        const cls = ['cp-win', 'cp-pop-in', lit >= 0 ? 'cp-lit' : '', FLICKER.has(key) ? 'cp-flick' : ''].filter(Boolean).join(' ');
         return (
-          <article
-            key={name}
-            className={isDeveloper
-              ? 'relative min-w-0 overflow-hidden rounded-2xl border border-[#35353B] bg-[#202024] p-4 text-[#F1F1F3] shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg sm:p-5'
-              : 'relative min-w-0 overflow-hidden rounded-2xl border border-[#E4DDD2] border-l-4 border-l-[#D97757] bg-white p-4 text-[#2C2C30] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md sm:p-5'}
-          >
-            <div className={isDeveloper
-              ? 'mb-4 flex items-center justify-between gap-3 rounded-lg border border-[#4A4A50] bg-[#26364B] px-3 py-2'
-              : 'mb-4 flex items-center justify-between gap-3 rounded-lg border border-[#E9C7B9] bg-[#F3E5DB] px-3 py-2'}>
-              <span className={isDeveloper ? 'text-[9px] font-extrabold text-[#D8E4ED]' : 'text-[9px] font-extrabold text-[#B95F43]'}>
-                {isDeveloper ? 'Engineering / Build' : 'Design Studio / Interface'}
-              </span>
-              <span className={isDeveloper ? 'text-[9px] font-bold tabular-nums text-[#B8B8BE]' : 'text-[9px] font-bold tabular-nums text-[#B95F43]'}>
-                {isDeveloper ? '01 / Logic' : '02 / Canvas'}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2 text-[10px] font-extrabold">
-              <RoleIcon className={isDeveloper ? 'h-4 w-4 text-[#93C5FD]' : 'h-4 w-4 text-[#D97757]'} aria-hidden="true" />
-              <span className={isDeveloper ? 'text-[#93C5FD]' : 'text-[#B95F43]'}>{role}</span>
-            </div>
-            <h2 className={isDeveloper ? 'mt-1 text-xl font-extrabold tracking-tight text-[#F1F1F3] sm:text-2xl' : 'mt-1 text-xl font-extrabold tracking-tight text-[#2C2C30] sm:text-2xl'}>{name}</h2>
-            <p className={isDeveloper ? 'mt-1 text-xs text-[#B8B8BE]' : 'mt-1 text-xs text-[#6E6E73]'}>{isDeveloper ? 'Logic Â· Data Â· Reliability' : 'Hierarchy Â· Flow Â· Detail'}</p>
-
-            {isDeveloper ? (
-              <div className="mt-4 overflow-hidden rounded-xl border border-[#4A4A50] bg-[#17171B]" aria-label="Developer code and build specialty">
-                <div className="flex items-center justify-between border-b border-[#35353B] px-3 py-2">
-                  <div className="flex items-center gap-1.5" aria-hidden="true">
-                    <span className="h-2 w-2 rounded-full bg-[#D97757]" />
-                    <span className="h-2 w-2 rounded-full bg-[#D9A15B]" />
-                    <span className="h-2 w-2 rounded-full bg-[#5B8C5A]" />
-                  </div>
-                  <span className="text-[9px] font-semibold text-[#B8B8BE]">calculateMarks.ts</span>
-                  <Braces className="h-3.5 w-3.5 text-[#93C5FD]" aria-hidden="true" />
-                </div>
-                <pre className="overflow-hidden px-3 py-3 text-[10px] leading-relaxed text-[#D8E4ED]"><code><span className="text-[#93C5FD]">const</span> result = <span className="text-[#E08564]">calculateMarks</span>(subject);<br /><span className="text-[#5B8C5A]">// weighted marks â†’ grade â†’ grade point</span><br /><span className="text-[#93C5FD]">return</span> result;</code></pre>
-              </div>
-            ) : (
-              <div className="mt-4 overflow-hidden rounded-xl border border-[#E4DDD2] bg-[#FCFAF6] p-3" aria-label="Designer canvas and visual-system specialty">
-                <div className="relative grid h-20 grid-cols-6 gap-0 overflow-hidden rounded-lg border border-[#DDD5C9] bg-white" style={{ backgroundImage: 'linear-gradient(#E4DDD2 1px, transparent 1px), linear-gradient(90deg, #E4DDD2 1px, transparent 1px)', backgroundSize: '22px 18px' }}>
-                  <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 rounded-lg border border-[#D97757] bg-[#F3E5DB] px-3 py-2 text-center shadow-sm">
-                    <span className="block text-[9px] font-extrabold text-[#B95F43]">CA Marks UI</span>
-                    <span className="mt-0.5 block text-[8px] font-medium text-[#6E6E73]">Type Â· Spacing Â· State</span>
-                  </div>
-                </div>
-                <div className="mt-2 flex items-center justify-between gap-3">
-                  <span className="flex items-center gap-1.5 text-[9px] font-bold text-[#6E6E73]"><Palette className="h-3.5 w-3.5" aria-hidden="true" /> Palette / foundations</span>
-                  <Grid3X3 className="h-3.5 w-3.5 text-[#B95F43]" aria-hidden="true" />
-                </div>
-                <div className="mt-2 flex items-center gap-2" aria-label="Warm Scholar color palette">
-                  {warmPalette.map((color) => <span key={color} title={color} className="h-5 flex-1 rounded-md border border-[#DDD5C9]" style={{ backgroundColor: color }} />)}
-                </div>
-                <p className="mt-2 text-[10px] font-semibold text-[#6E6E73]">Hierarchy Â· Flow Â· Detail</p>
-              </div>
-            )}
-
-            <dl className={isDeveloper ? 'mt-4 grid grid-cols-2 gap-3 border-t border-[#4A4A50] pt-3' : 'mt-4 grid grid-cols-2 gap-3 border-t border-[#E4DDD2] pt-3'}>
-              <div className="min-w-0">
-                <dt className={isDeveloper ? 'text-[9px] font-bold text-[#B8B8BE]' : 'text-[9px] font-bold text-[#6E6E73]'}>Department</dt>
-                <dd className={isDeveloper ? 'mt-1 break-words text-xs font-semibold text-[#F1F1F3]' : 'mt-1 break-words text-xs font-semibold text-[#2C2C30]'}>{department}</dd>
-              </div>
-              <div className="min-w-0">
-                <dt className={isDeveloper ? 'text-[9px] font-bold text-[#B8B8BE]' : 'text-[9px] font-bold text-[#6E6E73]'}>Registration No.</dt>
-                <dd className={isDeveloper ? 'mt-1 break-words text-xs font-semibold tabular-nums text-[#F1F1F3]' : 'mt-1 break-words text-xs font-semibold tabular-nums text-[#2C2C30]'}>{registration}</dd>
-              </div>
-            </dl>
-
-            <nav aria-label={`${name} social profiles`} className={isDeveloper ? 'mt-4 flex items-center gap-2 border-t border-[#4A4A50] pt-3' : 'mt-4 flex items-center gap-2 border-t border-[#E4DDD2] pt-3'}>
-              {links.map(({ label, href, Icon }) => (
-                <a
-                  key={label}
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={`${name} on ${label} (opens in a new tab)`}
-                  title={label}
-                  className={isDeveloper
-                    ? 'inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#4A4A50] bg-[#29292E] transition-all duration-150 hover:-translate-y-0.5 hover:bg-[#35353B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E08564]'
-                    : 'inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#E4DDD2] bg-white transition-all duration-150 hover:-translate-y-0.5 hover:bg-[#FCFAF6] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3B4D66]'}
-                >
-                  <Icon className={`h-4 w-4 ${label === 'LinkedIn' ? 'text-[#0A66C2]' : 'text-[#E4405F]'}`} aria-hidden="true" />
-                </a>
-              ))}
-              <span className={isDeveloper ? 'ml-1 text-[10px] text-[#B8B8BE]' : 'ml-1 text-[10px] text-[#6E6E73]'}>
-                {isDeveloper ? 'Connect on LinkedIn' : 'Explore social profiles'}
-              </span>
-              <ExternalLink className={isDeveloper ? 'ml-auto h-3.5 w-3.5 text-[#B8B8BE]' : 'ml-auto h-3.5 w-3.5 text-[#6E6E73]'} aria-hidden="true" />
-            </nav>
-          </article>
+          <use
+            key={key}
+            href="#cc-window"
+            x={x}
+            y={sill}
+            className={cls}
+            style={cssVars({ '--i': order, '--j': Math.max(lit, 0), '--fd': `${7 + (order % 4)}s` })}
+          />
         );
       })}
-    </section>
+      <path className="cp-void cp-fade" style={cssVars({ '--d': '1.2s' })} d="M300 260V244A20 20 0 0 1 340 244V260Z" />
 
-    <footer className="mt-5 border-t border-[#E4DDD2] pt-4 text-center text-xs text-[#6E6E73] sm:mt-7">
-      Designed and developed with care.
-    </footer>
-  </section>
+      {/* Drum, dome, finial and clock */}
+      <g className="cp-win cp-fade" style={cssVars({ '--d': '1.3s' })}>
+        <rect x="299" y="65" width="6" height="9" />
+        <rect x="317" y="65" width="6" height="9" />
+        <rect x="335" y="65" width="6" height="9" />
+      </g>
+      <path className="cp-dome cp-dome-in" style={cssVars({ fill: 'var(--cp-dome)' })} d="M288 60A32 31 0 0 1 352 60Z" />
+      <path className="cp-line cp-draw" pathLength={1} d="M320 29V17" />
+      <circle className="cp-clock cp-clock-in" cx="320" cy="104" r="15" />
+      <path className="cp-hand cp-hand-h" d="M320 104V96" style={cssVars({ '--a': `${hourAngle}deg` })} />
+      <path className="cp-hand cp-hand-m" d="M320 104V91" style={cssVars({ '--a': `${minuteAngle}deg` })} />
+      <circle className="cp-pin" cx="320" cy="104" r="1.6" />
+    </g>
+  </svg>
 );
+
+/* Roll numbers resolve digit by digit, left to right, the first time they scroll into view. */
+const DecodeText: React.FC<{ value: string }> = ({ value }) => {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [text, setText] = useState(value);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !('IntersectionObserver' in window)) return;
+    if (typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    let raf = 0;
+    const run = () => {
+      const start = performance.now();
+      const tick = (now: number) => {
+        const progress = Math.min(1, (now - start) / 900);
+        const settled = Math.floor(progress * value.length);
+        setText(value.split('').map((c, i) => (i < settled ? c : String(Math.floor(Math.random() * 10)))).join(''));
+        if (progress < 1) raf = requestAnimationFrame(tick);
+        else setText(value);
+      };
+      raf = requestAnimationFrame(tick);
+    };
+
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting)) {
+        io.disconnect();
+        run();
+      }
+    }, { threshold: 0.6 });
+    io.observe(el);
+    return () => {
+      io.disconnect();
+      cancelAnimationFrame(raf);
+    };
+  }, [value]);
+
+  return (
+    <span ref={ref}>
+      <span className="sr-only">{value}</span>
+      <span aria-hidden="true">{text}</span>
+    </span>
+  );
+};
+
+/* The clock on the tower shows the viewer's actual time. */
+const useClockAngles = () => {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(new Date()), 15000);
+    return () => window.clearInterval(id);
+  }, []);
+  return { hourAngle: ((now.getHours() % 12) * 60 + now.getMinutes()) * 0.5, minuteAngle: now.getMinutes() * 6 };
+};
+
+export const CreditsScreen: React.FC = () => {
+  const rootRef = useRef<HTMLElement>(null);
+  const { hourAngle, minuteAngle } = useClockAngles();
+
+  /* Anything below the fold reveals the first time it scrolls into view. */
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    const items = Array.from(root.querySelectorAll<HTMLElement>('.credits-reveal, .credits-observe'));
+    if (!('IntersectionObserver' in window)) {
+      items.forEach((el) => el.setAttribute('data-in', ''));
+      return;
+    }
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.setAttribute('data-in', '');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' });
+    items.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, []);
+
+  const onPlateMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType !== 'mouse') return;
+    const r = e.currentTarget.getBoundingClientRect();
+    e.currentTarget.style.setProperty('--px', String(((e.clientX - r.left) / r.width - 0.5) * 2));
+    e.currentTarget.style.setProperty('--py', String(((e.clientY - r.top) / r.height - 0.5) * 2));
+  };
+  const onPlateLeave = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.currentTarget.style.setProperty('--px', '0');
+    e.currentTarget.style.setProperty('--py', '0');
+  };
+
+  return (
+    <section
+      ref={rootRef}
+      className="mx-auto my-2 w-full max-w-5xl border border-slate-300 bg-white p-5 shadow-sm sm:p-8 lg:p-10"
+      aria-labelledby="credits-heading"
+    >
+      <header className="grid gap-7 lg:grid-cols-12 lg:gap-x-10">
+        <div className="flex flex-col justify-between gap-7 lg:col-span-5">
+          <div className="flex items-center gap-3">
+            <span className="credits-grow h-px w-8 bg-[var(--app-structural-accent)] dark:bg-[var(--app-action-accent)]" aria-hidden="true" />
+            <span className="credits-rise text-[10px] font-extrabold uppercase tracking-[0.18em] text-[var(--app-structural-accent)] dark:text-[var(--app-action-accent)]" style={cssVars({ '--credits-delay': '200ms' })}>
+              Credits
+            </span>
+          </div>
+          <h1 id="credits-heading" className="credits-serif text-[2.1rem] font-medium leading-[1.08] tracking-tight text-[var(--app-primary-text)] sm:text-5xl lg:text-[2.5rem]">
+            <span className="-mb-[0.14em] block overflow-hidden pb-[0.14em] pr-[0.1em]">
+              <span className="credits-line" style={cssVars({ '--i': 0 })}>Built by Students,</span>
+            </span>
+            <span className="-mb-[0.14em] block overflow-hidden pb-[0.14em] pr-[0.1em]">
+              <span className="credits-line italic text-[var(--app-action-accent-strong)]" style={cssVars({ '--i': 1 })}>for Students.</span>
+            </span>
+          </h1>
+        </div>
+
+        <figure className="credits-rise min-w-0 lg:col-span-7" style={cssVars({ '--credits-delay': '90ms' })}>
+          <div
+            className="credits-plate aspect-[5/4] overflow-hidden rounded-lg border border-[var(--app-divider)] md:aspect-[2/1]"
+            onPointerMove={onPlateMove}
+            onPointerLeave={onPlateLeave}
+          >
+            <MainBuilding hourAngle={hourAngle} minuteAngle={minuteAngle} />
+          </div>
+          <figcaption className="mt-2.5 text-[11px] leading-snug text-[var(--app-muted-text)]">
+            Main Building · College of Engineering, Guindy · Anna University
+          </figcaption>
+        </figure>
+      </header>
+
+      <section className="mt-9 sm:mt-12" aria-labelledby="credits-creators-heading">
+        <h2 id="credits-creators-heading" className="sr-only">Creators</h2>
+        <ol className="grid gap-x-10 gap-y-2 md:grid-cols-2">
+          {creators.map(({ name, role, branch, rollNo, links }, index) => (
+            <li
+              key={name}
+              className="credits-reveal relative min-w-0 pb-4 pt-5"
+              style={cssVars({ '--credits-delay': `${index * 140}ms` })}
+            >
+              <span className="credits-rule absolute inset-x-0 -top-px h-px bg-[var(--app-divider)]" aria-hidden="true" />
+              <span className="credits-tick absolute -top-px left-0 h-0.5 bg-[var(--app-action-accent-strong)]" aria-hidden="true" />
+              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--app-structural-accent)] dark:text-[var(--app-action-accent)]">{role}</p>
+              <h3 className="credits-serif mt-1.5 text-2xl font-medium leading-tight tracking-tight text-[var(--app-primary-text)] sm:text-[1.75rem]">{name}</h3>
+
+              <dl className="mt-4 flex flex-wrap gap-x-10 gap-y-3">
+                <div>
+                  <dt className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--app-muted-text)]">Branch</dt>
+                  <dd className="mt-1 text-sm font-semibold text-[var(--app-primary-text)]">{branch}</dd>
+                </div>
+                <div>
+                  <dt className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--app-muted-text)]">Roll No.</dt>
+                  <dd className="mt-1 text-sm font-semibold tabular-nums text-[var(--app-primary-text)]"><DecodeText value={rollNo} /></dd>
+                </div>
+              </dl>
+
+              <ul className="mt-3 flex flex-wrap gap-x-6" aria-label={`${name} on social media`}>
+                {links.map(({ label, href }) => {
+                  const Icon = linkIcons[label];
+                  return (
+                    <li key={label}>
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`${name} on ${label} (opens in a new tab)`}
+                        className="credits-link group inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[var(--app-primary-text)] transition-colors duration-150 hover:text-[var(--app-action-accent-strong)]"
+                      >
+                        <Icon className="h-4 w-4 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-110" aria-hidden="true" />
+                        <span className="credits-link-label">{label}</span>
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <footer className="credits-observe mt-9 sm:mt-12">
+        <span className="credits-rule mb-4 block h-px w-8 bg-[var(--app-action-accent-strong)]" aria-hidden="true" />
+        <p className="credits-serif text-xl font-medium italic leading-snug text-[var(--app-primary-text)] sm:text-2xl">
+          <span className="-mb-[0.12em] block overflow-hidden pb-[0.12em] pr-[0.1em]">
+            <span className="credits-line-r" style={cssVars({ '--i': 0 })}>Calculating Today</span>
+          </span>
+          <span className="-mb-[0.12em] block overflow-hidden pb-[0.12em] pr-[0.1em]">
+            <span className="credits-line-r" style={cssVars({ '--i': 1 })}>for a Brighter Tomorrow.</span>
+          </span>
+        </p>
+      </footer>
+    </section>
+  );
+};
