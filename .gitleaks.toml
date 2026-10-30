@@ -1,0 +1,15 @@
+# Gitleaks configuration for CalCredit / Project Uno
+# Extends default gitleaks ruleset while ignoring build artifacts and dependencies
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Ignore build output, dependencies, temporary files, and local dev env"
+paths = [
+  '''dist[\\/]''',
+  '''node_modules[\\/]''',
+  '''\.git[\\/]''',
+  '''\.vite[\\/]''',
+  '''\.env\.local$''',
+]

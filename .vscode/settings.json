@@ -1,0 +1,17 @@
+{
+  "snyk.features.openSource": true,
+  "snyk.features.codeSecurity": true,
+  "snyk.features.codeQuality": true,
+  "snyk.features.secrets": true,
+  "snyk.advanced.cliPath": "C:\\Users\\Tharsith R\\AppData\\Local\\snyk\\vscode-cli\\snyk-win.exe",
+  "semgrep.scan.configuration": ["auto"],
+  "semgrep.scan.exclude": [
+    "dist",
+    "node_modules",
+    ".git",
+    ".vite",
+    "android",
+    "ios"
+  ],
+  "semgrep.scan.onlyGitDirty": false
+}
