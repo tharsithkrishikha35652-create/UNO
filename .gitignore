@@ -11,3 +11,5 @@ node_modules/.tmp
 .env.*
 !.env.example
 !**/.env.example
+firestore-debug.log
+firebase-debug.log

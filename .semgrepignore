@@ -1,0 +1,10 @@
+# Semgrep ignore patterns
+dist/
+node_modules/
+.git/
+.vite/
+android/
+ios/
+*.min.js
+*.bundle.js
+
