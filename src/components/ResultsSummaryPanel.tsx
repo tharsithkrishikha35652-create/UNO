@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
+import { motion, useReducedMotion } from 'motion/react';
 import { CalculationBreakdown, SubjectData } from '../types';
 import { Check, Copy, Layers } from 'lucide-react';
+import { AnimatedNumber } from './AnimatedNumber';
+import { motionVariants } from '../motion';
 
 interface ResultsSummaryPanelProps {
   breakdown: CalculationBreakdown;
@@ -19,6 +22,7 @@ export const ResultsSummaryPanel: React.FC<ResultsSummaryPanelProps> = ({
   subject,
 }) => {
   const [copied, setCopied] = useState(false);
+  const reduceMotion = useReducedMotion();
 
   const testWeight = breakdown.testWeight;
   const labWeight = breakdown.labWeight;
@@ -244,7 +248,13 @@ Final grade: Grade ${breakdown.grade.letter} - ${breakdown.grade.label} | Grade 
   };
 
   return (
-    <div className="results-summary min-w-0 max-w-full overflow-hidden rounded-xl bg-white border border-slate-300 p-3 sm:p-6 shadow-sm">
+    <motion.div
+      key={`${subject.id}-${breakdown.total}-${breakdown.grade.letter}`}
+      className="results-summary min-w-0 max-w-full overflow-hidden rounded-xl bg-white border border-slate-300 p-3 sm:p-6 shadow-sm"
+      variants={reduceMotion ? undefined : motionVariants.card}
+      initial={reduceMotion ? false : 'initial'}
+      animate="animate"
+    >
       {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200 mb-5">
         <div>
@@ -286,9 +296,7 @@ Final grade: Grade ${breakdown.grade.letter} - ${breakdown.grade.label} | Grade 
             Total Mark
           </span>
           <div className="flex items-baseline gap-1 sm:gap-1.5">
-            <span className="text-xl sm:text-4xl font-black text-[#172554] tabular-nums">
-              {breakdown.total.toFixed(2)}
-            </span>
+            <AnimatedNumber value={breakdown.total} className="text-xl sm:text-4xl font-black text-[#172554] tabular-nums" />
             <span className="text-[10px] sm:text-xs font-bold text-[#1e3a8a]">/ 100</span>
           </div>
         </div>
@@ -298,9 +306,15 @@ Final grade: Grade ${breakdown.grade.letter} - ${breakdown.grade.label} | Grade 
           <span className="text-[10px] sm:text-xs font-bold text-[#1e3a8a] leading-tight break-words mb-0.5">
             Indicative Grade
           </span>
-          <div className="text-xl sm:text-4xl font-black text-[#172554]">
+          <motion.div
+            key={breakdown.grade.letter}
+            className="text-xl sm:text-4xl font-black text-[#172554]"
+            initial={reduceMotion ? false : { opacity: 0, scale: 0.82 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ type: 'spring', stiffness: 380, damping: 28 }}
+          >
             {breakdown.grade.letter}
-          </div>
+          </motion.div>
           <span className="text-[10px] sm:text-xs font-bold text-[#1e3a8a] leading-tight break-words mt-0.5">
             {breakdown.grade.label}
           </span>
@@ -311,9 +325,7 @@ Final grade: Grade ${breakdown.grade.letter} - ${breakdown.grade.label} | Grade 
           <span className="text-[10px] sm:text-xs font-bold text-[#1e3a8a] leading-tight break-words mb-0.5">
             Grade Point
           </span>
-          <div className="text-xl sm:text-4xl font-black text-[#172554] tabular-nums">
-            {breakdown.grade.gradePoint}
-          </div>
+          <AnimatedNumber value={breakdown.grade.gradePoint} decimals={0} className="text-xl sm:text-4xl font-black text-[#172554] tabular-nums" />
           <span className="text-[10px] sm:text-xs font-bold text-[#1e3a8a] leading-tight break-words mt-0.5">
             Scale 0 - 10
           </span>
@@ -678,6 +690,6 @@ Final grade: Grade ${breakdown.grade.letter} - ${breakdown.grade.label} | Grade 
         </table>
       </div>
       )}
-    </div>
+    </motion.div>
   );
 };

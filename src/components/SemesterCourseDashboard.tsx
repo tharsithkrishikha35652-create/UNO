@@ -1,7 +1,9 @@
 import React from 'react';
 import { BookOpen, CheckCircle2, Circle, GraduationCap, Pencil, PencilLine } from 'lucide-react';
+import { motion, useReducedMotion } from 'motion/react';
 import type { SubjectData } from '../types';
 import type { PresetCourse } from './SubjectSelectionDialog';
+import { motionVariants, transitions } from '../motion';
 
 export type CourseProgress = 'Not started' | 'Marks entered' | 'Calculated';
 
@@ -67,7 +69,11 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
   onSelectElective,
   onSelectOtherCourse,
   onCalculateGpa,
-}) => (
+}) => {
+  const reduceMotion = useReducedMotion();
+  const courseItemMotion = reduceMotion ? {} : motionVariants.listItem;
+
+  return (
   <section className="mx-auto min-w-0 max-w-full" aria-labelledby="semester-courses-heading">
     <div className="mb-3.5 flex items-end justify-between gap-3">
       <div>
@@ -83,20 +89,25 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
 
     {/* Staggered alternating zig-zag list on mobile, clean two-column grid on desktop */}
     <div className="w-full">
-      <ul
+      <motion.ul
         aria-label={`Semester ${semester} courses`}
         className="flex flex-col gap-2.5 sm:grid sm:grid-cols-2 sm:gap-3"
+        variants={reduceMotion ? undefined : motionVariants.list}
+        initial={reduceMotion ? false : 'initial'}
+        animate="animate"
       >
         {courses.map(({ course, subject, progress }, idx) => {
           const isSelected = subject?.id === selectedSubjectId;
           const isEven = idx % 2 === 0;
 
           return (
-            <li
+            <motion.li
               key={course.id}
               className={`w-[89%] ${isEven ? 'self-start mr-auto ml-0' : 'self-end ml-auto mr-0'} sm:w-full sm:m-0 sm:self-auto`}
+              variants={courseItemMotion}
+              layout="position"
             >
-              <button
+              <motion.button
                 type="button"
                 onClick={() => onSelectCourse(course)}
                 aria-pressed={isSelected}
@@ -107,6 +118,8 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
                     ? 'border-[#172554] bg-[#172554] text-white shadow-sm'
                     : 'border-slate-300 bg-white text-[#172554] hover:border-[#172554] hover:bg-slate-50'
                 }`}
+                animate={{ scale: isSelected && !reduceMotion ? 1.01 : 1 }}
+                transition={transitions.feedback}
               >
                 <div className="min-w-0 flex-1">
                   {course.code && (
@@ -125,8 +138,8 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
                 <div className="shrink-0 flex items-center gap-1.5 pl-2">
                   <ProgressMark progress={progress} isSelected={isSelected} />
                 </div>
-              </button>
-            </li>
+              </motion.button>
+            </motion.li>
           );
         })}
 
@@ -136,9 +149,11 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
           const isEven = globalIdx % 2 === 0;
 
           return (
-            <li
+            <motion.li
               key={slot}
               className={`w-[89%] ${isEven ? 'self-start mr-auto ml-0' : 'self-end ml-auto mr-0'} sm:w-full sm:m-0 sm:self-auto`}
+              variants={courseItemMotion}
+              layout="position"
             >
               <div
                 className={`group flex min-h-[3.25rem] w-full items-center justify-between gap-3 rounded-xl border p-3 text-left transition-all shadow-xs ${
@@ -220,7 +235,7 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
                   )}
                 </div>
               </div>
-            </li>
+            </motion.li>
           );
         })}
 
@@ -230,11 +245,13 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
           const isEven = globalIdx % 2 === 0;
 
           return (
-            <li
+            <motion.li
               key={subject.id}
               className={`w-[89%] ${isEven ? 'self-start mr-auto ml-0' : 'self-end ml-auto mr-0'} sm:w-full sm:m-0 sm:self-auto`}
+              variants={courseItemMotion}
+              layout="position"
             >
-              <button
+              <motion.button
                 type="button"
                 onClick={() => onSelectOtherCourse(subject)}
                 aria-pressed={isSelected}
@@ -245,6 +262,8 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
                     ? 'border-[#172554] bg-[#172554] text-white shadow-sm'
                     : 'border-slate-300 bg-white text-[#172554] hover:border-[#172554] hover:bg-slate-50'
                 }`}
+                animate={{ scale: isSelected && !reduceMotion ? 1.01 : 1 }}
+                transition={transitions.feedback}
               >
                 <div className="min-w-0 flex-1">
                   {subject.code && (
@@ -263,11 +282,11 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
                 <div className="shrink-0 flex items-center gap-1.5 pl-2">
                   <ProgressMark progress={progress} isSelected={isSelected} />
                 </div>
-              </button>
-            </li>
+              </motion.button>
+            </motion.li>
           );
         })}
-      </ul>
+      </motion.ul>
     </div>
 
     {allCoursesCalculated && (
@@ -286,4 +305,5 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
       </div>
     )}
   </section>
-);
+  );
+};

@@ -1,4 +1,5 @@
 import React, { useState, type FormEvent } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { Capacitor } from '@capacitor/core';
 import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import {
@@ -12,6 +13,7 @@ import {
 import { AlertCircle, BookOpen, Check, Eye, EyeOff, LoaderCircle, X } from 'lucide-react';
 import { auth } from '../firebase';
 import { ThemeToggle, type AppTheme } from './ThemeToggle';
+import { motionVariants } from '../motion';
 
 interface AuthScreenProps {
   configurationError?: string;
@@ -63,6 +65,7 @@ function friendlyAuthError(error: unknown, provider: 'email' | 'google' = 'email
 }
 
 export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forceGoogleAccountSelection = false, onContinueAsGuest, theme, onToggleTheme }) => {
+  const reduceMotion = useReducedMotion();
   const [mode, setMode] = useState<AuthMode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -152,7 +155,12 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
 
   return (
     <main className="min-h-screen bg-transparent text-slate-900 flex items-center justify-center px-4 py-10 font-sans">
-      <section className="w-full max-w-md bg-white border border-slate-300 shadow-sm">
+      <motion.section
+        className="w-full max-w-md bg-white border border-slate-300 shadow-sm"
+        variants={reduceMotion ? undefined : motionVariants.dialog}
+        initial={reduceMotion ? false : 'initial'}
+        animate="animate"
+      >
         <div className="bg-[#172554] text-white px-5 py-5 flex items-center justify-between gap-3 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
             <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-white text-[#172554]">
@@ -310,17 +318,28 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
             ) : null}
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Guest Department Selection Modal */}
+      <AnimatePresence>
       {showGuestDeptModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-[profile-backdrop-in_180ms_ease-out]"
+        <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs"
           role="dialog"
           aria-modal="true"
           aria-labelledby="guest-dept-title"
+          variants={reduceMotion ? undefined : motionVariants.backdrop}
+          initial={reduceMotion ? { opacity: 1 } : 'initial'}
+          animate="animate"
+          exit="exit"
         >
-          <div className="w-full max-w-md rounded-2xl border border-slate-300 bg-white p-6 shadow-2xl animate-[sticky-result-in_200ms_ease-out]">
+          <motion.div
+            className="w-full max-w-md rounded-2xl border border-slate-300 bg-white p-6 shadow-2xl"
+            variants={reduceMotion ? undefined : motionVariants.dialog}
+            initial={reduceMotion ? { opacity: 1 } : 'initial'}
+            animate="animate"
+            exit="exit"
+          >
             <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-4">
               <div>
                 <p className="text-[11px] font-bold uppercase tracking-wider text-blue-700">Guest Access</p>
@@ -416,9 +435,10 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
                 Continue as Guest
               </button>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </main>
   );
 };

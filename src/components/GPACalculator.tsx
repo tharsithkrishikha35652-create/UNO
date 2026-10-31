@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { CheckCircle2, GraduationCap, Sparkles, X, RotateCcw, Award } from 'lucide-react';
 import type { SubjectData } from '../types';
 import type { GpaHistoryEntry } from '../firebaseData';
@@ -9,6 +10,8 @@ import {
   getCourseType,
   getCourseWeights,
 } from '../calculatorUtils';
+import { AnimatedNumber } from './AnimatedNumber';
+import { motionVariants } from '../motion';
 
 const matchesPresetSubject = (subject: SubjectData, course: (typeof PRESET_COURSES)[number]) =>
   (Boolean(course.code) && subject.code === course.code) ||
@@ -229,6 +232,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
   guestMode,
   department,
 }) => {
+  const reduceMotion = useReducedMotion();
   const [calculatedInputSignature, setCalculatedInputSignature] = useState<string | null>(null);
   const [calculationState, setCalculationState] = useState<'idle' | 'calculating' | 'saving' | 'success' | 'error'>('idle');
   const selectedSemester = initialSemester;
@@ -587,28 +591,37 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
         {calculationError && <p className="border-t border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900" role="alert">{calculationError}</p>}
       </div>
 
+      <AnimatePresence initial={false}>
       {(hasCalculated || explicitCalculationResult) && (
+        <motion.div
+          key={`${selectedSemester}-${displayGpa}-${Boolean(explicitCalculationResult)}`}
+          className="space-y-3 sm:space-y-4"
+          variants={reduceMotion ? undefined : motionVariants.card}
+          initial={reduceMotion ? false : 'initial'}
+          animate="animate"
+          exit="exit"
+        >
         <>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="bg-white border border-slate-300 p-4">
               <p className="text-xs font-bold text-slate-500">Semester GPA</p>
-              <p className="text-3xl font-black text-[#172554] mt-1">{displayGpa.toFixed(2)}</p>
+              <AnimatedNumber value={displayGpa} className="text-3xl font-black text-[#172554] mt-1" />
               <p className="text-xs text-slate-500">Out of 10.00</p>
             </div>
             <div className="bg-white border border-slate-300 p-4">
               <p className="text-xs font-bold text-slate-500">Total Credits</p>
-              <p className="text-3xl font-black text-[#172554] mt-1">{displayCredits}</p>
+              <AnimatedNumber value={displayCredits} decimals={0} className="text-3xl font-black text-[#172554] mt-1" />
               <p className="text-xs text-slate-500">Across {totalSemesterCourses} courses</p>
             </div>
             <div className="bg-white border border-slate-300 p-4">
               <p className="text-xs font-bold text-slate-500">Weighted Grade Points</p>
-              <p className="text-3xl font-black text-[#172554] mt-1">{displayWeightedPoints.toFixed(2)}</p>
+              <AnimatedNumber value={displayWeightedPoints} className="text-3xl font-black text-[#172554] mt-1" />
               <p className="text-xs text-slate-500">Credits × grade points</p>
             </div>
           </div>
 
-          <div className="bg-white border border-slate-300 shadow-sm overflow-x-auto">
-            <table className="w-full text-left text-sm">
+          <div className="overflow-x-auto border border-slate-300 bg-white shadow-sm">
+            <table className="w-full min-w-[42rem] text-left text-sm">
               <thead className="bg-[#172554] text-white text-xs">
                 <tr>
                   <th scope="col" className="px-4 py-3">Course</th>
@@ -651,7 +664,9 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
             Total Semester {selectedSemester} credits: {totalCredits}.
           </p>
         </>
+        </motion.div>
       )}
+      </AnimatePresence>
 
       {history.length > 0 && (
         <section className="bg-white border border-slate-300 shadow-sm overflow-x-auto" aria-labelledby="gpa-history-heading">
@@ -685,14 +700,25 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
         </section>
       )}
       {/* Explicit / Custom Grade Entry Modal */}
+      <AnimatePresence>
       {showExplicitGradeModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-xs animate-[profile-backdrop-in_180ms_ease-out]"
+        <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-xs"
           role="dialog"
           aria-modal="true"
           aria-labelledby="custom-grade-modal-title"
+          variants={reduceMotion ? undefined : motionVariants.backdrop}
+          initial={reduceMotion ? { opacity: 1 } : 'initial'}
+          animate="animate"
+          exit="exit"
         >
-          <div className="w-full max-w-2xl max-h-[90vh] flex flex-col rounded-2xl border border-slate-300 bg-white shadow-2xl animate-[sticky-result-in_200ms_ease-out] overflow-hidden">
+          <motion.div
+            className="w-full max-w-2xl max-h-[90vh] flex flex-col rounded-2xl border border-slate-300 bg-white shadow-2xl overflow-hidden"
+            variants={reduceMotion ? undefined : motionVariants.dialog}
+            initial={reduceMotion ? { opacity: 1 } : 'initial'}
+            animate="animate"
+            exit="exit"
+          >
             {/* Modal Header */}
             <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-5 py-4 bg-[#172554] text-white shrink-0">
               <div>
@@ -831,9 +857,10 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
                 </button>
               </div>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </section>
   );
 };

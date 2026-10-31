@@ -1,8 +1,10 @@
 import React, { useEffect, useRef, useState, type FormEvent } from 'react';
+import { motion, useReducedMotion } from 'motion/react';
 import { Check, ChevronDown, LoaderCircle, LogOut, MessageSquare, TableProperties, UsersRound, X } from 'lucide-react';
 import type { AcademicProfileData } from '../types';
 import type { SemesterNumber } from './SubjectSelectionDialog';
 import { ThemeToggle, type AppTheme } from './ThemeToggle';
+import { motionVariants } from '../motion';
 
 export interface AcademicProfileFormValues extends AcademicProfileData {
   selectedSemester: SemesterNumber;
@@ -365,6 +367,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
   onLogout,
   logoutPending,
 }) => {
+  const reduceMotion = useReducedMotion();
   const [editing, setEditing] = useState(false);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const editButtonRef = useRef<HTMLButtonElement>(null);
@@ -420,19 +423,25 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
 
   return (
     <div className="fixed inset-0 z-[70] h-dvh max-h-dvh overflow-hidden" role="presentation">
-      <button
+      <motion.button
         type="button"
         aria-label="Close profile"
         tabIndex={-1}
         onClick={onClose}
-        className="absolute inset-0 h-full w-full bg-slate-950/55 animate-[profile-backdrop-in_180ms_ease-out]"
+        className="absolute inset-0 h-full w-full bg-slate-950/55"
+        variants={reduceMotion ? undefined : motionVariants.backdrop}
+        initial={reduceMotion ? { opacity: 1 } : 'initial'}
+        animate="animate"
       />
-      <aside
+      <motion.aside
         id="academic-profile-drawer"
         role="dialog"
         aria-modal="true"
         aria-labelledby="academic-profile-title"
-        className="absolute inset-y-0 left-0 flex h-full max-h-dvh w-[82vw] max-w-sm sm:max-w-md flex-col rounded-r-2xl border-r border-slate-300 bg-white shadow-2xl animate-[profile-slide-in_220ms_cubic-bezier(0.16,1,0.3,1)]"
+        className="absolute inset-y-0 left-0 flex h-full max-h-dvh w-[82vw] max-w-sm sm:max-w-md flex-col rounded-r-2xl border-r border-slate-300 bg-white shadow-2xl"
+        initial={reduceMotion ? { x: 0 } : { x: '-100%' }}
+        animate={{ x: 0 }}
+        transition={{ duration: reduceMotion ? 0 : 0.3, ease: [0.16, 1, 0.3, 1] }}
       >
         <header className="flex items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
           <div className="flex items-center gap-2.5">
@@ -612,7 +621,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
             </button>
           </footer>
         )}
-      </aside>
+      </motion.aside>
     </div>
   );
 };

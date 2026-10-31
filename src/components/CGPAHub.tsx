@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   ChartColumnIncreasing,
   Check,
@@ -6,6 +7,8 @@ import {
   HelpCircle,
 } from "lucide-react";
 import { GPA_COURSES, getGpaCourses } from "../gpaCourses";
+import { AnimatedNumber } from "./AnimatedNumber";
+import { motionVariants } from "../motion";
 
 interface SemesterResultInput {
   gpa: string;
@@ -43,6 +46,7 @@ const getInitialSemesterInputs = (
 };
 
 export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
+  const reduceMotion = useReducedMotion();
   const [selectedSemester, setSelectedSemester] = useState<number>(1);
   const [semesterInputs, setSemesterInputs] = useState(() =>
     getInitialSemesterInputs(department)
@@ -401,28 +405,38 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
         </div>
       </section>
 
+      <AnimatePresence initial={false} mode="wait">
       {cgpa !== null ? (
-        <section
+        <motion.section
+          key="cgpa-result"
           className="border border-emerald-200 bg-emerald-50 p-5 shadow-sm sm:p-7"
           aria-live="polite"
           aria-label="CGPA result"
+          variants={reduceMotion ? undefined : motionVariants.card}
+          initial={reduceMotion ? false : "initial"}
+          animate="animate"
+          exit="exit"
         >
           <p className="text-xs font-bold text-emerald-800">
             Cumulative GPA through Semester {selectedSemester}
           </p>
-          <p className="mt-1 text-4xl font-black text-[#172554]">
-            {cgpa.toFixed(2)}
-          </p>
-        </section>
+          <AnimatedNumber value={cgpa} className="mt-1 text-4xl font-black text-[#172554]" />
+        </motion.section>
       ) : (
-        <p
+        <motion.p
+          key="cgpa-guidance"
           className="border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950"
           role="status"
+          variants={reduceMotion ? undefined : motionVariants.card}
+          initial={reduceMotion ? false : "initial"}
+          animate="animate"
+          exit="exit"
         >
           Enter a GPA from 0 to 10 and positive counted credits for each of the{" "}
           {selectedSemester} semesters to calculate CGPA.
-        </p>
+        </motion.p>
       )}
+      </AnimatePresence>
     </section>
   );
 };

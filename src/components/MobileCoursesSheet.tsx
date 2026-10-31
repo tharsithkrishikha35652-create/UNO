@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { BookOpen, Check, CheckCircle2, Circle, Pencil, PencilLine, X } from 'lucide-react';
 import type { SubjectData } from '../types';
 import type { PresetCourse, SemesterNumber } from './SubjectSelectionDialog';
@@ -7,6 +8,7 @@ import type {
   SemesterCourseRow,
   SemesterElectiveRow,
 } from './SemesterCourseDashboard';
+import { motionVariants } from '../motion';
 
 interface MobileCoursesSheetProps {
   isOpen: boolean;
@@ -43,7 +45,13 @@ function ProgressIndicator({ progress }: { progress: CourseProgress }) {
   );
 }
 
-export const MobileCoursesSheet: React.FC<MobileCoursesSheetProps> = ({
+export const MobileCoursesSheet: React.FC<MobileCoursesSheetProps> = (props) => (
+  <AnimatePresence initial={false}>
+    {props.isOpen && <MobileCoursesSheetBody {...props} />}
+  </AnimatePresence>
+);
+
+const MobileCoursesSheetBody: React.FC<MobileCoursesSheetProps> = ({
   isOpen,
   semester,
   courses,
@@ -57,6 +65,7 @@ export const MobileCoursesSheet: React.FC<MobileCoursesSheetProps> = ({
   onSelectOtherCourse,
   onCalculateGpa,
 }) => {
+  const reduceMotion = useReducedMotion();
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const restoreFocusRef = useRef(true);
@@ -103,8 +112,6 @@ export const MobileCoursesSheet: React.FC<MobileCoursesSheetProps> = ({
       restoreFocusRef.current = true;
     };
   }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
 
   const courseCount = courses.length + electiveSlots.length + otherCourses.length;
 
@@ -247,21 +254,29 @@ export const MobileCoursesSheet: React.FC<MobileCoursesSheetProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 md:hidden">
-      <button
+      <motion.button
         type="button"
         tabIndex={-1}
         aria-label="Close courses"
         onClick={onClose}
-        className="absolute inset-0 h-full w-full bg-slate-950/55 animate-[profile-backdrop-in_180ms_ease-out]"
+        className="absolute inset-0 h-full w-full bg-slate-950/55"
+        variants={reduceMotion ? undefined : motionVariants.backdrop}
+        initial={reduceMotion ? { opacity: 1 } : 'initial'}
+        animate="animate"
+        exit="exit"
       />
-      <section
+      <motion.section
         id="mobile-courses-sheet"
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="mobile-courses-title"
-        className="absolute inset-x-0 bottom-0 flex max-h-[85dvh] flex-col rounded-t-2xl border border-slate-300 bg-white shadow-2xl animate-[courses-sheet-in_220ms_cubic-bezier(0.16,1,0.3,1)]"
+        className="absolute inset-x-0 bottom-0 flex max-h-[85dvh] flex-col rounded-t-2xl border border-slate-300 bg-white shadow-2xl"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+        variants={reduceMotion ? undefined : motionVariants.sheet}
+        initial={reduceMotion ? { y: 0 } : 'initial'}
+        animate="animate"
+        exit="exit"
       >
         <div className="flex justify-center pt-2" aria-hidden="true">
           <span className="h-1 w-14 rounded-full bg-slate-300" />
@@ -403,7 +418,7 @@ export const MobileCoursesSheet: React.FC<MobileCoursesSheetProps> = ({
             </button>
           </footer>
         )}
-      </section>
+      </motion.section>
     </div>
   );
 };
