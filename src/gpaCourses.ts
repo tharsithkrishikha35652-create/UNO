@@ -146,12 +146,87 @@ export const ECE_GPA_COURSES: readonly GpaCourse[] = [
   { code: 'EC23801', name: 'Project Work / Internship cum Project Work', credits: 8, semester: 8 },
 ] as const;
 
+export const VLSI_GPA_COURSES: readonly GpaCourse[] = [
+  // Semester 1 (23 credits)
+  { code: 'EN23C01', name: 'Foundation English', credits: 3, semester: 1 },
+  { code: 'MA23C01', name: 'Matrices and Calculus', credits: 4, semester: 1 },
+  { code: 'PH23C01', name: 'Engineering Physics', credits: 4, semester: 1 },
+  { code: 'ME23C01', name: 'Engineering Drawing and 3D Modelling', credits: 4, semester: 1 },
+  { code: 'CS23C04', name: 'Programming in C', credits: 4, semester: 1 },
+  { code: 'ME23C04', name: 'Makerspace', credits: 3, semester: 1 },
+  { code: 'UC23H01', name: 'Heritage of Tamils', credits: 1, semester: 1 },
+
+  // Semester 2 (24 credits)
+  { code: 'EN23C02', name: 'Professional Communication', credits: 3, semester: 2 },
+  { code: 'MA23C02', name: 'Ordinary Differential Equations and Transform Techniques', credits: 4, semester: 2 },
+  { code: 'EC23C03', name: 'Electronic Devices', credits: 4, semester: 2 },
+  { code: 'EC23C06', name: 'Data Structures and Programming in C++', credits: 4, semester: 2 },
+  { code: 'EC23C04', name: 'Circuit Analysis', credits: 4, semester: 2 },
+  { code: 'UC23H02', name: 'Tamils and Technology', credits: 1, semester: 2 },
+  { code: 'CY23C01', name: 'Engineering Chemistry', credits: 4, semester: 2 },
+
+  // Semester 3 (23 credits)
+  { code: 'MA23C03', name: 'Linear Algebra and Numerical Methods', credits: 4, semester: 3 },
+  { code: 'VL23301', name: 'MOS Device Physics and Simulation', credits: 4, semester: 3 },
+  { code: 'EC23C13', name: 'Digital Electronics and System Design', credits: 4, semester: 3 },
+  { code: 'VL23302', name: 'Fundamentals of Signals and Systems', credits: 3, semester: 3 },
+  { code: 'EC23C02', name: 'Analog Circuits Design', credits: 4, semester: 3 },
+  { code: 'VL23S01', name: 'Skill Development Course – I', credits: 2, semester: 3 },
+  { code: 'UC23U01', name: 'Universal Human Values', credits: 2, semester: 3 },
+
+  // Semester 4 (25 credits)
+  { code: 'MA23C05', name: 'Probability and Statistics', credits: 4, semester: 4 },
+  { code: 'VL23401', name: 'Discrete Time Signal Processing', credits: 4, semester: 4 },
+  { code: 'VL23402', name: 'Analog and Digital Communication', credits: 4, semester: 4 },
+  { code: 'EC23C05', name: 'Analog Electronic System Design', credits: 4, semester: 4 },
+  { code: 'EC23C10', name: 'Computer Architecture and Organization', credits: 3, semester: 4 },
+  { code: 'EC23C11', name: 'Control Systems', credits: 3, semester: 4 },
+  { code: 'VL23S02', name: 'Skill Development Course – II', credits: 2, semester: 4 },
+  { code: 'VL23L01', name: 'Self Learning Course', credits: 1, semester: 4 },
+
+  // Semester 5 (24 credits)
+  { code: 'EC23C14', name: 'Digital VLSI Design', credits: 4, semester: 5 },
+  { code: 'VL23501', name: 'RTL Design and Logic Synthesis', credits: 3, semester: 5 },
+  { code: 'EC23C21', name: 'Microprocessors and Microcontrollers', credits: 4, semester: 5 },
+  { code: 'ETC-I', name: 'Emerging Technology Course I', credits: 3, semester: 5, electiveSlot: 'Emerging Technology Course I' },
+  { code: 'VL23502', name: 'Wireless Communication Technologies', credits: 3, semester: 5 },
+  { code: 'PE-I', name: 'Professional Elective I', credits: 3, semester: 5, electiveSlot: 'Professional Elective I' },
+  { code: 'IOC_SEM5_I', name: 'Industry Oriented Course I', credits: 1, semester: 5 },
+  { code: 'UC23E01', name: 'Engineering Entrepreneurship Development', credits: 3, semester: 5 },
+
+  // Semester 6 (24 credits)
+  { code: 'VL23601', name: 'VLSI Verification and Testing', credits: 3, semester: 6 },
+  { code: 'ETC-II', name: 'Emerging Technology Course II', credits: 3, semester: 6, electiveSlot: 'Emerging Technology Course II' },
+  { code: 'VL23602', name: 'Electromagnetic Interference and Compatibility for VLSI', credits: 3, semester: 6 },
+  { code: 'PE-II', name: 'Professional Elective II', credits: 3, semester: 6, electiveSlot: 'Professional Elective II' },
+  { code: 'PE-III', name: 'Professional Elective III', credits: 3, semester: 6, electiveSlot: 'Professional Elective III' },
+  { code: 'OE-I', name: 'Open Elective I', credits: 3, semester: 6, electiveSlot: 'Open Elective I' },
+  { code: 'VL23S03', name: 'Skill Development Course – III', credits: 2, semester: 6 },
+  { code: 'IOC_SEM6_II', name: 'Industry Oriented Course II', credits: 1, semester: 6 },
+  { code: 'VL23U02', name: 'Perspectives of Sustainable Development', credits: 3, semester: 6 },
+
+  // Semester 7 (22 credits)
+  { code: 'VL23701', name: 'ASIC Design', credits: 3, semester: 7 },
+  { code: 'VL23702', name: 'Embedded Systems', credits: 3, semester: 7 },
+  { code: 'PE-IV', name: 'Professional Elective IV', credits: 3, semester: 7, electiveSlot: 'Professional Elective IV' },
+  { code: 'PE-V', name: 'Professional Elective V', credits: 3, semester: 7, electiveSlot: 'Professional Elective V' },
+  { code: 'PE-VI', name: 'Professional Elective VI', credits: 3, semester: 7, electiveSlot: 'Professional Elective VI' },
+  { code: 'OE-II', name: 'Open Elective II', credits: 3, semester: 7, electiveSlot: 'Open Elective II' },
+  { code: 'VL23703', name: 'Idea to Product', credits: 2, semester: 7 },
+  { code: 'IOC_SEM7_III', name: 'Industry Oriented Course III', credits: 1, semester: 7 },
+  { code: 'VL23U01', name: 'Standards - Electronics Engineering (VLSI Design and Technology)', credits: 1, semester: 7 },
+
+  // Semester 8 (8 credits)
+  { code: 'VL23801', name: 'Project Work / Internship cum Project Work', credits: 8, semester: 8 },
+] as const;
+
 export function getGpaCourses(department?: string): readonly GpaCourse[] {
+  if (department === 'VLSI') return VLSI_GPA_COURSES;
   return department === 'ECE' ? ECE_GPA_COURSES : CSE_GPA_COURSES;
 }
 
 export function getAllGpaCourses(): readonly GpaCourse[] {
-  return [...CSE_GPA_COURSES, ...ECE_GPA_COURSES];
+  return [...CSE_GPA_COURSES, ...ECE_GPA_COURSES, ...VLSI_GPA_COURSES];
 }
 
 // Preserve backwards-compatibility for existing code/tests expecting GPA_COURSES

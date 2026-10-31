@@ -371,6 +371,7 @@ function getCourseProgress(
 interface AuthenticatedAppProps {
   user: User | null;
   guestMode: boolean;
+  initialDepartment?: 'CSE' | 'ECE' | 'VLSI';
   onSignOut: () => Promise<void>;
   onExitGuest: () => void;
   signOutPending: boolean;
@@ -411,6 +412,7 @@ function WorkspaceLoading({ message }: { message: string }) {
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [guestMode, setGuestMode] = useState(false);
+  const [guestDepartment, setGuestDepartment] = useState<'CSE' | 'ECE' | 'VLSI'>('CSE');
   const [theme, setTheme] = useState<AppTheme>(getInitialTheme);
   const [authResolved, setAuthResolved] = useState(false);
   const [authError, setAuthError] = useState("");
@@ -507,8 +509,9 @@ export default function App() {
     }
   };
 
-  const handleContinueAsGuest = () => {
+  const handleContinueAsGuest = (dept: 'CSE' | 'ECE' | 'VLSI' = 'CSE') => {
     setAuthError("");
+    setGuestDepartment(dept);
     setGuestMode(true);
   };
 
@@ -517,9 +520,10 @@ export default function App() {
   if (guestMode) {
     return (
       <AuthenticatedApp
-        key="guest-session"
+        key={`guest-session-${guestDepartment}`}
         user={null}
         guestMode
+        initialDepartment={guestDepartment}
         onSignOut={handleSignOut}
         onExitGuest={handleExitGuest}
         signOutPending={false}
@@ -593,6 +597,7 @@ export default function App() {
 function AuthenticatedApp({
   user,
   guestMode,
+  initialDepartment = 'CSE',
   onSignOut,
   onExitGuest,
   signOutPending,
@@ -601,8 +606,22 @@ function AuthenticatedApp({
   onToggleTheme,
 }: AuthenticatedAppProps) {
   const [subjects, setSubjects] = useState<SubjectData[]>([]);
-  const [profile, setProfile] = useState<AcademicProfileData | null>(null);
-  const currentDepartment = profile?.department === "ECE" ? "ECE" : "CSE";
+  const [profile, setProfile] = useState<AcademicProfileData | null>(() => {
+    if (guestMode) {
+      return {
+        studentName: 'Guest Student',
+        rollNumber: 'GUEST',
+        department: initialDepartment,
+      };
+    }
+    return null;
+  });
+  const currentDepartment =
+    profile?.department === "ECE"
+      ? "ECE"
+      : profile?.department === "VLSI"
+      ? "VLSI"
+      : "CSE";
   const deptPresets = useMemo(
     () => getPresetCourses(currentDepartment),
     [currentDepartment]

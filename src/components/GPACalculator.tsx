@@ -24,7 +24,7 @@ const findCourseSubject = (subjects: SubjectData[], course: GpaCourse, presets: 
       );
     }
     return (Boolean(course.code) && subject.code === course.code) ||
-      ((course.code === 'CS23801' || course.code === 'EC23801') && ['project', 'project-work'].includes(getCourseType(subject))) ||
+      ((course.code === 'CS23801' || course.code === 'EC23801' || course.code === 'VL23801') && ['project', 'project-work'].includes(getCourseType(subject))) ||
       subject.name.trim().toLowerCase() === course.name.toLowerCase();
   });
 
@@ -36,7 +36,7 @@ const getGpaCourseSemester = (
   const match = gpaList.find(
     (course) =>
       (Boolean(course.code) && subject.code === course.code) ||
-      ((course.code === 'CS23801' || course.code === 'EC23801') && ['project', 'project-work'].includes(getCourseType(subject))) ||
+      ((course.code === 'CS23801' || course.code === 'EC23801' || course.code === 'VL23801') && ['project', 'project-work'].includes(getCourseType(subject))) ||
       subject.name.trim().toLowerCase() === course.name.toLowerCase() ||
       (Boolean(course.electiveSlot) && presets.some((preset) =>
         preset.semester === course.semester && preset.electiveSlot === course.electiveSlot && matchesPresetSubject(subject, preset)
@@ -339,7 +339,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
           </div>
           <div>
             <p className="text-xs font-bold text-slate-500">
-              Semester {selectedSemester} · B.E. {department === 'ECE' ? 'ECE' : 'CSE'}
+              Semester {selectedSemester} · {department === 'VLSI' ? 'B.Tech. VLSI' : department === 'ECE' ? 'B.E. ECE' : 'B.E. CSE'}
             </p>
             <h2 className="text-xl sm:text-2xl font-black text-[#172554]">
               GPA Calculator

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, type FormEvent } from 'react';
-import { LoaderCircle, LogOut, MessageSquare, TableProperties, UsersRound, X } from 'lucide-react';
+import { Check, ChevronDown, LoaderCircle, LogOut, MessageSquare, TableProperties, UsersRound, X } from 'lucide-react';
 import type { AcademicProfileData } from '../types';
 import type { SemesterNumber } from './SubjectSelectionDialog';
 import { ThemeToggle, type AppTheme } from './ThemeToggle';
@@ -19,6 +19,11 @@ interface AcademicProfileFormProps {
 }
 
 const semesterOptions: SemesterNumber[] = [1, 2, 3, 4, 5, 6, 7, 8];
+const DEPARTMENT_OPTIONS = [
+  { value: 'CSE', label: 'Computer Science and Engineering (CSE)', badge: 'B.E. CSE' },
+  { value: 'ECE', label: 'Electronics and Communication Engineering (ECE)', badge: 'B.E. ECE' },
+  { value: 'VLSI', label: 'Electronics Engineering (VLSI Design and Technology)', badge: 'B.Tech. VLSI' },
+] as const;
 
 export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
   profile,
@@ -35,6 +40,36 @@ export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
   const [semester, setSemester] = useState(initialSemester?.toString() ?? '');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [isDeptOpen, setIsDeptOpen] = useState(false);
+  const [isSemOpen, setIsSemOpen] = useState(false);
+  const deptMenuRef = useRef<HTMLDivElement>(null);
+  const semMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isDeptOpen && !isSemOpen) return;
+    const handleOutsideClick = (event: MouseEvent | TouchEvent) => {
+      if (deptMenuRef.current && !deptMenuRef.current.contains(event.target as Node)) {
+        setIsDeptOpen(false);
+      }
+      if (semMenuRef.current && !semMenuRef.current.contains(event.target as Node)) {
+        setIsSemOpen(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsDeptOpen(false);
+        setIsSemOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    document.addEventListener('touchstart', handleOutsideClick);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('touchstart', handleOutsideClick);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isDeptOpen, isSemOpen]);
 
   useEffect(() => {
     setStudentName(profile?.studentName ?? '');
@@ -125,43 +160,125 @@ export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
           </p>
         </div>
 
-        <label className="block">
+        {/* Department Dropdown matching App UI */}
+        <div className="relative" ref={deptMenuRef}>
           <span className="mb-1.5 block text-xs font-bold text-[#172554]">
             Department
           </span>
-          <select
-            id="academic-department"
-            name="department"
-            value={department}
-            onChange={(event) => setDepartment(event.currentTarget.value)}
-            className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900"
+          <button
+            id="academic-department-trigger"
+            type="button"
+            aria-haspopup="listbox"
+            aria-expanded={isDeptOpen}
+            onClick={() => {
+              setIsDeptOpen((prev) => !prev);
+              setIsSemOpen(false);
+            }}
+            className="flex min-h-11 w-full items-center justify-between rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-left text-sm font-semibold text-slate-900 shadow-xs transition-colors hover:border-[#172554] focus:border-[#172554] focus:outline-2 focus:outline-[#172554] cursor-pointer"
           >
-            <option value="CSE">Computer Science and Engineering (CSE)</option>
-            <option value="ECE">Electronics and Communication Engineering (ECE)</option>
-          </select>
-          <span className="mt-1 block text-[11px] text-slate-500">
-            Supported departments: CSE & ECE (Regulations 2023)
+            <span className="truncate pr-2">
+              {DEPARTMENT_OPTIONS.find((d) => d.value === department)?.label || department}
+            </span>
+            <ChevronDown
+              className={`h-4 w-4 shrink-0 text-slate-500 transition-transform ${isDeptOpen ? 'rotate-180' : ''}`}
+              aria-hidden="true"
+            />
+          </button>
+          {isDeptOpen && (
+            <div
+              role="listbox"
+              aria-label="Department options"
+              className="absolute left-0 right-0 z-50 mt-1.5 max-h-60 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl ring-1 ring-black/5 animate-[sticky-result-in_140ms_ease-out]"
+            >
+              {DEPARTMENT_OPTIONS.map((opt) => {
+                const isSelected = department === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    role="option"
+                    aria-selected={isSelected}
+                    onClick={() => {
+                      setDepartment(opt.value);
+                      setIsDeptOpen(false);
+                    }}
+                    className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-semibold transition-colors cursor-pointer ${
+                      isSelected
+                        ? 'bg-blue-50 text-[#172554] font-bold'
+                        : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
+                  >
+                    <div className="flex flex-col">
+                      <span>{opt.label}</span>
+                      <span className="text-[10px] text-slate-400 font-normal">{opt.badge}</span>
+                    </div>
+                    {isSelected && <Check className="h-4 w-4 shrink-0 text-[#172554]" aria-hidden="true" />}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+          <span className="mt-1.5 block text-[11px] text-slate-500">
+            Supported departments: CSE, ECE &amp; VLSI (Regulations 2023)
           </span>
-        </label>
+        </div>
 
-        <label className="block">
+        {/* Semester Dropdown matching App UI */}
+        <div className="relative" ref={semMenuRef}>
           <span className="mb-1.5 block text-xs font-bold text-[#172554]">
             Current semester
           </span>
-          <select
-            aria-label="Current semester"
-            value={semester}
-            onChange={(event) => setSemester(event.currentTarget.value)}
-            aria-invalid={Boolean(error)}
-            aria-describedby={error ? 'academic-profile-error' : undefined}
-            className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900"
+          <button
+            id="academic-semester-trigger"
+            type="button"
+            aria-haspopup="listbox"
+            aria-expanded={isSemOpen}
+            onClick={() => {
+              setIsSemOpen((prev) => !prev);
+              setIsDeptOpen(false);
+            }}
+            className="flex min-h-11 w-full items-center justify-between rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-left text-sm font-semibold text-slate-900 shadow-xs transition-colors hover:border-[#172554] focus:border-[#172554] focus:outline-2 focus:outline-[#172554] cursor-pointer"
           >
-            <option value="">Choose semester…</option>
-            {semesterOptions.map((option) => (
-              <option key={option} value={option}>Semester {option}</option>
-            ))}
-          </select>
-        </label>
+            <span className={semester ? 'text-slate-900' : 'text-slate-400'}>
+              {semester ? `Semester ${semester}` : 'Choose semester…'}
+            </span>
+            <ChevronDown
+              className={`h-4 w-4 shrink-0 text-slate-500 transition-transform ${isSemOpen ? 'rotate-180' : ''}`}
+              aria-hidden="true"
+            />
+          </button>
+          {isSemOpen && (
+            <div
+              role="listbox"
+              aria-label="Semester options"
+              className="absolute left-0 right-0 z-50 mt-1.5 max-h-60 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl ring-1 ring-black/5 animate-[sticky-result-in_140ms_ease-out]"
+            >
+              {semesterOptions.map((opt) => {
+                const isSelected = semester === String(opt);
+                return (
+                  <button
+                    key={opt}
+                    type="button"
+                    role="option"
+                    aria-selected={isSelected}
+                    onClick={() => {
+                      setSemester(String(opt));
+                      setIsSemOpen(false);
+                    }}
+                    className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-semibold transition-colors cursor-pointer ${
+                      isSelected
+                        ? 'bg-blue-50 text-[#172554] font-bold'
+                        : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
+                  >
+                    <span>Semester {opt}</span>
+                    {isSelected && <Check className="h-4 w-4 shrink-0 text-[#172554]" aria-hidden="true" />}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
 
       {error && (
@@ -394,7 +511,11 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
                 <div className="py-3">
                   <dt className="text-[10px] font-bold text-slate-500">Department</dt>
                   <dd className="mt-1 text-sm font-bold text-[#172554]">
-                    {profile?.department || 'CSE'}
+                    {profile?.department === 'VLSI'
+                      ? 'VLSI Design and Technology'
+                      : profile?.department === 'ECE'
+                      ? 'Electronics & Communication Engg.'
+                      : 'Computer Science & Engg.'}
                   </dd>
                 </div>
                 <div className="pt-3">

@@ -9,14 +9,14 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup,
 } from 'firebase/auth';
-import { AlertCircle, BookOpen, Eye, EyeOff, LoaderCircle } from 'lucide-react';
+import { AlertCircle, BookOpen, Check, Eye, EyeOff, LoaderCircle, X } from 'lucide-react';
 import { auth } from '../firebase';
 import { ThemeToggle, type AppTheme } from './ThemeToggle';
 
 interface AuthScreenProps {
   configurationError?: string;
   forceGoogleAccountSelection?: boolean;
-  onContinueAsGuest: () => void;
+  onContinueAsGuest: (department: 'CSE' | 'ECE' | 'VLSI') => void;
   theme: AppTheme;
   onToggleTheme: () => void;
 }
@@ -72,6 +72,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
   const [googleSlow, setGoogleSlow] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const [showGuestDeptModal, setShowGuestDeptModal] = useState(false);
+  const [guestDeptChoice, setGuestDeptChoice] = useState<'CSE' | 'ECE' | 'VLSI'>('CSE');
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -277,8 +279,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
           <div className={`${configurationError ? 'mt-6' : 'mt-5'} flex flex-col items-start gap-3 text-sm`}>
             <button
               type="button"
-              onClick={onContinueAsGuest}
-              className="w-full border border-[#172554] bg-white px-4 py-3 text-xs font-bold text-[#172554] hover:bg-slate-50"
+              onClick={() => setShowGuestDeptModal(true)}
+              className="w-full border border-[#172554] bg-white px-4 py-3 text-xs font-bold text-[#172554] hover:bg-slate-50 cursor-pointer transition-colors"
             >
               Continue as guest
             </button>
@@ -309,6 +311,114 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
           </div>
         </div>
       </section>
+
+      {/* Guest Department Selection Modal */}
+      {showGuestDeptModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-[profile-backdrop-in_180ms_ease-out]"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="guest-dept-title"
+        >
+          <div className="w-full max-w-md rounded-2xl border border-slate-300 bg-white p-6 shadow-2xl animate-[sticky-result-in_200ms_ease-out]">
+            <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-4">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-blue-700">Guest Access</p>
+                <h2 id="guest-dept-title" className="text-lg font-black text-[#172554]">
+                  Select your Department
+                </h2>
+                <p className="mt-1 text-xs text-slate-500">
+                  Choose your department to load the corresponding 2023 curriculum and subjects for this guest session:
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowGuestDeptModal(false)}
+                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors cursor-pointer"
+                aria-label="Close"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="mt-4 space-y-2.5">
+              {[
+                {
+                  id: 'CSE' as const,
+                  title: 'Computer Science and Engineering',
+                  badge: 'B.E. CSE',
+                  desc: 'Anna University Regulations 2023 · CEG Campus',
+                },
+                {
+                  id: 'ECE' as const,
+                  title: 'Electronics and Communication Engineering',
+                  badge: 'B.E. ECE',
+                  desc: 'Anna University Regulations 2023 · CEG Campus',
+                },
+                {
+                  id: 'VLSI' as const,
+                  title: 'Electronics Engineering (VLSI Design and Technology)',
+                  badge: 'B.Tech. VLSI',
+                  desc: 'Anna University Regulations 2023 (Revised 2024) · CEG Campus',
+                },
+              ].map((opt) => {
+                const isSelected = guestDeptChoice === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => setGuestDeptChoice(opt.id)}
+                    className={`flex w-full items-start justify-between rounded-xl border p-3.5 text-left transition-all cursor-pointer ${
+                      isSelected
+                        ? 'border-[#172554] bg-blue-50/70 shadow-xs'
+                        : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="pr-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-[#172554]">{opt.title}</span>
+                        <span className="rounded bg-blue-100/70 px-1.5 py-0.5 text-[10px] font-bold text-blue-900">
+                          {opt.badge}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-xs text-slate-500">{opt.desc}</p>
+                    </div>
+                    <div
+                      className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-colors ${
+                        isSelected
+                          ? 'border-[#172554] bg-[#172554] text-white'
+                          : 'border-slate-300 bg-white'
+                      }`}
+                    >
+                      {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setShowGuestDeptModal(false)}
+                className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowGuestDeptModal(false);
+                  onContinueAsGuest(guestDeptChoice);
+                }}
+                className="rounded-xl bg-[#172554] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#1e3a8a] transition-colors shadow-xs cursor-pointer"
+              >
+                Continue as Guest
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 };

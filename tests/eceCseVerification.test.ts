@@ -1,8 +1,15 @@
 import { describe, it, expect } from 'vitest';
-import { CSE_GPA_COURSES, ECE_GPA_COURSES, getGpaCourses, getAllGpaCourses } from '../src/gpaCourses';
+import {
+  CSE_GPA_COURSES,
+  ECE_GPA_COURSES,
+  VLSI_GPA_COURSES,
+  getGpaCourses,
+  getAllGpaCourses,
+} from '../src/gpaCourses';
 import {
   CSE_PRESET_COURSES,
   ECE_PRESET_COURSES,
+  VLSI_PRESET_COURSES,
   getPresetCourses,
   getElectiveSlotsBySemester,
 } from '../src/components/SubjectSelectionDialog';
@@ -26,16 +33,49 @@ describe('Department Course & Curriculum Verification', () => {
     expect(eceSemCredits.reduce((a, b) => a + b, 0)).toBe(170);
   });
 
-  it('verifies getGpaCourses returns correct catalog for CSE and ECE without mutation', () => {
-    expect(getGpaCourses('CSE')).toBe(CSE_GPA_COURSES);
-    expect(getGpaCourses('ECE')).toBe(ECE_GPA_COURSES);
-    expect(getGpaCourses(undefined)).toBe(CSE_GPA_COURSES);
-    expect(getAllGpaCourses().length).toBe(CSE_GPA_COURSES.length + ECE_GPA_COURSES.length);
+  it('verifies VLSI total credits is 173 and individual semesters match CEG curriculum exactly', () => {
+    const vlsiSemCredits = [1, 2, 3, 4, 5, 6, 7, 8].map((sem) =>
+      VLSI_GPA_COURSES.filter((c) => c.semester === sem).reduce((s, c) => s + c.credits, 0)
+    );
+    // Sem 1: 23, Sem 2: 24, Sem 3: 23, Sem 4: 25, Sem 5: 24, Sem 6: 24, Sem 7: 22, Sem 8: 8
+    expect(vlsiSemCredits).toEqual([23, 24, 23, 25, 24, 24, 22, 8]);
+    expect(vlsiSemCredits.reduce((a, b) => a + b, 0)).toBe(173);
+
+    // Sem 3 non-CGPA UHV is 2 credits -> CGPA credits = 171
+    const sem3Uhv = VLSI_GPA_COURSES.find((c) => c.semester === 3 && c.code === 'UC23U01');
+    expect(sem3Uhv?.credits).toBe(2);
+    expect(173 - (sem3Uhv?.credits ?? 0)).toBe(171);
   });
 
-  it('verifies getPresetCourses and elective slots for CSE and ECE', () => {
+  it('verifies getGpaCourses returns correct catalog for CSE, ECE, and VLSI without mutation', () => {
+    expect(getGpaCourses('CSE')).toBe(CSE_GPA_COURSES);
+    expect(getGpaCourses('ECE')).toBe(ECE_GPA_COURSES);
+    expect(getGpaCourses('VLSI')).toBe(VLSI_GPA_COURSES);
+    expect(getGpaCourses(undefined)).toBe(CSE_GPA_COURSES);
+    expect(getAllGpaCourses().length).toBe(
+      CSE_GPA_COURSES.length + ECE_GPA_COURSES.length + VLSI_GPA_COURSES.length
+    );
+  });
+
+  it('verifies getPresetCourses and elective slots for CSE, ECE, and VLSI', () => {
     expect(getPresetCourses('CSE')).toBe(CSE_PRESET_COURSES);
     expect(getPresetCourses('ECE')).toBe(ECE_PRESET_COURSES);
+    expect(getPresetCourses('VLSI')).toBe(VLSI_PRESET_COURSES);
+
+    const vlsiSlots = getElectiveSlotsBySemester('VLSI');
+    expect(vlsiSlots[5]).toEqual(['Emerging Technology Course I', 'Professional Elective I']);
+    expect(vlsiSlots[6]).toEqual([
+      'Emerging Technology Course II',
+      'Professional Elective II',
+      'Professional Elective III',
+      'Open Elective I',
+    ]);
+    expect(vlsiSlots[7]).toEqual([
+      'Professional Elective IV',
+      'Professional Elective V',
+      'Professional Elective VI',
+      'Open Elective II',
+    ]);
 
     const eceSlots = getElectiveSlotsBySemester('ECE');
     expect(eceSlots[5]).toEqual(['Professional Elective I']);
@@ -54,7 +94,7 @@ describe('Department Course & Curriculum Verification', () => {
     expect(cseSlots[7]).toEqual(['Professional Elective IV', 'Professional Elective V', 'Professional Elective VI']);
   });
 
-  it('verifies ECE specific course types and weights according to Regulations 2023', () => {
+  it('verifies ECE and VLSI specific course types and weights according to Regulations 2023', () => {
     // Theory: 40% CA, 60% ESE
     expect(getCourseWeights('theory')).toMatchObject({
       caMax: 20,
@@ -95,7 +135,7 @@ describe('Department Course & Curriculum Verification', () => {
       totalMax: 100,
     });
 
-    // Mini Project: 60% CA, 40% ESE
+    // Mini Project & Idea to Product: 60% CA, 40% ESE
     expect(getCourseWeights('laboratory-course')).toMatchObject({
       caMax: 60,
       internalMax: 60,
@@ -126,6 +166,10 @@ describe('Department Course & Curriculum Verification', () => {
       eseWeight: 0,
       totalMax: 100,
     });
+
+    // Verify course type inferences
+    expect(getCourseType({ id: '1', name: 'Idea to Product', courseType: 'laboratory-course' } as any)).toBe('laboratory-course');
+    expect(getCourseType({ id: '2', name: 'Standards - Electronics Engineering (VLSI Design and Technology)', courseType: 'standards-course' } as any)).toBe('standards-course');
   });
 
   it('verifies calculation of marks for an ECE subject', () => {

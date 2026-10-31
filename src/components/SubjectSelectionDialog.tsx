@@ -32,6 +32,22 @@ export const ECE_ELECTIVE_SLOTS_BY_SEMESTER: Record<number, string[]> = {
     'Open Elective II',
   ],
 };
+export const VLSI_ELECTIVE_SLOTS_BY_SEMESTER: Record<number, string[]> = {
+  5: ['Emerging Technology Course I', 'Professional Elective I'],
+  6: [
+    'Emerging Technology Course II',
+    'Professional Elective II',
+    'Professional Elective III',
+    'Open Elective I',
+  ],
+  7: [
+    'Professional Elective IV',
+    'Professional Elective V',
+    'Professional Elective VI',
+    'Open Elective II',
+  ],
+};
+
 
 const CSE_ELECTIVE_COURSE_OPTIONS: Omit<PresetCourse, 'id'>[] = [
   { name: 'Exploratory Data Analysis', code: 'CS23001', type: '2-0-2', courseType: '2-0-2', semester: 5, group: 'elective', electiveSlot: 'Professional Elective I' },
@@ -1147,16 +1163,653 @@ export const ECE_PRESET_COURSES: PresetCourse[] = [
   ...ECE_ELECTIVE_OPTION_BOOK,
 ];
 
+// --- VLSI PRESET CATALOG (Anna University Regulations 2023 - CEG Campus) ---
+
+// VLSI Vertical Electives (PE-I in Sem 5; PE-II, PE-III in Sem 6; PE-IV, PE-V, PE-VI in Sem 7)
+const VLSI_VERTICAL_ELECTIVES: Array<{ name: string; code: string; type: string; courseType: CourseType }> = [
+  // Vertical I: Signal and Image Processing
+  { name: 'Advanced Digital Signal Processing', code: 'EC23C23', type: 'Theory', courseType: 'theory' },
+  { name: 'Digital Speech Processing', code: 'EC23C24', type: 'Theory', courseType: 'theory' },
+  { name: 'Principles of Digital Image Processing', code: 'VL23001', type: 'Theory', courseType: 'theory' },
+  { name: 'DSP Architecture and Programming', code: 'EC23C15', type: '2-0-2', courseType: '2-0-2' },
+  { name: 'Digital Control Engineering', code: 'EC23C19', type: 'Theory', courseType: 'theory' },
+  { name: 'Multimedia Compression and Networks', code: 'EC23C25', type: 'Theory', courseType: 'theory' },
+
+  // Vertical II: RF and Mixed Signal ICs
+  { name: 'Microwave Engineering', code: 'VL23002', type: 'Theory', courseType: 'theory' },
+  { name: 'Passive RF And Integrated Circuits', code: 'VL23003', type: 'Theory', courseType: 'theory' },
+  { name: 'RF IC Design', code: 'VL23004', type: 'Theory', courseType: 'theory' },
+  { name: 'Analog IC Design', code: 'VL23005', type: 'Theory', courseType: 'theory' },
+  { name: 'Mixed Signal IC Design', code: 'EC23C12', type: 'Theory', courseType: 'theory' },
+  { name: 'Data Converters', code: 'VL23006', type: 'Theory', courseType: 'theory' },
+  { name: 'Power Management and Clock Distribution Circuits', code: 'VL23007', type: 'Theory', courseType: 'theory' },
+  { name: 'Design Of Analog Filters and Signal Conditioning Circuits', code: 'VL23008', type: 'Theory', courseType: 'theory' },
+  { name: 'Low Power VLSI Design Techniques', code: 'VL23009', type: 'Theory', courseType: 'theory' },
+  { name: 'Signal Integrity for High-Speed Design', code: 'VL23010', type: 'Theory', courseType: 'theory' },
+
+  // Vertical III: Embedded Systems and Internet of Things
+  { name: 'Microcontroller Based System Design', code: 'VL23011', type: 'Theory', courseType: 'theory' },
+  { name: 'Embedded Artificial Intelligence', code: 'VL23012', type: 'Theory', courseType: 'theory' },
+  { name: 'Introduction To Industry 4.0', code: 'VL23013', type: 'Theory', courseType: 'theory' },
+  { name: 'IOT Processor', code: 'VL23014', type: 'Theory', courseType: 'theory' },
+  { name: 'Data Analytics for IOT', code: 'VL23015', type: 'Theory', courseType: 'theory' },
+  { name: 'Sensor For IOT Application', code: 'VL23016', type: 'Theory', courseType: 'theory' },
+  { name: 'IOT for Smart Agriculture', code: 'VL23017', type: 'Theory', courseType: 'theory' },
+  { name: 'IOT and Edge Computing', code: 'VL23018', type: 'Theory', courseType: 'theory' },
+  { name: 'IOT Security', code: 'VL23019', type: 'Theory', courseType: 'theory' },
+
+  // Vertical IV: CAD and Computational Intelligence
+  { name: 'Soft Computing and Its Applications', code: 'EC23C18', type: 'Theory', courseType: 'theory' },
+  { name: 'Bio-Inspired Computing', code: 'EC23C20', type: 'Theory', courseType: 'theory' },
+  { name: 'Machine Learning in VLSI System Design', code: 'VL23020', type: 'Theory', courseType: 'theory' },
+  { name: 'Neuromorphic Computing and Design', code: 'VL23021', type: 'Theory', courseType: 'theory' },
+  { name: 'Cyber Security', code: 'VL23022', type: 'Theory', courseType: 'theory' },
+  { name: 'Reconfigurable Computing System and Applications', code: 'VL23023', type: 'Theory', courseType: 'theory' },
+  { name: 'Algorithms For VLSI', code: 'VL23024', type: 'Theory', courseType: 'theory' },
+  { name: 'Hardware and Software Aspects of Embedded Systems', code: 'VL23025', type: 'Theory', courseType: 'theory' },
+  { name: 'Scripting Language and Verification', code: 'VL23026', type: 'Theory', courseType: 'theory' },
+  { name: 'Robotics', code: 'EC23C33', type: 'Theory', courseType: 'theory' },
+
+  // Vertical V: Biomedical Technologies
+  { name: 'Biomedical Instrumentation', code: 'EC23C09', type: 'Theory', courseType: 'theory' },
+  { name: 'Biomedical Assist Devices', code: 'EC23C07', type: 'Theory', courseType: 'theory' },
+  { name: 'Biosignal Processing', code: 'VL23027', type: 'Theory', courseType: 'theory' },
+  { name: 'Body Area Network', code: 'BM23C01', type: 'Theory', courseType: 'theory' },
+  { name: 'Brain Computer Interface And Its Applications', code: 'EC23C08', type: 'Theory', courseType: 'theory' },
+  { name: 'Microfluidics Biomedical Devices', code: 'VL23028', type: 'Theory', courseType: 'theory' },
+  { name: 'Human Assist Devices', code: 'VL23029', type: 'Theory', courseType: 'theory' },
+  { name: 'Medical Imaging Systems and Radia Therapy', code: 'VL23030', type: 'Theory', courseType: 'theory' },
+
+  // Vertical VI: Nanoelectronics
+  { name: 'Introduction To Nano Electronics', code: 'EC23C17', type: 'Theory', courseType: 'theory' },
+  { name: 'Advanced MOSFET Modeling', code: 'VL23031', type: 'Theory', courseType: 'theory' },
+  { name: 'Compound Semiconductor Devices', code: 'VL23032', type: 'Theory', courseType: 'theory' },
+  { name: 'Nanosensors And Devices', code: 'VL23033', type: 'Theory', courseType: 'theory' },
+  { name: 'Introduction To Mems and Nems', code: 'EC23C16', type: 'Theory', courseType: 'theory' },
+  { name: 'Nanophotonic Devices', code: 'VL23034', type: 'Theory', courseType: 'theory' },
+  { name: 'Organic Semiconductors and Polymers', code: 'VL23035', type: 'Theory', courseType: 'theory' },
+  { name: 'Solar PV Fundamentals and Applications', code: 'VL23036', type: 'Theory', courseType: 'theory' },
+  { name: 'Wide Bandgap Devices', code: 'VL23037', type: 'Theory', courseType: 'theory' },
+
+  // Vertical VII: Applied Electronics
+  { name: 'Design For Verification using UVM', code: 'VL23038', type: '2-0-2', courseType: '2-0-2' },
+  { name: 'Introduction To VLSI Lifecycle', code: 'VL23039', type: 'Theory', courseType: 'theory' },
+  { name: 'Automotive Electronics', code: 'VL23040', type: 'Theory', courseType: 'theory' },
+  { name: 'PCB And System Design', code: 'VL23041', type: 'Theory', courseType: 'theory' },
+  { name: 'Electronic Packaging Technologies', code: 'VL23042', type: 'Theory', courseType: 'theory' },
+  { name: 'Wireless Sensor Network Design', code: 'EC23C01', type: 'Theory', courseType: 'theory' },
+  { name: 'Natural Language Processing', code: 'VL23043', type: '2-0-2', courseType: '2-0-2' },
+  { name: 'Computer Vision', code: 'VL23044', type: 'Theory', courseType: 'theory' },
+
+  // Vertical VIII: Communication Technologies
+  { name: 'Software Defined Networks', code: 'VL23045', type: 'Theory', courseType: 'theory' },
+  { name: 'Massive MIMO Networks', code: 'VL23046', type: 'Theory', courseType: 'theory' },
+  { name: 'Cryptography And Network Security', code: 'VL23047', type: 'Theory', courseType: 'theory' },
+  { name: 'Optical Communication & Networks', code: 'VL23048', type: 'Theory', courseType: 'theory' },
+  { name: '5g Wireless Communication Networks', code: 'VL23049', type: 'Theory', courseType: 'theory' },
+  { name: 'Wireless Broadband Networks', code: 'VL23050', type: 'Theory', courseType: 'theory' },
+  { name: 'Cognitive Radio Networks', code: 'VL23051', type: 'Theory', courseType: 'theory' },
+];
+
+// VLSI Emerging Technology Courses (ETC-I in Sem 5; ETC-II in Sem 6)
+const VLSI_ETC_COURSES: Array<{ name: string; code: string; type: string; courseType: CourseType }> = [
+  { name: 'Introduction to Machine Learning', code: 'VL23E01', type: '2-0-2', courseType: '2-0-2' },
+  { name: 'VLSI Signal Processing', code: 'VL23E02', type: 'Theory', courseType: 'theory' },
+  { name: 'System Verilog for Verification', code: 'VL23E03', type: '2-0-2', courseType: '2-0-2' },
+  { name: 'Spintronics And Quantum Computing', code: 'VL23E04', type: 'Theory', courseType: 'theory' },
+];
+
+// VLSI Open Electives (OE-I in Sem 6; OE-II in Sem 7)
+const VLSI_OE_COURSES: Array<{ name: string; code: string; type: string; courseType: CourseType }> = [
+  { name: 'Automotive Electronics', code: 'EC23901', type: 'Theory', courseType: 'theory' },
+  { name: 'Electronics Engineering', code: 'EC23902', type: 'Theory', courseType: 'theory' },
+  { name: 'Wireless Technologies', code: 'EC23903', type: 'Theory', courseType: 'theory' },
+  { name: 'Microcontroller Programming', code: 'EC23904', type: 'Theory', courseType: 'theory' },
+  { name: 'Consumer Electronics', code: 'EC23905', type: 'Theory', courseType: 'theory' },
+  { name: 'Principles of Modern Communication System', code: 'EC23906', type: 'Theory', courseType: 'theory' },
+  { name: 'Computer Vision and Machine Learning', code: 'EC23907', type: 'Theory', courseType: 'theory' },
+  { name: 'Robotics and its Applications', code: 'EC23908', type: 'Theory', courseType: 'theory' },
+];
+
+const VLSI_ELECTIVE_OPTION_BOOK: PresetCourse[] = [
+  // Sem 5: Emerging Technology Course I
+  ...VLSI_ETC_COURSES.map((course, idx) => ({
+    id: `vlsi-5-ETC-I-${idx}`,
+    ...course,
+    semester: 5 as SemesterNumber,
+    group: 'elective' as const,
+    electiveSlot: 'Emerging Technology Course I',
+  })),
+
+  // Sem 5: Professional Elective I
+  ...VLSI_VERTICAL_ELECTIVES.map((course, idx) => ({
+    id: `vlsi-5-PE-I-${idx}`,
+    ...course,
+    semester: 5 as SemesterNumber,
+    group: 'elective' as const,
+    electiveSlot: 'Professional Elective I',
+  })),
+
+  // Sem 6: Emerging Technology Course II
+  ...VLSI_ETC_COURSES.map((course, idx) => ({
+    id: `vlsi-6-ETC-II-${idx}`,
+    ...course,
+    semester: 6 as SemesterNumber,
+    group: 'elective' as const,
+    electiveSlot: 'Emerging Technology Course II',
+  })),
+
+  // Sem 6: Professional Elective II
+  ...VLSI_VERTICAL_ELECTIVES.map((course, idx) => ({
+    id: `vlsi-6-PE-II-${idx}`,
+    ...course,
+    semester: 6 as SemesterNumber,
+    group: 'elective' as const,
+    electiveSlot: 'Professional Elective II',
+  })),
+
+  // Sem 6: Professional Elective III
+  ...VLSI_VERTICAL_ELECTIVES.map((course, idx) => ({
+    id: `vlsi-6-PE-III-${idx}`,
+    ...course,
+    semester: 6 as SemesterNumber,
+    group: 'elective' as const,
+    electiveSlot: 'Professional Elective III',
+  })),
+
+  // Sem 6: Open Elective I
+  ...VLSI_OE_COURSES.map((course, idx) => ({
+    id: `vlsi-6-OE-I-${idx}`,
+    ...course,
+    semester: 6 as SemesterNumber,
+    group: 'elective' as const,
+    electiveSlot: 'Open Elective I',
+  })),
+
+  // Sem 7: Professional Elective IV
+  ...VLSI_VERTICAL_ELECTIVES.map((course, idx) => ({
+    id: `vlsi-7-PE-IV-${idx}`,
+    ...course,
+    semester: 7 as SemesterNumber,
+    group: 'elective' as const,
+    electiveSlot: 'Professional Elective IV',
+  })),
+
+  // Sem 7: Professional Elective V
+  ...VLSI_VERTICAL_ELECTIVES.map((course, idx) => ({
+    id: `vlsi-7-PE-V-${idx}`,
+    ...course,
+    semester: 7 as SemesterNumber,
+    group: 'elective' as const,
+    electiveSlot: 'Professional Elective V',
+  })),
+
+  // Sem 7: Professional Elective VI
+  ...VLSI_VERTICAL_ELECTIVES.map((course, idx) => ({
+    id: `vlsi-7-PE-VI-${idx}`,
+    ...course,
+    semester: 7 as SemesterNumber,
+    group: 'elective' as const,
+    electiveSlot: 'Professional Elective VI',
+  })),
+
+  // Sem 7: Open Elective II
+  ...VLSI_OE_COURSES.map((course, idx) => ({
+    id: `vlsi-7-OE-II-${idx}`,
+    ...course,
+    semester: 7 as SemesterNumber,
+    group: 'elective' as const,
+    electiveSlot: 'Open Elective II',
+  })),
+];
+
+export const VLSI_PRESET_COURSES: PresetCourse[] = [
+  // Semester I (23 credits)
+  {
+    id: 'EN23C01_VLSI',
+    name: 'Foundation English',
+    code: 'EN23C01',
+    type: '2-0-2',
+    courseType: '2-0-2',
+    semester: 1,
+    group: 'core',
+  },
+  {
+    id: 'MA23C01_VLSI',
+    name: 'Matrices and Calculus',
+    code: 'MA23C01',
+    type: 'Theory',
+    courseType: 'theory',
+    semester: 1,
+    group: 'core',
+  },
+  {
+    id: 'PH23C01_VLSI',
+    name: 'Engineering Physics',
+    code: 'PH23C01',
+    type: '3-0-2',
+    courseType: '3-0-2',
+    semester: 1,
+    group: 'core',
+  },
+  {
+    id: 'ME23C01_VLSI',
+    name: 'Engineering Drawing and 3D Modelling',
+    code: 'ME23C01',
+    type: '2-0-4',
+    courseType: '2-0-4',
+    semester: 1,
+    group: 'core',
+  },
+  {
+    id: 'CS23C04_VLSI',
+    name: 'Programming in C',
+    code: 'CS23C04',
+    type: '2-0-4',
+    courseType: '2-0-4',
+    semester: 1,
+    group: 'core',
+  },
+  {
+    id: 'ME23C04_VLSI',
+    name: 'Makerspace',
+    code: 'ME23C04',
+    type: '1-0-4',
+    courseType: '1-0-4',
+    semester: 1,
+    group: 'core',
+  },
+  {
+    id: 'UC23H01_VLSI',
+    name: 'Heritage of Tamils',
+    code: 'UC23H01',
+    type: 'Heritage Course · 16% Tests + 4% Activities + 60% ESE',
+    courseType: 'heritage-course',
+    semester: 1,
+    group: 'core',
+  },
+
+  // Semester II (24 credits)
+  {
+    id: 'EN23C02_VLSI',
+    name: 'Professional Communication',
+    code: 'EN23C02',
+    type: '2-0-2',
+    courseType: '2-0-2',
+    semester: 2,
+    group: 'core',
+  },
+  {
+    id: 'MA23C02_VLSI',
+    name: 'Ordinary Differential Equations and Transform Techniques',
+    code: 'MA23C02',
+    type: 'Theory',
+    courseType: 'theory',
+    semester: 2,
+    group: 'core',
+  },
+  {
+    id: 'EC23C03_VLSI',
+    name: 'Electronic Devices',
+    code: 'EC23C03',
+    type: '2-0-4',
+    courseType: '2-0-4',
+    semester: 2,
+    group: 'core',
+  },
+  {
+    id: 'EC23C06_VLSI',
+    name: 'Data Structures and Programming in C++',
+    code: 'EC23C06',
+    type: '2-0-4',
+    courseType: '2-0-4',
+    semester: 2,
+    group: 'core',
+  },
+  {
+    id: 'EC23C04_VLSI',
+    name: 'Circuit Analysis',
+    code: 'EC23C04',
+    type: '3-0-2',
+    courseType: '3-0-2',
+    semester: 2,
+    group: 'core',
+  },
+  {
+    id: 'UC23H02_VLSI',
+    name: 'Tamils and Technology',
+    code: 'UC23H02',
+    type: 'Heritage Course · 16% Tests + 4% Activities + 60% ESE',
+    courseType: 'heritage-course',
+    semester: 2,
+    group: 'core',
+  },
+  {
+    id: 'CY23C01_VLSI',
+    name: 'Engineering Chemistry',
+    code: 'CY23C01',
+    type: '3-0-2',
+    courseType: '3-0-2',
+    semester: 2,
+    group: 'core',
+  },
+
+  // Semester III (23 credits)
+  {
+    id: 'MA23C03_VLSI',
+    name: 'Linear Algebra and Numerical Methods',
+    code: 'MA23C03',
+    type: 'Theory',
+    courseType: 'theory',
+    semester: 3,
+    group: 'core',
+  },
+  {
+    id: 'VL23301_VLSI',
+    name: 'MOS Device Physics and Simulation',
+    code: 'VL23301',
+    type: '3-0-2',
+    courseType: '3-0-2',
+    semester: 3,
+    group: 'core',
+  },
+  {
+    id: 'EC23C13_VLSI',
+    name: 'Digital Electronics and System Design',
+    code: 'EC23C13',
+    type: '3-0-2',
+    courseType: '3-0-2',
+    semester: 3,
+    group: 'core',
+  },
+  {
+    id: 'VL23302_VLSI',
+    name: 'Fundamentals of Signals and Systems',
+    code: 'VL23302',
+    type: 'Theory',
+    courseType: 'theory',
+    semester: 3,
+    group: 'core',
+  },
+  {
+    id: 'EC23C02_VLSI',
+    name: 'Analog Circuits Design',
+    code: 'EC23C02',
+    type: '3-0-2',
+    courseType: '3-0-2',
+    semester: 3,
+    group: 'core',
+  },
+  {
+    id: 'VL23S01_VLSI',
+    name: 'Skill Development Course – I',
+    code: 'VL23S01',
+    type: '1-0-2',
+    courseType: '1-0-2',
+    semester: 3,
+    group: 'core',
+  },
+  {
+    id: 'UC23U01_VLSI',
+    name: 'Universal Human Values',
+    code: 'UC23U01',
+    type: 'Universal Human Values · 70% Tests / 30% Assignments',
+    courseType: 'universal-human-values',
+    semester: 3,
+    group: 'core',
+  },
+
+  // Semester IV (25 credits)
+  {
+    id: 'MA23C05_VLSI',
+    name: 'Probability and Statistics',
+    code: 'MA23C05',
+    type: 'Theory',
+    courseType: 'theory',
+    semester: 4,
+    group: 'core',
+  },
+  {
+    id: 'VL23401_VLSI',
+    name: 'Discrete Time Signal Processing',
+    code: 'VL23401',
+    type: '3-0-2',
+    courseType: '3-0-2',
+    semester: 4,
+    group: 'core',
+  },
+  {
+    id: 'VL23402_VLSI',
+    name: 'Analog and Digital Communication',
+    code: 'VL23402',
+    type: 'Theory',
+    courseType: 'theory',
+    semester: 4,
+    group: 'core',
+  },
+  {
+    id: 'EC23C05_VLSI',
+    name: 'Analog Electronic System Design',
+    code: 'EC23C05',
+    type: '3-0-2',
+    courseType: '3-0-2',
+    semester: 4,
+    group: 'core',
+  },
+  {
+    id: 'EC23C10_VLSI',
+    name: 'Computer Architecture and Organization',
+    code: 'EC23C10',
+    type: 'Theory',
+    courseType: 'theory',
+    semester: 4,
+    group: 'core',
+  },
+  {
+    id: 'EC23C11_VLSI',
+    name: 'Control Systems',
+    code: 'EC23C11',
+    type: 'Theory',
+    courseType: 'theory',
+    semester: 4,
+    group: 'core',
+  },
+  {
+    id: 'VL23S02_VLSI',
+    name: 'Skill Development Course – II',
+    code: 'VL23S02',
+    type: '1-0-2',
+    courseType: '1-0-2',
+    semester: 4,
+    group: 'core',
+  },
+  {
+    id: 'VL23L01_VLSI',
+    name: 'Self Learning Course',
+    code: 'VL23L01',
+    type: 'Self-Learning Course · External Result',
+    courseType: 'self-learning',
+    semester: 4,
+    group: 'core',
+  },
+
+  // Semester V (24 credits)
+  {
+    id: 'EC23C14_VLSI',
+    name: 'Digital VLSI Design',
+    code: 'EC23C14',
+    type: '3-0-2',
+    courseType: '3-0-2',
+    semester: 5,
+    group: 'core',
+  },
+  {
+    id: 'VL23501_VLSI',
+    name: 'RTL Design and Logic Synthesis',
+    code: 'VL23501',
+    type: '1-0-4',
+    courseType: '1-0-4',
+    semester: 5,
+    group: 'core',
+  },
+  {
+    id: 'EC23C21_VLSI',
+    name: 'Microprocessors and Microcontrollers',
+    code: 'EC23C21',
+    type: '3-0-2',
+    courseType: '3-0-2',
+    semester: 5,
+    group: 'core',
+  },
+  {
+    id: 'VL23502_VLSI',
+    name: 'Wireless Communication Technologies',
+    code: 'VL23502',
+    type: 'Theory',
+    courseType: 'theory',
+    semester: 5,
+    group: 'core',
+  },
+  {
+    id: 'IOC_SEM5_I_VLSI',
+    name: 'Industry Oriented Course I',
+    code: 'IOC_SEM5_I',
+    type: 'Industry Oriented Course · Two Equal Tests, No ESE',
+    courseType: 'industry-oriented-tests',
+    semester: 5,
+    group: 'core',
+  },
+  {
+    id: 'UC23E01_VLSI',
+    name: 'Engineering Entrepreneurship Development',
+    code: 'UC23E01',
+    type: '2-0-2',
+    courseType: '2-0-2',
+    semester: 5,
+    group: 'core',
+  },
+
+  // Semester VI (24 credits)
+  {
+    id: 'VL23601_VLSI',
+    name: 'VLSI Verification and Testing',
+    code: 'VL23601',
+    type: '2-0-2',
+    courseType: '2-0-2',
+    semester: 6,
+    group: 'core',
+  },
+  {
+    id: 'VL23602_VLSI',
+    name: 'Electromagnetic Interference and Compatibility for VLSI',
+    code: 'VL23602',
+    type: 'Theory',
+    courseType: 'theory',
+    semester: 6,
+    group: 'core',
+  },
+  {
+    id: 'VL23S03_VLSI',
+    name: 'Skill Development Course – III',
+    code: 'VL23S03',
+    type: 'Theory',
+    courseType: 'theory',
+    semester: 6,
+    group: 'core',
+  },
+  {
+    id: 'IOC_SEM6_II_VLSI',
+    name: 'Industry Oriented Course II',
+    code: 'IOC_SEM6_II',
+    type: 'Industry Oriented Course · Two Equal Tests, No ESE',
+    courseType: 'industry-oriented-tests',
+    semester: 6,
+    group: 'core',
+  },
+  {
+    id: 'VL23U02_VLSI',
+    name: 'Perspectives of Sustainable Development',
+    code: 'VL23U02',
+    type: 'Theory',
+    courseType: 'theory',
+    semester: 6,
+    group: 'core',
+  },
+
+  // Semester VII (22 credits)
+  {
+    id: 'VL23701_VLSI',
+    name: 'ASIC Design',
+    code: 'VL23701',
+    type: '2-0-2',
+    courseType: '2-0-2',
+    semester: 7,
+    group: 'core',
+  },
+  {
+    id: 'VL23702_VLSI',
+    name: 'Embedded Systems',
+    code: 'VL23702',
+    type: '2-0-2',
+    courseType: '2-0-2',
+    semester: 7,
+    group: 'core',
+  },
+  {
+    id: 'VL23703_VLSI',
+    name: 'Idea to Product',
+    code: 'VL23703',
+    type: 'Laboratory Course · 60% CA, 40% ESE',
+    courseType: 'laboratory-course',
+    semester: 7,
+    group: 'core',
+  },
+  {
+    id: 'IOC_SEM7_III_VLSI',
+    name: 'Industry Oriented Course III',
+    code: 'IOC_SEM7_III',
+    type: 'Industry Oriented Course · Two Equal Tests, No ESE',
+    courseType: 'industry-oriented-tests',
+    semester: 7,
+    group: 'core',
+  },
+  {
+    id: 'VL23U01_VLSI',
+    name: 'Standards - Electronics Engineering (VLSI Design and Technology)',
+    code: 'VL23U01',
+    type: 'Standards · Two Equal Tests, No ESE',
+    courseType: 'standards-course',
+    semester: 7,
+    group: 'core',
+  },
+
+  // Semester VIII (8 credits)
+  {
+    id: 'VL23801_VLSI',
+    name: 'Project Work / Internship cum Project Work',
+    code: 'VL23801',
+    type: 'PW · Regulation 17.7 (60% CA / 40% ESE)',
+    courseType: 'project',
+    semester: 8,
+    group: 'core',
+  },
+
+  ...VLSI_ELECTIVE_OPTION_BOOK,
+];
+
+
 export function getPresetCourses(department?: string): PresetCourse[] {
+  if (department === 'VLSI') return VLSI_PRESET_COURSES;
   return department === 'ECE' ? ECE_PRESET_COURSES : CSE_PRESET_COURSES;
 }
 
 export function getElectiveSlotsBySemester(department?: string): Record<number, string[]> {
+  if (department === 'VLSI') return VLSI_ELECTIVE_SLOTS_BY_SEMESTER;
   return department === 'ECE' ? ECE_ELECTIVE_SLOTS_BY_SEMESTER : CSE_ELECTIVE_SLOTS_BY_SEMESTER;
 }
 
 export function getAllPresetCourses(): PresetCourse[] {
-  return [...CSE_PRESET_COURSES, ...ECE_PRESET_COURSES];
+  return [...CSE_PRESET_COURSES, ...ECE_PRESET_COURSES, ...VLSI_PRESET_COURSES];
 }
 
 // Preserve backwards-compatibility for existing code expecting PRESET_COURSES and ELECTIVE_SLOTS_BY_SEMESTER
