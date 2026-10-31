@@ -514,8 +514,8 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
             {completedCourses} of {totalSemesterCourses} courses complete
           </p>
           {incompleteCourses.length > 0 && (
-            <div className="mt-2 rounded-lg border border-slate-300 bg-slate-50 px-3 py-2.5 text-xs leading-relaxed text-slate-600" role="status">
-              <span className="font-bold text-slate-800">Still missing marks: </span>
+            <div className="mt-2 rounded-lg border border-slate-300 bg-slate-50 dark:bg-[#242429] dark:border-[#3a3a42] dark:text-[#c4c4cc] px-3 py-2.5 text-xs leading-relaxed text-slate-600" role="status">
+              <span className="font-bold text-slate-800 dark:text-[#f1f1f3]">Still missing marks: </span>
               {incompleteCourses.slice(0, 3).map((course) => course.name).join(', ')}
               {incompleteCourses.length > 3 ? ` and ${incompleteCourses.length - 3} more` : ''}.
               <span className="block mt-1">Complete these courses before calculating GPA. Your GPA is not calculated from incomplete marks.</span>

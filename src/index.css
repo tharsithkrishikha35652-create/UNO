@@ -738,17 +738,17 @@ input[type="number"]::-webkit-outer-spin-button {
 
 /* Warm charcoal dark mode: stronger, neutral dividers instead of low-contrast slate-blue lines. */
 [data-theme="dark"] .bg-slate-50 {
-  background-color: #29292e;
+  background-color: #29292e !important;
 }
 [data-theme="dark"] .bg-slate-100 {
-  background-color: #161618;
+  background-color: #161618 !important;
 }
 [data-theme="dark"] .bg-slate-200 {
-  background-color: #35353b;
+  background-color: #35353b !important;
 }
 [data-theme="dark"] .bg-blue-50,
 [data-theme="dark"] .bg-blue-100 {
-  background-color: #35353b;
+  background-color: #35353b !important;
 }
 [data-theme="dark"] .border-slate-200,
 [data-theme="dark"] .divide-slate-200 > :not([hidden]) ~ :not([hidden]),
