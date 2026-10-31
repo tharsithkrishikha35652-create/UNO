@@ -462,7 +462,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
             </div>
             <div>
               <p className="text-xs font-bold text-slate-500">
-                Semester {selectedSemester} · {department === 'VLSI' ? 'B.Tech. VLSI' : department === 'ECE' ? 'B.E. ECE' : 'B.E. CSE'}
+                Semester {selectedSemester} · {department === 'ECE' ? 'B.E. ECE' : 'B.E. CSE'}
               </p>
               <h2 className="text-xl sm:text-2xl font-black text-[#172554]">
                 GPA Calculator
@@ -760,7 +760,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
               <div>
                 <div className="flex items-center gap-2">
                   <span className="rounded bg-blue-900/60 border border-blue-400/30 px-2 py-0.5 text-[10px] font-bold text-cyan-300 uppercase">
-                    Semester {selectedSemester} · {department === 'VLSI' ? 'VLSI' : department === 'ECE' ? 'ECE' : 'CSE'}
+                    Semester {selectedSemester} · {department === 'ECE' ? 'ECE' : 'CSE'}
                   </span>
                 </div>
                 <h3 id="custom-grade-modal-title" className="text-lg font-black text-white mt-1">

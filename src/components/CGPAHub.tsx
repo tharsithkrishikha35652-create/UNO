@@ -26,7 +26,7 @@ const getInitialSemesterInputs = (
   department?: string
 ): Record<number, SemesterResultInput> => {
   const courses = getGpaCourses(department);
-  const sem3Credits = department === "VLSI" ? 21 : department === "ECE" ? 20 : 25;
+  const sem3Credits = department === "ECE" ? 20 : 25;
   return Object.fromEntries(
     SEMESTERS.map((semester) => [
       semester,
@@ -149,13 +149,7 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
       total +
       (entry.valid
         ? entry.gpa *
-            (entry.semester === 3
-              ? department === "VLSI"
-                ? 23
-                : department === "ECE"
-                ? 22
-                : 27
-              : entry.credits) -
+            (entry.semester === 3 ? department === "ECE" ? 22 : 27 : entry.credits) -
           (entry.semester === 3 ? 2 * entry.uhvGradePoint : 0)
         : 0),
     0
@@ -352,7 +346,7 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
                           </p>
                           <p className="leading-relaxed text-[11px] text-slate-600">
                             Semester III is counted as{" "}
-                            <strong>{department === "VLSI" ? "21" : department === "ECE" ? "20" : "25"} CGPA credits</strong>. Enter its GPA
+                            <strong>{department === "ECE" ? "20" : "25"} CGPA credits</strong>. Enter its GPA
                             including UHV and the UHV grade point; the hub
                             subtracts UHV’s two-credit contribution.
                           </p>

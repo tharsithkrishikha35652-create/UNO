@@ -18,7 +18,7 @@ import { motionVariants } from '../motion';
 interface AuthScreenProps {
   configurationError?: string;
   forceGoogleAccountSelection?: boolean;
-  onContinueAsGuest: (department: 'CSE' | 'ECE' | 'VLSI') => void;
+  onContinueAsGuest: (department: 'CSE' | 'ECE') => void;
   theme: AppTheme;
   onToggleTheme: () => void;
 }
@@ -81,7 +81,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [showGuestDeptModal, setShowGuestDeptModal] = useState(false);
-  const [guestDeptChoice, setGuestDeptChoice] = useState<'CSE' | 'ECE' | 'VLSI'>('CSE');
+  const [guestDeptChoice, setGuestDeptChoice] = useState<'CSE' | 'ECE'>('CSE');
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -388,12 +388,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
                   title: 'Electronics and Communication Engineering',
                   badge: 'B.E. ECE',
                   desc: 'Anna University Regulations 2023 · CEG Campus',
-                },
-                {
-                  id: 'VLSI' as const,
-                  title: 'Electronics Engineering (VLSI Design and Technology)',
-                  badge: 'B.Tech. VLSI',
-                  desc: 'Anna University Regulations 2023 (Revised 2024) · CEG Campus',
                 },
               ].map((opt) => {
                 const isSelected = guestDeptChoice === opt.id;
