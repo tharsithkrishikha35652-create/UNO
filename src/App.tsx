@@ -15,7 +15,10 @@ import {
   syncScoresArray,
   GRADE_SCALE,
   SPECIAL_GRADES,
+  isGhostPlaceholderCourse,
 } from "./calculatorUtils";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { motionVariants } from "./motion";
 import { ContinuousAssessmentSection } from "./components/ContinuousAssessmentSection";
 import { DynamicScoreBoxes } from "./components/DynamicScoreBoxes";
 import { EndSemesterSection } from "./components/EndSemesterSection";
@@ -71,6 +74,7 @@ import {
   type GpaHistoryEntry,
 } from "./firebaseData";
 import {
+  ArrowLeft,
   BookOpen,
   Calculator,
   ArrowDown,
@@ -390,7 +394,8 @@ function parseLegacySubjects(): SubjectData[] {
         item &&
           typeof item === "object" &&
           typeof item.name === "string" &&
-          item.name.trim()
+          item.name.trim() &&
+          !isGhostPlaceholderCourse(item)
       )
     );
   } catch {
@@ -410,6 +415,7 @@ function WorkspaceLoading({ message }: { message: string }) {
 }
 
 export default function App() {
+  const reduceMotion = useReducedMotion();
   const [user, setUser] = useState<User | null>(null);
   const [guestMode, setGuestMode] = useState(false);
   const [guestDepartment, setGuestDepartment] = useState<'CSE' | 'ECE' | 'VLSI'>('CSE');
@@ -605,6 +611,7 @@ function AuthenticatedApp({
   theme,
   onToggleTheme,
 }: AuthenticatedAppProps) {
+  const reduceMotion = useReducedMotion();
   const [subjects, setSubjects] = useState<SubjectData[]>([]);
   const [profile, setProfile] = useState<AcademicProfileData | null>(() => {
     if (guestMode) {
@@ -783,15 +790,11 @@ function AuthenticatedApp({
       .then((workspace) => {
         if (cancelled) return;
         const loadedSubjects = mergeDuplicateProjectSubjects(
-          workspace.subjects.map(normalizeSubjectForSyllabus)
+          workspace.subjects
+            .filter((s) => !isGhostPlaceholderCourse(s))
+            .map(normalizeSubjectForSyllabus)
         );
         setProfile(workspace.profile);
-        const preferredId = workspace.preferences.currentSubjectId;
-        const selectedId = loadedSubjects.some(
-          (subject) => subject.id === preferredId
-        )
-          ? preferredId
-          : loadedSubjects[0]?.id ?? "";
         const recalculationRequiredTypes = new Set([
           "universal-human-values",
           "standards-course",
@@ -810,7 +813,7 @@ function AuthenticatedApp({
             delete currentCalculationSignatures[subject.id];
         });
         setSubjects(loadedSubjects);
-        setCurrentSubjectId(selectedId);
+
         const firstMatchedCourse = loadedSubjects
           .map((subject) =>
             findPresetForSubject(subject, workspace.profile?.department)
@@ -820,8 +823,25 @@ function AuthenticatedApp({
         const initialSemester =
           savedSemester !== null && savedSemester >= 1 && savedSemester <= 8
             ? (savedSemester as SemesterNumber)
-            : firstMatchedCourse?.semester ?? null;
+            : firstMatchedCourse?.semester ?? 1;
         setSelectedSemester(initialSemester);
+
+        const preferredId = workspace.preferences.currentSubjectId;
+        const matchingSemSubject = loadedSubjects.find(
+          (s) =>
+            s.id === preferredId &&
+            getSubjectSemester(s, workspace.profile?.department) === initialSemester
+        );
+        const firstInSemSubject = loadedSubjects.find(
+          (s) =>
+            getSubjectSemester(s, workspace.profile?.department) === initialSemester
+        );
+        const selectedId =
+          matchingSemSubject?.id ||
+          firstInSemSubject?.id ||
+          loadedSubjects[0]?.id ||
+          "";
+        setCurrentSubjectId(selectedId);
         setIsEditorOpen(false);
         setActiveTab(workspace.preferences.activeTab);
         setIncludeEstimates(workspace.preferences.includeEstimates);
@@ -932,12 +952,26 @@ function AuthenticatedApp({
   }, [currentSubjectId]);
 
   const currentSubject = useMemo(() => {
-    return (
-      subjects.find((s) => s.id === currentSubjectId) ||
-      subjects[0] ||
-      DEFAULT_SUBJECT
+    const found = subjects.find(
+      (s) => s.id === currentSubjectId && !isGhostPlaceholderCourse(s)
     );
-  }, [subjects, currentSubjectId]);
+    if (found) {
+      if (selectedSemester === null) return found;
+      const sem = getSubjectSemester(found, currentDepartment);
+      if (sem === null || sem === selectedSemester) return found;
+    }
+    if (selectedSemester !== null) {
+      const semSubject = subjects.find((s) => {
+        if (isGhostPlaceholderCourse(s)) return false;
+        const sem = getSubjectSemester(s, currentDepartment);
+        return sem === selectedSemester;
+      });
+      if (semSubject) return semSubject;
+    }
+    return (
+      subjects.find((s) => !isGhostPlaceholderCourse(s)) || DEFAULT_SUBJECT
+    );
+  }, [subjects, currentSubjectId, selectedSemester, currentDepartment]);
 
   const hasSubjectSelected = Boolean(
     currentSubject.name && currentSubject.name.trim().length > 0
@@ -1063,10 +1097,20 @@ function AuthenticatedApp({
     const semester = Number(value) as SemesterNumber;
     if (!Number.isInteger(semester) || semester < 1 || semester > 8) {
       setSelectedSemester(null);
+      setIsEditorOpen(false);
       return;
     }
     setSelectedSemester(semester);
     setIsEditorOpen(false);
+    const currentSubjectSem = getSubjectSemester(currentSubject, currentDepartment);
+    if (currentSubjectSem !== null && currentSubjectSem !== semester) {
+      const matchInNewSem = subjects.find(
+        (s) =>
+          !isGhostPlaceholderCourse(s) &&
+          getSubjectSemester(s, currentDepartment) === semester
+      );
+      setCurrentSubjectId(matchInNewSem ? matchInNewSem.id : "");
+    }
     if (activeTab !== "cgpa") setActiveTab("calculator");
     setIsDesktopCoursesOpen(false);
     setShowFeedbackHub(false);
@@ -1154,6 +1198,10 @@ function AuthenticatedApp({
 
   const handleOpenOtherCourse = (subject: SubjectData) => {
     setCurrentSubjectId(subject.id);
+    const subSem = getSubjectSemester(subject, currentDepartment);
+    if (subSem !== null) {
+      setSelectedSemester(subSem as SemesterNumber);
+    }
     setActiveTab("calculator");
     setIsDesktopCoursesOpen(false);
     setShowFeedbackHub(false);
@@ -2002,12 +2050,15 @@ function AuthenticatedApp({
               aria-label="Current subject status"
             >
               <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 px-3 py-2 sm:px-6 lg:px-8 sm:py-2.5">
-                <span
-                  className="truncate text-xs sm:text-sm font-black text-[#172554]"
-                  title={currentSubject.name}
+                <button
+                  type="button"
+                  onClick={() => setIsEditorOpen(false)}
+                  className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-black text-[#172554] hover:text-[#1e3a8a] truncate cursor-pointer text-left"
+                  title="Back to course dashboard"
                 >
-                  {currentSubject.name}
-                </span>
+                  <ArrowLeft className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                  <span className="truncate">{currentSubject.name}</span>
+                </button>
                 {hasEnteredSubjectMarks(currentSubject) && (
                   <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[10px] sm:text-xs font-bold text-amber-800">
                     <AlertCircle
@@ -2131,74 +2182,95 @@ function AuthenticatedApp({
           </section>
         )}
 
-        {showFeedbackHub ? (
-          <FeedbackHub user={user} guestMode={guestMode} />
-        ) : showCredits ? (
-          <CreditsScreen />
-        ) : null}
+        {(() => {
+          const activeScreenKey = showFeedbackHub
+            ? "feedback"
+            : showCredits
+            ? "credits"
+            : isDesktopCoursesOpen
+            ? "courses"
+            : activeTab;
 
-        {!showFeedbackHub && !showCredits && isDesktopCoursesOpen && (
-          <div className="hidden md:block">
-            <DesktopCoursesPanel
-              semester={selectedSemester}
-              courses={semesterCourseRows}
-              electiveSlots={semesterElectiveRows}
-              electiveOptions={mobileElectiveOptions}
-              otherCourses={otherCourseRows}
-              selectedSubjectId={isEditorOpen ? currentSubjectId : ""}
-              allCoursesCalculated={allSemesterCoursesCalculated}
-              onSelectCourse={handleOpenPresetCourse}
-              onSelectElective={handleOpenElectivePicker}
-              onSelectOtherCourse={handleOpenOtherCourse}
-              onCalculateGpa={() => {
-                setIsDesktopCoursesOpen(false);
-                setActiveTab("gpa");
-              }}
-            />
-          </div>
-        )}
+          return (
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={activeScreenKey}
+                variants={reduceMotion ? undefined : motionVariants.page}
+                initial={reduceMotion ? false : "initial"}
+                animate="animate"
+                exit={reduceMotion ? undefined : "exit"}
+              >
+                {activeScreenKey === "feedback" && (
+                  <FeedbackHub user={user} guestMode={guestMode} />
+                )}
 
-        <div className={isDesktopCoursesOpen ? "md:hidden" : ""}>
-          {!showFeedbackHub &&
-            !showCredits &&
-            activeTab === "calculator" &&
-            selectedSemester === null && (
-              <section className="mx-auto my-6 max-w-xl border border-slate-300 bg-white px-4 py-5 text-center shadow-sm sm:px-6 sm:py-6">
-                <h1 className="text-lg font-black text-[#172554]">
-                  Choose your semester
-                </h1>
-                <p className="mx-auto mt-2 max-w-md text-sm text-slate-600">
-                  Select a semester from the menu at the top right to see its
-                  courses and start entering marks.
-                </p>
-              </section>
-            )}
+                {activeScreenKey === "credits" && <CreditsScreen />}
 
-          {!showFeedbackHub &&
-            !showCredits &&
-            activeTab === "calculator" &&
-            selectedSemester !== null && (
-              <div className="min-w-0 space-y-6">
-                <div
-                  className={`min-w-0 ${isEditorOpen ? "hidden md:block" : ""}`}
-                >
-                  <SemesterCourseDashboard
-                    semester={selectedSemester}
-                    courses={semesterCourseRows}
-                    electiveSlots={semesterElectiveRows}
-                    otherCourses={otherCourseRows}
-                    selectedSubjectId={isEditorOpen ? currentSubjectId : ""}
-                    allCoursesCalculated={allSemesterCoursesCalculated}
-                    onSelectCourse={handleOpenPresetCourse}
-                    onSelectElective={handleOpenElectivePicker}
-                    onSelectOtherCourse={handleOpenOtherCourse}
-                    onCalculateGpa={() => setActiveTab("gpa")}
-                  />
-                </div>
+                {activeScreenKey === "courses" && (
+                  <div className="hidden md:block">
+                    <DesktopCoursesPanel
+                      semester={selectedSemester}
+                      courses={semesterCourseRows}
+                      electiveSlots={semesterElectiveRows}
+                      electiveOptions={mobileElectiveOptions}
+                      otherCourses={otherCourseRows}
+                      selectedSubjectId={isEditorOpen ? currentSubjectId : ""}
+                      allCoursesCalculated={allSemesterCoursesCalculated}
+                      onSelectCourse={handleOpenPresetCourse}
+                      onSelectElective={handleOpenElectivePicker}
+                      onSelectOtherCourse={handleOpenOtherCourse}
+                      onCalculateGpa={() => {
+                        setIsDesktopCoursesOpen(false);
+                        setActiveTab("gpa");
+                      }}
+                    />
+                  </div>
+                )}
 
-                {isEditorOpen && hasSubjectSelected && (
-                  <div className="min-w-0">
-                    <SubjectHeader
+                {activeScreenKey === "calculator" && (
+                  <div>
+                    {selectedSemester === null && (
+                      <section className="mx-auto my-6 max-w-xl border border-slate-300 bg-white px-4 py-5 text-center shadow-sm sm:px-6 sm:py-6">
+                        <h1 className="text-lg font-black text-[#172554]">
+                          Choose your semester
+                        </h1>
+                        <p className="mx-auto mt-2 max-w-md text-sm text-slate-600">
+                          Select a semester from the menu at the top right to see its
+                          courses and start entering marks.
+                        </p>
+                      </section>
+                    )}
+
+                    {selectedSemester !== null && (
+                      <div className="min-w-0 space-y-6">
+                        <div
+                          className={`min-w-0 ${isEditorOpen ? "hidden md:block" : ""}`}
+                        >
+                          <SemesterCourseDashboard
+                            semester={selectedSemester}
+                            courses={semesterCourseRows}
+                            electiveSlots={semesterElectiveRows}
+                            otherCourses={otherCourseRows}
+                            selectedSubjectId={isEditorOpen ? currentSubjectId : ""}
+                            allCoursesCalculated={allSemesterCoursesCalculated}
+                            onSelectCourse={handleOpenPresetCourse}
+                            onSelectElective={handleOpenElectivePicker}
+                            onSelectOtherCourse={handleOpenOtherCourse}
+                            onCalculateGpa={() => setActiveTab("gpa")}
+                          />
+                        </div>
+
+                        <AnimatePresence mode="wait" initial={false}>
+                          {isEditorOpen && hasSubjectSelected && (
+                            <motion.div
+                              key={currentSubject.id}
+                              variants={reduceMotion ? undefined : motionVariants.page}
+                              initial={reduceMotion ? false : "initial"}
+                              animate="animate"
+                              exit={reduceMotion ? undefined : "exit"}
+                              className="min-w-0"
+                            >
+<SubjectHeader
                       subject={currentSubject}
                       onResetToBlank={handleReset}
                     />
@@ -2890,14 +2962,16 @@ function AuthenticatedApp({
                         </div>
                       )}
                     </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    )}
                   </div>
                 )}
-              </div>
-            )}
-        </div>
 
-        {!showFeedbackHub && !showCredits && activeTab === "grades" && (
-          <div className="max-w-4xl mx-auto">
+                {activeScreenKey === "grades" && (
+<div className="max-w-4xl mx-auto">
             <div className="bg-white border border-slate-300 p-3 sm:p-5 shadow-sm">
               <h2 className="text-lg font-black text-[#172554] mb-2">
                 Grading of Courses
@@ -2986,30 +3060,29 @@ function AuthenticatedApp({
               </div>
             </div>
           </div>
-        )}
+                )}
 
-        {!showFeedbackHub && !showCredits && activeTab === "gpa" && (
-          <GPACalculator
-            subjects={subjects}
-            calculatedSignatures={calculatedSignatures}
-            history={gpaHistory}
-            onCalculate={handleCalculateGpa}
-            initialSemester={selectedSemester ?? 1}
-            includeEstimates={includeEstimates}
-            estimatePercentage={estimatePercentage}
-            guestMode={guestMode}
-            department={currentDepartment}
-          />
-        )}
-        <div
-          className={
-            !showFeedbackHub && !showCredits && activeTab === "cgpa"
-              ? ""
-              : "hidden"
-          }
-        >
-          <CGPAHub department={currentDepartment} />
-        </div>
+                {activeScreenKey === "gpa" && (
+                  <GPACalculator
+                    subjects={subjects}
+                    calculatedSignatures={calculatedSignatures}
+                    history={gpaHistory}
+                    onCalculate={handleCalculateGpa}
+                    initialSemester={selectedSemester ?? 1}
+                    includeEstimates={includeEstimates}
+                    estimatePercentage={estimatePercentage}
+                    guestMode={guestMode}
+                    department={currentDepartment}
+                  />
+                )}
+
+                {activeScreenKey === "cgpa" && (
+                  <CGPAHub department={currentDepartment} />
+                )}
+              </motion.div>
+            </AnimatePresence>
+          );
+        })()}
       </main>
 
       <MobileCoursesSheet

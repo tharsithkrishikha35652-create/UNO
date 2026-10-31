@@ -13,7 +13,7 @@ import {
   getPresetCourses,
   getElectiveSlotsBySemester,
 } from '../src/components/SubjectSelectionDialog';
-import { getCourseWeights, getCourseType, calculateMarks } from '../src/calculatorUtils';
+import { getCourseWeights, getCourseType, calculateMarks, isGhostPlaceholderCourse } from '../src/calculatorUtils';
 
 describe('Department Course & Curriculum Verification', () => {
   it('verifies CSE total credits is 171 and individual semesters match exactly', () => {
@@ -215,5 +215,16 @@ it('verifies explicit grade-based GPA calculation for a chosen semester', () => 
     expect(totalWeightedPoints).toBe(200);
     expect(Number(gpa.toFixed(2))).toBe(9.52);
   });
-});
+  it('correctly detects obsolete ghost dummy placeholder courses and preserves real courses', () => {
+    expect(isGhostPlaceholderCourse({ name: 'Course 1 (Sem 5)' })).toBe(true);
+    expect(isGhostPlaceholderCourse({ name: 'Course 1 (Sem 1)' })).toBe(true);
+    expect(isGhostPlaceholderCourse({ name: 'Course 2 (Semester 3)' })).toBe(true);
+    expect(isGhostPlaceholderCourse({ name: 'Course 1' })).toBe(true);
+    expect(isGhostPlaceholderCourse({ name: 'Course 9' })).toBe(true);
 
+    expect(isGhostPlaceholderCourse({ name: 'Foundation English' })).toBe(false);
+    expect(isGhostPlaceholderCourse({ name: 'Matrices and Calculus' })).toBe(false);
+    expect(isGhostPlaceholderCourse({ name: 'Digital VLSI Design' })).toBe(false);
+    expect(isGhostPlaceholderCourse({ name: 'Object Oriented Programming' })).toBe(false);
+  });
+});

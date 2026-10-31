@@ -45,12 +45,19 @@ const getInitialSemesterInputs = (
   );
 };
 
+const cachedSemesterInputsByDept: Record<string, Record<number, SemesterResultInput>> = {};
+let cachedSelectedSemester = 1;
+
 export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
   const reduceMotion = useReducedMotion();
-  const [selectedSemester, setSelectedSemester] = useState<number>(1);
-  const [semesterInputs, setSemesterInputs] = useState(() =>
-    getInitialSemesterInputs(department)
-  );
+  const [selectedSemester, setSelectedSemester] = useState<number>(() => cachedSelectedSemester);
+  const [semesterInputs, setSemesterInputs] = useState(() => {
+    const key = department || 'CSE';
+    if (!cachedSemesterInputsByDept[key]) {
+      cachedSemesterInputsByDept[key] = getInitialSemesterInputs(department);
+    }
+    return cachedSemesterInputsByDept[key];
+  });
 
   useEffect(() => {
     setSemesterInputs((prev) => {

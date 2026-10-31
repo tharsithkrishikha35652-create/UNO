@@ -249,7 +249,7 @@ Final grade: Grade ${breakdown.grade.letter} - ${breakdown.grade.label} | Grade 
 
   return (
     <motion.div
-      key={`${subject.id}-${breakdown.total}-${breakdown.grade.letter}`}
+      key={subject.id}
       className="results-summary min-w-0 max-w-full overflow-hidden rounded-xl bg-white border border-slate-300 p-3 sm:p-6 shadow-sm"
       variants={reduceMotion ? undefined : motionVariants.card}
       initial={reduceMotion ? false : 'initial'}

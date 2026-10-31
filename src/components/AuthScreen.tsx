@@ -47,8 +47,13 @@ function friendlyAuthError(error: unknown, provider: 'email' | 'google' = 'email
       return 'An account already exists with this email using a different sign-in method. Log in with that method first.';
     case 'auth/popup-blocked':
       return 'Your browser blocked the Google sign-in window. Allow pop-ups for this site and try again.';
-    case 'auth/unauthorized-domain':
-      return 'This domain is not authorized for Firebase sign-in. Add it under Authentication → Settings → Authorized domains.';
+    case 'auth/unauthorized-domain': {
+      const currentHost = typeof window !== 'undefined' ? window.location.hostname : '';
+      const currentPort = typeof window !== 'undefined' && window.location.port ? `:${window.location.port}` : '';
+      return currentHost === 'localhost' || currentHost === '127.0.0.1'
+        ? 'This domain is not authorized for Firebase sign-in. Add it under Authentication → Settings → Authorized domains.'
+        : `This IP/domain (${currentHost}) is not authorized by Firebase. Open via http://localhost${currentPort} instead, or add ${currentHost} in Firebase Console → Authentication → Settings → Authorized domains.`;
+    }
     case 'auth/operation-not-supported-in-this-environment':
       return 'Google sign-in needs a supported browser window. Open the web app in your browser and try again.';
     case 'auth/too-many-requests':
@@ -176,7 +181,15 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
         </div>
 
         <div className="p-6 sm:p-8">
-          <h2 className="text-xl font-black text-[#172554]">
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={mode}
+            variants={reduceMotion ? undefined : motionVariants.card}
+            initial={reduceMotion ? false : 'initial'}
+            animate="animate"
+            exit={reduceMotion ? undefined : 'exit'}
+          >
+<h2 className="text-xl font-black text-[#172554]">
             {mode === 'signup' ? 'Create your account' : mode === 'reset' ? 'Reset your password' : 'Log in'}
           </h2>
           <p className="text-sm text-slate-600 mt-1">
@@ -317,7 +330,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
               </p>
             ) : null}
           </div>
-        </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
       </motion.section>
 
       {/* Guest Department Selection Modal */}

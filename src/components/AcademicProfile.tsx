@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState, type FormEvent } from 'react';
-import { motion, useReducedMotion } from 'motion/react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { Check, ChevronDown, LoaderCircle, LogOut, MessageSquare, TableProperties, UsersRound, X } from 'lucide-react';
 import type { AcademicProfileData } from '../types';
 import type { SemesterNumber } from './SubjectSelectionDialog';
 import { ThemeToggle, type AppTheme } from './ThemeToggle';
-import { motionVariants } from '../motion';
+import { motionVariants, transitions } from '../motion';
 
 export interface AcademicProfileFormValues extends AcademicProfileData {
   selectedSemester: SemesterNumber;
@@ -22,9 +22,9 @@ interface AcademicProfileFormProps {
 
 const semesterOptions: SemesterNumber[] = [1, 2, 3, 4, 5, 6, 7, 8];
 const DEPARTMENT_OPTIONS = [
-  { value: 'CSE', label: 'Computer Science and Engineering (CSE)', badge: 'B.E. CSE' },
-  { value: 'ECE', label: 'Electronics and Communication Engineering (ECE)', badge: 'B.E. ECE' },
-  { value: 'VLSI', label: 'Electronics Engineering (VLSI Design and Technology)', badge: 'B.Tech. VLSI' },
+  { value: 'CSE', label: 'Computer Science and Engineering (CSE)' },
+  { value: 'ECE', label: 'Electronics and Communication Engineering (ECE)' },
+  { value: 'VLSI', label: 'Electronics Engineering (VLSI Design and Technology)' },
 ] as const;
 
 export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
@@ -210,19 +210,14 @@ export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
                         : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
                     }`}
                   >
-                    <div className="flex flex-col">
-                      <span>{opt.label}</span>
-                      <span className="text-[10px] text-slate-400 font-normal">{opt.badge}</span>
-                    </div>
+                    <span>{opt.label}</span>
                     {isSelected && <Check className="h-4 w-4 shrink-0 text-[#172554]" aria-hidden="true" />}
                   </button>
                 );
               })}
             </div>
           )}
-          <span className="mt-1.5 block text-[11px] text-slate-500">
-            Supported departments: CSE, ECE &amp; VLSI (Regulations 2023)
-          </span>
+
         </div>
 
         {/* Semester Dropdown matching App UI */}
@@ -351,7 +346,7 @@ interface ProfileDrawerProps extends Omit<AcademicProfileFormProps, 'submitLabel
   logoutPending: boolean;
 }
 
-export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
+const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
   isOpen,
   onClose,
   profile,
@@ -419,8 +414,6 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
     if (isOpen) setEditing(false);
   }, [isOpen]);
 
-  if (!isOpen) return null;
-
   return (
     <div className="fixed inset-0 z-[70] h-dvh max-h-dvh overflow-hidden" role="presentation">
       <motion.button
@@ -432,6 +425,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
         variants={reduceMotion ? undefined : motionVariants.backdrop}
         initial={reduceMotion ? { opacity: 1 } : 'initial'}
         animate="animate"
+        exit={reduceMotion ? undefined : 'exit'}
       />
       <motion.aside
         id="academic-profile-drawer"
@@ -441,7 +435,8 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
         className="absolute inset-y-0 left-0 flex h-full max-h-dvh w-[82vw] max-w-sm sm:max-w-md flex-col rounded-r-2xl border-r border-slate-300 bg-white shadow-2xl"
         initial={reduceMotion ? { x: 0 } : { x: '-100%' }}
         animate={{ x: 0 }}
-        transition={{ duration: reduceMotion ? 0 : 0.3, ease: [0.16, 1, 0.3, 1] }}
+        exit={reduceMotion ? undefined : { x: '-100%' }}
+        transition={reduceMotion ? { duration: 0 } : transitions.overlay}
       >
         <header className="flex items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
           <div className="flex items-center gap-2.5">
@@ -625,3 +620,9 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
     </div>
   );
 };
+
+export const ProfileDrawer: React.FC<ProfileDrawerProps> = (props) => (
+  <AnimatePresence initial={false}>
+    {props.isOpen && <ProfileDrawerBody {...props} />}
+  </AnimatePresence>
+);

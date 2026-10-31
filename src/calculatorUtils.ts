@@ -615,3 +615,13 @@ export const DEFAULT_SUBJECT: SubjectData = {
   lab2No: '',
   lab2Scores: [],
 };
+
+/**
+ * Detects obsolete dummy placeholder courses like "Course 1 (Sem 5)" or "Course 1"
+ * created by legacy test iterations before full CEG 2023 syllabi were integrated.
+ */
+export function isGhostPlaceholderCourse(subject: { name?: string } | null | undefined): boolean {
+  if (!subject || typeof subject.name !== 'string') return false;
+  const trimmed = subject.name.trim();
+  return /^course\s+\d+(\s*\((?:sem|semester)\s*\d+\))?$/i.test(trimmed);
+}

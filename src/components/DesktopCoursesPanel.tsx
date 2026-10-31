@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { transitions } from '../motion';
 import { BookOpen, Check, CheckCircle2, Circle, GraduationCap, PencilLine } from 'lucide-react';
 import type { SubjectData } from '../types';
 import type { PresetCourse, SemesterNumber } from './SubjectSelectionDialog';
@@ -23,6 +25,7 @@ interface DesktopCoursesPanelProps {
 }
 
 function CourseProgressStatus({ progress }: { progress: CourseProgress }) {
+  const reduceMotion = useReducedMotion();
   const Icon = progress === 'Calculated'
     ? CheckCircle2
     : progress === 'Marks entered'
@@ -35,10 +38,19 @@ function CourseProgressStatus({ progress }: { progress: CourseProgress }) {
       : 'text-slate-400';
 
   return (
-    <span className="inline-flex shrink-0 items-center gap-2 text-xs font-semibold text-slate-700">
-      <Icon className={`h-4 w-4 ${iconClass}`} aria-hidden="true" />
-      {progress}
-    </span>
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.span
+        key={progress}
+        className="inline-flex shrink-0 items-center gap-2 text-xs font-semibold text-slate-700"
+        initial={reduceMotion ? false : { opacity: 0, scale: 0.85 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={reduceMotion ? undefined : { opacity: 0, scale: 0.85 }}
+        transition={transitions.feedback}
+      >
+        <Icon className={`h-4 w-4 ${iconClass}`} aria-hidden="true" />
+        {progress}
+      </motion.span>
+    </AnimatePresence>
   );
 }
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { animate, useReducedMotion } from 'motion/react';
 import { motionTiming } from '../motion';
 
@@ -11,21 +11,40 @@ interface AnimatedNumberProps {
 /** A result-only counter; never use this around editable input values. */
 export const AnimatedNumber: React.FC<AnimatedNumberProps> = ({ value, decimals = 2, className }) => {
   const reduceMotion = useReducedMotion();
-  const [displayValue, setDisplayValue] = useState(value);
+  // Start at 0 on initial appearance when motion is enabled, or target value when motion is reduced
+  const [displayValue, setDisplayValue] = useState<number>(() => (reduceMotion ? value : 0));
+  const prevValueRef = useRef<number>(reduceMotion ? value : 0);
 
   useEffect(() => {
     if (reduceMotion) {
       setDisplayValue(value);
+      prevValueRef.current = value;
       return;
     }
-    const controls = animate(displayValue, value, {
+
+    const from = prevValueRef.current;
+    const to = value;
+
+    if (from === to) {
+      setDisplayValue(to);
+      return;
+    }
+
+    const controls = animate(from, to, {
       duration: 0.52,
       ease: motionTiming.ease,
-      onUpdate: setDisplayValue,
+      onUpdate: (latest) => {
+        setDisplayValue(latest);
+        prevValueRef.current = latest;
+      },
+      onComplete: () => {
+        prevValueRef.current = to;
+      },
     });
-    return () => controls.stop();
-  // Re-run only for a result value change. displayValue is intentionally the animation's start.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    return () => {
+      controls.stop();
+    };
   }, [value, reduceMotion]);
 
   return <span className={className}>{displayValue.toFixed(decimals)}</span>;

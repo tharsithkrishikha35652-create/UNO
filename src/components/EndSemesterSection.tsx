@@ -1,4 +1,6 @@
 import React from 'react';
+import { motion, useReducedMotion } from 'motion/react';
+import { motionVariants } from '../motion';
 import { GraduationCap, Target, FlaskConical, ChevronDown } from 'lucide-react';
 import { GRADE_SCALE } from '../calculatorUtils';
 import { CourseType } from '../types';
@@ -81,9 +83,10 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
   const numericEse = ese === '' || ese === undefined ? 0 : Number(ese) || 0;
   const numericLabMax = Math.max(1, eseLabMax === '' || eseLabMax === undefined ? 100 : Number(eseLabMax) || 100);
   const numericLab = eseLab === '' || eseLab === undefined ? 0 : Number(eseLab) || 0;
+  const reduceMotion = useReducedMotion();
 
   return (
-    <section className="overflow-hidden rounded-lg bg-white border border-slate-300 mb-8 shadow-sm">
+    <motion.section variants={reduceMotion ? undefined : motionVariants.card} initial={reduceMotion ? false : "initial"} animate="animate" className="overflow-hidden rounded-lg bg-white border border-slate-300 mb-8 shadow-sm">
       {/* Section Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 sm:px-5 bg-[#172554] text-white">
         <div className="flex items-center gap-3">
@@ -432,6 +435,6 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
           </div>
         </div>
       )}
-    </section>
+    </motion.section>
   );
 };

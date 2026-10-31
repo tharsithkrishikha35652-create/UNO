@@ -1,4 +1,6 @@
 import React from 'react';
+import { motion, useReducedMotion } from 'motion/react';
+import { motionVariants } from '../motion';
 import { DynamicScoreBoxes } from './DynamicScoreBoxes';
 import { FileCheck } from 'lucide-react';
 
@@ -81,12 +83,13 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
   const hasLab = labWeight > 0;
   const hasActivities = actWeight > 0;
   const testColumnClass = hasLab ? 'lg:col-span-4' : hasActivities ? 'lg:col-span-6' : 'lg:col-span-12';
+  const reduceMotion = useReducedMotion();
   const currentMax = allowCustomTestMax
     ? Math.max(1, Number(testMax) || 50)
     : (Number(testMax) === 30 ? 30 : 50);
 
   return (
-    <section className="overflow-hidden rounded-xl bg-white border border-slate-300 mb-3 sm:mb-4 shadow-sm">
+    <motion.section variants={reduceMotion ? undefined : motionVariants.card} initial={reduceMotion ? false : "initial"} animate="animate" className="overflow-hidden rounded-xl bg-white border border-slate-300 mb-3 sm:mb-4 shadow-sm">
       {/* Section Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3 py-2 sm:px-4 bg-[#172554] text-white">
         <div className="flex items-center gap-3">
@@ -305,6 +308,6 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
         </div>
         )}
       </div>
-    </section>
+    </motion.section>
   );
 };

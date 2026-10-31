@@ -454,10 +454,10 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
 
   return (
     <section className="max-w-5xl mx-auto space-y-6">
-      <div className="bg-white border border-slate-300 p-5 sm:p-7 shadow-sm">
+      <div className="rounded-xl bg-white border border-slate-300 p-5 sm:p-7 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 flex items-center justify-center bg-[#172554] text-white">
+            <div className="w-11 h-11 flex items-center justify-center bg-[#172554] text-white rounded-xl">
               <GraduationCap className="w-6 h-6" />
             </div>
             <div>
@@ -507,7 +507,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
           </div>
         )}
 
-        <p className="mt-5 border border-blue-200 bg-blue-50 p-4 text-sm font-bold text-[#172554]" role="status">
+        <p className="mt-5 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm font-bold text-[#172554]" role="status">
           Enter all marks for Semester {selectedSemester} before calculating GPA. Change semesters using the selector in the header.
         </p>
           <p className="text-xs font-bold text-[#172554] mt-3" aria-live="polite">
@@ -523,7 +523,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
           )}
       </div>
 
-      <div className="bg-white border border-slate-300 shadow-sm overflow-hidden">
+      <div className="rounded-xl bg-white border border-slate-300 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead className="bg-[#172554] text-white text-xs">
@@ -571,7 +571,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
             type="button"
             onClick={handleCalculateGpa}
             disabled={!gpaReady || isBusy || hasCalculated}
-            className="inline-flex items-center justify-center gap-2 px-5 py-3 text-xs font-bold bg-[#172554] text-white hover:bg-[#1e3a8a] disabled:bg-slate-300 disabled:text-slate-600 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-xs font-bold bg-[#172554] text-white hover:bg-[#1e3a8a] disabled:bg-slate-300 disabled:text-slate-600 disabled:cursor-not-allowed transition-colors cursor-pointer shadow-xs"
           >
             <GraduationCap className="w-4 h-4" aria-hidden="true" />
             {calculationState === 'calculating'
@@ -595,72 +595,106 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
       {(hasCalculated || explicitCalculationResult) && (
         <motion.div
           key={`${selectedSemester}-${displayGpa}-${Boolean(explicitCalculationResult)}`}
-          className="space-y-3 sm:space-y-4"
+          className="space-y-6 sm:space-y-7"
           variants={reduceMotion ? undefined : motionVariants.card}
           initial={reduceMotion ? false : 'initial'}
           animate="animate"
           exit="exit"
         >
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="bg-white border border-slate-300 p-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
+            <div className="flex flex-col justify-between rounded-xl border border-slate-300 bg-white p-4.5 sm:p-5 shadow-xs">
               <p className="text-xs font-bold text-slate-500">Semester GPA</p>
-              <AnimatedNumber value={displayGpa} className="text-3xl font-black text-[#172554] mt-1" />
-              <p className="text-xs text-slate-500">Out of 10.00</p>
+              <AnimatedNumber value={displayGpa} className="my-2 block text-3xl sm:text-4xl font-black text-[#172554] tabular-nums tracking-tight leading-none" />
+              <p className="text-xs font-medium text-slate-500">Out of 10.00</p>
             </div>
-            <div className="bg-white border border-slate-300 p-4">
+            <div className="flex flex-col justify-between rounded-xl border border-slate-300 bg-white p-4.5 sm:p-5 shadow-xs">
               <p className="text-xs font-bold text-slate-500">Total Credits</p>
-              <AnimatedNumber value={displayCredits} decimals={0} className="text-3xl font-black text-[#172554] mt-1" />
-              <p className="text-xs text-slate-500">Across {totalSemesterCourses} courses</p>
+              <AnimatedNumber value={displayCredits} decimals={0} className="my-2 block text-3xl sm:text-4xl font-black text-[#172554] tabular-nums tracking-tight leading-none" />
+              <p className="text-xs font-medium text-slate-500">Across {totalSemesterCourses} courses</p>
             </div>
-            <div className="bg-white border border-slate-300 p-4">
+            <div className="flex flex-col justify-between rounded-xl border border-slate-300 bg-white p-4.5 sm:p-5 shadow-xs">
               <p className="text-xs font-bold text-slate-500">Weighted Grade Points</p>
-              <AnimatedNumber value={displayWeightedPoints} className="text-3xl font-black text-[#172554] mt-1" />
-              <p className="text-xs text-slate-500">Credits × grade points</p>
+              <AnimatedNumber value={displayWeightedPoints} className="my-2 block text-3xl sm:text-4xl font-black text-[#172554] tabular-nums tracking-tight leading-none" />
+              <p className="text-xs font-medium text-slate-500">Credits × grade points</p>
             </div>
           </div>
 
-          <div className="overflow-x-auto border border-slate-300 bg-white shadow-sm">
-            <table className="w-full min-w-[42rem] text-left text-sm">
-              <thead className="bg-[#172554] text-white text-xs">
-                <tr>
-                  <th scope="col" className="px-4 py-3">Course</th>
-                  <th scope="col" className="px-4 py-3 text-center">Credits</th>
-                  <th scope="col" className="px-4 py-3 text-center">Final Mark</th>
-                  <th scope="col" className="px-4 py-3 text-center">Grade</th>
-                  <th scope="col" className="px-4 py-3 text-center">Grade Point</th>
-                  <th scope="col" className="px-4 py-3 text-center">Weighted Points</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200">
-                {displayRows.map((row) => (
-                  <tr key={row.code} className="hover:bg-slate-50">
-                    <td className="px-4 py-3">
-                      <p className="font-bold text-[#172554]">{row.name}</p>
-                      <p className="text-xs text-slate-500">{row.code}</p>
-                    </td>
-                    <td className="px-4 py-3 text-center">{row.credits}</td>
-                    <td className="px-4 py-3 text-center">{explicitCalculationResult ? "Custom" : (row.mark !== undefined && row.mark !== null ? row.mark.toFixed(2) : "-")}</td>
-                    <td className="px-4 py-3 text-center font-bold">{row.grade}</td>
-                    <td className="px-4 py-3 text-center">{row.gradePoint}</td>
-                    <td className="px-4 py-3 text-center">{row.weightedPoints?.toFixed(2)}</td>
+          <div className="overflow-hidden rounded-xl border border-slate-300 bg-white shadow-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-200 bg-slate-50/80 px-4 py-3 sm:px-5">
+              <div>
+                <h3 className="text-sm font-black text-[#172554]">Course Grade &amp; Credit Breakdown</h3>
+                <p className="text-xs text-slate-500">Course-by-course contribution to Semester {selectedSemester} GPA</p>
+              </div>
+              <span className="inline-flex items-center gap-1.5 self-start sm:self-auto rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-[#172554] shadow-2xs">
+                {displayCredits} Credits · {displayRows.length} Courses
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[42rem] text-left text-sm">
+                <thead className="bg-[#172554] text-white text-xs">
+                  <tr>
+                    <th scope="col" className="px-4 py-3 text-left font-bold sm:px-5">Course</th>
+                    <th scope="col" className="px-4 py-3 text-center font-bold">Credits</th>
+                    <th scope="col" className="px-4 py-3 text-center font-bold">Final Mark</th>
+                    <th scope="col" className="px-4 py-3 text-center font-bold">Grade</th>
+                    <th scope="col" className="px-4 py-3 text-center font-bold">Grade Point</th>
+                    <th scope="col" className="px-4 py-3 text-center font-bold sm:px-5">Weighted Points</th>
                   </tr>
-                ))}
-              </tbody>
-              <tfoot className="bg-slate-50 font-black text-[#172554]">
-                <tr>
-                  <td className="px-4 py-3">Total</td>
-                  <td className="px-4 py-3 text-center">{displayCredits}</td>
-                  <td className="px-4 py-3 text-center">—</td>
-                  <td className="px-4 py-3 text-center">—</td>
-                  <td className="px-4 py-3 text-center">—</td>
-                  <td className="px-4 py-3 text-center">{displayWeightedPoints.toFixed(2)}</td>
-                </tr>
-              </tfoot>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-200">
+                  {displayRows.map((row) => (
+                    <tr key={row.code} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="px-4 py-3.5 sm:px-5">
+                        <p className="font-bold text-[#172554]">{row.name}</p>
+                        <p className="text-xs font-mono text-slate-500">{row.code}</p>
+                      </td>
+                      <td className="px-4 py-3.5 text-center tabular-nums font-semibold text-slate-700">{row.credits}</td>
+                      <td className="px-4 py-3.5 text-center tabular-nums text-slate-700">
+                        {explicitCalculationResult ? (
+                          <span className="inline-flex items-center rounded-md border border-blue-200 bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-700">
+                            Custom
+                          </span>
+                        ) : row.mark !== undefined && row.mark !== null ? (
+                          <span className="font-semibold text-slate-800">{row.mark.toFixed(2)}</span>
+                        ) : (
+                          <span className="text-slate-400">—</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3.5 text-center">
+                        <span className="inline-flex min-w-7 items-center justify-center rounded-md border border-slate-200 bg-slate-100 px-2 py-0.5 text-xs font-black text-[#172554]">
+                          {row.grade ?? '—'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3.5 text-center tabular-nums font-semibold text-slate-800">
+                        {row.gradePoint !== null && row.gradePoint !== undefined ? row.gradePoint : '—'}
+                      </td>
+                      <td className="px-4 py-3.5 text-center tabular-nums font-bold text-[#172554] sm:px-5">
+                        {row.weightedPoints !== null && row.weightedPoints !== undefined
+                          ? row.weightedPoints.toFixed(2)
+                          : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot className="border-t-2 border-slate-300 bg-slate-50/90 font-black text-[#172554]">
+                  <tr>
+                    <td className="px-4 py-3.5 text-sm font-black sm:px-5">Total</td>
+                    <td className="px-4 py-3.5 text-center tabular-nums text-sm font-black">{displayCredits}</td>
+                    <td className="px-4 py-3.5 text-center text-slate-400 font-normal">—</td>
+                    <td className="px-4 py-3.5 text-center text-slate-400 font-normal">—</td>
+                    <td className="px-4 py-3.5 text-center text-slate-400 font-normal">—</td>
+                    <td className="px-4 py-3.5 text-center tabular-nums text-sm font-black text-[#172554] sm:px-5">
+                      {displayWeightedPoints.toFixed(2)}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
           </div>
 
-          <p className="text-xs text-slate-500">
+          <p className="px-1 text-xs text-slate-500">
             Total Semester {selectedSemester} credits: {totalCredits}.
           </p>
         </>
@@ -669,34 +703,36 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
       </AnimatePresence>
 
       {history.length > 0 && (
-        <section className="bg-white border border-slate-300 shadow-sm overflow-x-auto" aria-labelledby="gpa-history-heading">
-          <div className="p-4 border-b border-slate-200">
+        <section className="rounded-xl bg-white border border-slate-300 shadow-xs overflow-hidden" aria-labelledby="gpa-history-heading">
+          <div className="p-4 border-b border-slate-200 bg-slate-50/80">
             <h3 id="gpa-history-heading" className="font-black text-[#172554]">GPA history</h3>
           </div>
-          <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 text-xs text-slate-600">
-              <tr>
-                <th scope="col" className="px-4 py-3">Calculated</th>
-                <th scope="col" className="px-4 py-3 text-center">Credits</th>
-                <th scope="col" className="px-4 py-3 text-center">GPA</th>
-                <th scope="col" className="px-4 py-3 text-center">Estimate</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200">
-              {history.map((entry) => (
-                <tr key={entry.id}>
-                  <td className="px-4 py-3">{new Date(entry.createdAtMs).toLocaleString()}</td>
-                  <td className="px-4 py-3 text-center">{entry.totalCredits}</td>
-                  <td className="px-4 py-3 text-center font-black text-[#172554]">{entry.gpa.toFixed(2)}</td>
-                  <td className="px-4 py-3 text-center text-xs">
-                    {entry.estimate?.enabled && entry.estimate.appliedToCourses > 0
-                      ? `${entry.estimate.percentage}% (${entry.estimate.appliedToCourses} courses)`
-                      : '—'}
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-slate-50 text-xs text-slate-600">
+                <tr>
+                  <th scope="col" className="px-4 py-3">Calculated</th>
+                  <th scope="col" className="px-4 py-3 text-center">Credits</th>
+                  <th scope="col" className="px-4 py-3 text-center">GPA</th>
+                  <th scope="col" className="px-4 py-3 text-center">Estimate</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {history.map((entry) => (
+                  <tr key={entry.id}>
+                    <td className="px-4 py-3">{new Date(entry.createdAtMs).toLocaleString()}</td>
+                    <td className="px-4 py-3 text-center">{entry.totalCredits}</td>
+                    <td className="px-4 py-3 text-center font-black text-[#172554]">{entry.gpa.toFixed(2)}</td>
+                    <td className="px-4 py-3 text-center text-xs">
+                      {entry.estimate?.enabled && entry.estimate.appliedToCourses > 0
+                        ? `${entry.estimate.percentage}% (${entry.estimate.appliedToCourses} courses)`
+                        : '—'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </section>
       )}
       {/* Explicit / Custom Grade Entry Modal */}

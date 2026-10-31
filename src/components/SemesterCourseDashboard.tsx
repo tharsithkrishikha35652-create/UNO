@@ -1,6 +1,6 @@
 import React from 'react';
 import { BookOpen, CheckCircle2, Circle, GraduationCap, Pencil, PencilLine } from 'lucide-react';
-import { motion, useReducedMotion } from 'motion/react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import type { SubjectData } from '../types';
 import type { PresetCourse } from './SubjectSelectionDialog';
 import { motionVariants, transitions } from '../motion';
@@ -34,27 +34,35 @@ interface SemesterCourseDashboardProps {
 }
 
 function ProgressMark({ progress, isSelected }: { progress: CourseProgress; isSelected?: boolean }) {
-  if (progress === 'Calculated') {
-    return (
-      <CheckCircle2
-        className={`h-4 w-4 shrink-0 ${isSelected ? 'text-emerald-300' : 'text-emerald-600'}`}
-        aria-label="Calculated"
-      />
-    );
-  }
-  if (progress === 'Marks entered') {
-    return (
-      <PencilLine
-        className={`h-3.5 w-3.5 shrink-0 ${isSelected ? 'text-amber-200' : 'text-blue-800'}`}
-        aria-label="Marks entered"
-      />
-    );
-  }
+  const reduceMotion = useReducedMotion();
   return (
-    <Circle
-      className={`h-3 w-3 shrink-0 ${isSelected ? 'text-white/60' : 'text-slate-400'}`}
-      aria-label="Not started"
-    />
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.span
+        key={progress}
+        className="inline-flex items-center justify-center shrink-0"
+        initial={reduceMotion ? false : { opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={reduceMotion ? undefined : { opacity: 0, scale: 0.8 }}
+        transition={transitions.feedback}
+      >
+        {progress === 'Calculated' ? (
+          <CheckCircle2
+            className={`h-4 w-4 shrink-0 ${isSelected ? 'text-emerald-300' : 'text-emerald-600'}`}
+            aria-label="Calculated"
+          />
+        ) : progress === 'Marks entered' ? (
+          <PencilLine
+            className={`h-3.5 w-3.5 shrink-0 ${isSelected ? 'text-amber-200' : 'text-blue-800'}`}
+            aria-label="Marks entered"
+          />
+        ) : (
+          <Circle
+            className={`h-3 w-3 shrink-0 ${isSelected ? 'text-white/60' : 'text-slate-400'}`}
+            aria-label="Not started"
+          />
+        )}
+      </motion.span>
+    </AnimatePresence>
   );
 }
 

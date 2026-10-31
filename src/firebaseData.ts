@@ -15,6 +15,7 @@ import type { AcademicProfileData, SubjectData } from './types';
 import { db } from './firebase';
 import { GPA_COURSES, getAllGpaCourses } from './gpaCourses';
 import { PRESET_COURSES, getAllPresetCourses } from './components/SubjectSelectionDialog';
+import { isGhostPlaceholderCourse } from './calculatorUtils';
 
 export const FEEDBACK_CATEGORIES = ['General', 'Bug report', 'Suggestion', 'Other'] as const;
 export type FeedbackCategory = (typeof FEEDBACK_CATEGORIES)[number];
@@ -187,12 +188,26 @@ export async function loadUserWorkspace(uid: string): Promise<UserWorkspaceData>
       getDoc(doc(firestore, 'users', uid, 'settings', 'profile')),
     ]);
 
+  // Automatically purge obsolete dummy placeholder courses (e.g. "Course 1 (Sem 5)")
+  const ghostDocs = subjectSnapshot.docs.filter((docSnap) =>
+    isGhostPlaceholderCourse(docSnap.data() as SubjectData)
+  );
+  if (ghostDocs.length > 0) {
+    const batch = writeBatch(firestore);
+    ghostDocs.forEach((d) => {
+      batch.delete(doc(firestore, 'users', uid, 'subjects', d.id));
+      batch.delete(doc(firestore, 'users', uid, 'gradeRecords', d.id));
+    });
+    void batch.commit().catch(() => {});
+  }
+
   const subjects = subjectSnapshot.docs
     .map((snapshot) => {
       const data = snapshot.data();
       const { credits: _credits, updatedAt: _updatedAt, ...subjectData } = data;
       return { ...subjectData, id: snapshot.id, sortIndex: data.sortIndex as number | undefined } as SubjectData & { sortIndex?: number };
     })
+    .filter((subject) => !isGhostPlaceholderCourse(subject))
     .sort((a, b) => (a.sortIndex ?? 0) - (b.sortIndex ?? 0))
     .map(({ sortIndex: _sortIndex, ...subject }) => subject as SubjectData);
   const persistedSubjectSnapshots = new Map(

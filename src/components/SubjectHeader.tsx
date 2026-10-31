@@ -1,21 +1,37 @@
 import React from 'react';
 import { SubjectData } from '../types';
 import { getCourseType, getCourseWeights } from '../calculatorUtils';
-import { RotateCcw } from 'lucide-react';
+import { ArrowLeft, RotateCcw } from 'lucide-react';
 
 interface SubjectHeaderProps {
   subject: SubjectData;
   onResetToBlank: () => void;
+  onBack?: () => void;
+  semester?: number | null;
 }
 
 export const SubjectHeader: React.FC<SubjectHeaderProps> = ({
   subject,
   onResetToBlank,
+  onBack,
+  semester,
 }) => {
   const courseTypeLabel = getCourseWeights(getCourseType(subject)).courseTypeLabel;
 
   return (
     <div className="rounded-lg bg-white border border-slate-300 p-4 sm:p-6 mb-8 shadow-sm">
+      {onBack && (
+        <div className="mb-4 pb-3 border-b border-slate-200">
+          <button
+            type="button"
+            onClick={onBack}
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#172554] hover:text-[#1e3a8a] transition-colors cursor-pointer group"
+          >
+            <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
+            <span>Back to {semester ? `Semester ${semester} Courses` : 'Courses'}</span>
+          </button>
+        </div>
+      )}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         {/* Course Details Selection Dialog Trigger */}
         <div className="flex-1">

@@ -1,4 +1,6 @@
 import React from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { transitions } from '../motion';
 import { Plus, Minus, FlaskConical, FileText } from 'lucide-react';
 
 interface DynamicScoreBoxesProps {
@@ -38,6 +40,7 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
   scoreLabel,
   itemLabel,
 }) => {
+  const reduceMotion = useReducedMotion();
   const numericCount = Math.max(0, parseInt(String(count), 10) || 0);
   const accessibleItemLabel = itemLabel ?? scoreLabel ?? (category === 'assignment' ? 'Assignment' : 'Lab Evaluation');
 
@@ -151,23 +154,44 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
         </div>
 
         {/* Dynamic Entries: Separated only by simple vertical lines with no horizontal borders */}
+        <AnimatePresence initial={false} mode="wait">
         {numericCount === 0 ? (
-          <div className="py-3 text-center text-[#172554] text-xs my-1">
+          <motion.div
+            key="empty"
+            initial={reduceMotion ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={reduceMotion ? undefined : { opacity: 0 }}
+            transition={transitions.feedback}
+            className="py-3 text-center text-[#172554] text-xs my-1"
+          >
             <p className="font-medium text-slate-600">
               Set the number of {category === 'assignment' ? 'assignments' : 'lab practical evaluations'} above
             </p>
-          </div>
+          </motion.div>
         ) : (
-          <div className="my-2 bg-white">
+          <motion.div
+            key="grid"
+            initial={reduceMotion ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={reduceMotion ? undefined : { opacity: 0 }}
+            transition={transitions.feedback}
+            className="my-2 bg-white"
+          >
             <div className="grid grid-cols-2 gap-2 sm:gap-3">
+              <AnimatePresence initial={false}>
               {Array.from({ length: numericCount }).map((_, idx) => {
                 const displayIndex = startIndex + idx;
                 const rawScore = scores[idx];
                 const displayVal = rawScore === undefined || rawScore === null ? '' : rawScore;
 
                 return (
-                  <div
-                    key={idx}
+                  <motion.div
+                    key={`box-${startIndex}-${idx}`}
+                    layout
+                    initial={reduceMotion ? false : { opacity: 0, scale: 0.95, y: 4 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={reduceMotion ? undefined : { opacity: 0, scale: 0.95, y: -4 }}
+                    transition={transitions.state}
                     className="min-w-0 p-1.5 sm:p-2 rounded-lg border border-slate-200 bg-white flex flex-col items-center justify-center hover:bg-slate-50 transition-colors"
                   >
                     <span className="text-[10px] sm:text-xs font-bold text-[#172554] mb-1 whitespace-normal text-center leading-tight">
@@ -209,12 +233,14 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
                       </button>
                       <span className="text-[10px] sm:text-xs font-bold text-[#1e3a8a]">/{maxMarkPerBox}</span>
                     </div>
-                  </div>
+                  </motion.div>
                 );
               })}
+              </AnimatePresence>
             </div>
-          </div>
+          </motion.div>
         )}
+        </AnimatePresence>
       </div>
 
       {/* Marks Contributed for Total at bottom: NO horizontal line and NO rectangular box */}

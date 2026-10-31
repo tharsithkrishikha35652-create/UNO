@@ -8,7 +8,7 @@ import type {
   SemesterCourseRow,
   SemesterElectiveRow,
 } from './SemesterCourseDashboard';
-import { motionVariants } from '../motion';
+import { motionVariants, transitions } from '../motion';
 
 interface MobileCoursesSheetProps {
   isOpen: boolean;
@@ -26,6 +26,7 @@ interface MobileCoursesSheetProps {
 }
 
 function ProgressIndicator({ progress }: { progress: CourseProgress }) {
+  const reduceMotion = useReducedMotion();
   const Icon = progress === 'Calculated'
     ? CheckCircle2
     : progress === 'Marks entered'
@@ -38,10 +39,19 @@ function ProgressIndicator({ progress }: { progress: CourseProgress }) {
       : 'text-slate-400';
 
   return (
-    <span className="inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold text-slate-700">
-      <Icon className={`h-4 w-4 ${iconColor}`} aria-hidden="true" />
-      {progress}
-    </span>
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.span
+        key={progress}
+        className="inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold text-slate-700"
+        initial={reduceMotion ? false : { opacity: 0, scale: 0.85 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={reduceMotion ? undefined : { opacity: 0, scale: 0.85 }}
+        transition={transitions.feedback}
+      >
+        <Icon className={`h-4 w-4 ${iconColor}`} aria-hidden="true" />
+        {progress}
+      </motion.span>
+    </AnimatePresence>
   );
 }
 
