@@ -1358,11 +1358,11 @@ export const SubjectSelectionDialog: React.FC<SubjectSelectionDialogProps> = ({
                     </span>
                     <div className="mt-1 flex items-center gap-1.5 flex-wrap">
                       {course.code && (
-                        <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-600 border border-slate-200">
+                        <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-600 border border-slate-200 font-mono">
                           {course.code}
                         </span>
                       )}
-                      <span className="rounded bg-blue-100/70 px-1.5 py-0.5 text-[10px] font-bold text-blue-900 border border-blue-200/50">
+                      <span className="rounded bg-blue-100/70 px-1.5 py-0.5 text-[10px] font-bold text-blue-900 border border-blue-200/50 font-numeric tabular-nums">
                         {course.type}
                       </span>
                     </div>

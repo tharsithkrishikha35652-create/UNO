@@ -132,7 +132,7 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
                 <div className="min-w-0 flex-1">
                   {course.code && (
                     <span
-                      className={`block text-[10px] font-bold mb-0.5 ${
+                      className={`block text-[10px] font-bold font-mono mb-0.5 ${
                         isSelected ? 'text-blue-100/80' : 'text-slate-500'
                       }`}
                     >
@@ -188,7 +188,7 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
                     </span>
                     {course?.code && (
                       <span
-                        className={`inline-block text-[10px] font-bold ${
+                        className={`inline-block text-[10px] font-bold font-mono ${
                           isSelected ? 'text-blue-200/80' : 'text-slate-400'
                         }`}
                       >
@@ -276,7 +276,7 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
                 <div className="min-w-0 flex-1">
                   {subject.code && (
                     <span
-                      className={`block text-[10px] font-bold mb-0.5 ${
+                      className={`block text-[10px] font-bold font-mono mb-0.5 ${
                         isSelected ? 'text-blue-100/80' : 'text-slate-500'
                       }`}
                     >

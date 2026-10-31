@@ -32,13 +32,13 @@ export const ProjectWorkAssessmentSection: React.FC<ProjectWorkAssessmentSection
       <section className="border border-slate-300 bg-white" aria-label={`${section} assessment components`}>
         <div className="flex items-center justify-between gap-3 bg-[#172554] px-4 py-3 text-white">
           <h3 className="text-sm font-black">{section}</h3>
-          <span className="text-xs font-bold">Total weight: {maxWeight}%</span>
+          <span className="text-xs font-bold tabular-nums font-numeric">Total weight: {maxWeight}%</span>
         </div>
         <div className="divide-y divide-slate-200">
           {components.map((component) => (
             <label key={component.key} className="grid grid-cols-1 gap-2 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_5rem_12rem] sm:items-center">
               <span className="text-sm font-semibold text-[#172554]">{component.label}</span>
-              <span className="text-xs font-bold text-slate-600">{component.weight}%</span>
+              <span className="text-xs font-bold text-slate-600 tabular-nums font-numeric">{component.weight}%</span>
               <span className="flex items-center gap-2">
                 <span className="sr-only">{component.label} score</span>
                 <input
@@ -57,9 +57,9 @@ export const ProjectWorkAssessmentSection: React.FC<ProjectWorkAssessmentSection
                   }}
                   placeholder="Score"
                   aria-label={`${component.label} score out of 100`}
-                  className="w-full border border-slate-300 bg-white px-3 py-2 text-sm font-bold text-[#172554] focus:border-[#172554] focus:outline-none focus:ring-1 focus:ring-[#172554]"
+                  className="w-full border border-slate-300 bg-white px-3 py-2 text-sm font-bold text-[#172554] tabular-nums font-numeric focus:border-[#172554] focus:outline-none focus:ring-1 focus:ring-[#172554]"
                 />
-                <span className="shrink-0 text-xs font-semibold text-slate-600">/ 100</span>
+                <span className="shrink-0 text-xs font-semibold text-slate-600 tabular-nums font-numeric">/ 100</span>
               </span>
             </label>
           ))}

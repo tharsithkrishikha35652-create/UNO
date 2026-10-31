@@ -49,7 +49,7 @@ export const SubjectHeader: React.FC<SubjectHeaderProps> = ({
                   {courseTypeLabel}
                 </span>
                 {subject.code && (
-                  <span className="text-[10px] sm:text-xs font-semibold px-1.5 py-0.5 bg-white border border-slate-300 text-slate-700">
+                  <span className="text-[10px] sm:text-xs font-semibold px-1.5 py-0.5 bg-white border border-slate-300 text-slate-700 font-mono">
                     {subject.code}
                   </span>
                 )}
