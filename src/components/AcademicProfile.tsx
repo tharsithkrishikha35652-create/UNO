@@ -24,6 +24,7 @@ const semesterOptions: SemesterNumber[] = [1, 2, 3, 4, 5, 6, 7, 8];
 const DEPARTMENT_OPTIONS = [
   { value: 'CSE', label: 'Computer Science and Engineering (CSE)' },
   { value: 'ECE', label: 'Electronics and Communication Engineering (ECE)' },
+  { value: 'CIVIL', label: 'Civil Engineering (CIVIL)' },
 ] as const;
 
 export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
@@ -516,6 +517,8 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
                   <dd className="mt-1 text-sm font-bold text-[#172554]">
                     {profile?.department === 'ECE'
                       ? 'Electronics & Communication Engg.'
+                      : profile?.department === 'CIVIL' || profile?.department === 'CE'
+                      ? 'Civil Engineering'
                       : 'Computer Science & Engg.'}
                   </dd>
                 </div>

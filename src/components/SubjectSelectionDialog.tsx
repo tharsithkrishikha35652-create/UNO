@@ -33,6 +33,17 @@ export const ECE_ELECTIVE_SLOTS_BY_SEMESTER: Record<number, string[]> = {
   ],
 };
 
+export const CIVIL_ELECTIVE_SLOTS_BY_SEMESTER: Record<number, string[]> = {
+  5: ['Professional Elective I', 'Professional Elective II', 'Open Elective I'],
+  6: ['Professional Elective III', 'Open Elective II', 'Emerging Technology Course I'],
+  7: [
+    'Professional Elective IV',
+    'Professional Elective V',
+    'Professional Elective VI',
+    'Emerging Technology Course II',
+  ],
+};
+
 
 const CSE_ELECTIVE_COURSE_OPTIONS: Omit<PresetCourse, 'id'>[] = [
   { name: 'Exploratory Data Analysis', code: 'CS23001', type: '2-0-2', courseType: '2-0-2', semester: 5, group: 'elective', electiveSlot: 'Professional Elective I' },
@@ -1148,16 +1159,656 @@ export const ECE_PRESET_COURSES: PresetCourse[] = [
   ...ECE_ELECTIVE_OPTION_BOOK,
 ];
 
+// --- CIVIL PRESET CATALOG (Anna University Regulations 2023 - CEG Campus) ---
+
+// Civil Vertical Electives (PE-I & PE-II in Sem 5; PE-III in Sem 6; PE-IV, PE-V, PE-VI in Sem 7)
+const CIVIL_VERTICAL_ELECTIVES: Array<{ name: string; code: string; type: string; courseType: CourseType }> = [
+  // Vertical I: Structures
+  { name: 'Concrete Technology', code: 'CE23001', type: 'Theory', courseType: 'theory' },
+  { name: 'Prefabricated Structures', code: 'CE23002', type: 'Theory', courseType: 'theory' },
+  { name: 'Prestressed Concrete Structures', code: 'CE23003', type: 'Theory', courseType: 'theory' },
+  { name: 'Structural Retrofit and Rehabilitation', code: 'CE23004', type: 'Theory', courseType: 'theory' },
+  { name: 'Dynamics and Earthquake Resistant Structures', code: 'CE23005', type: 'Theory', courseType: 'theory' },
+  { name: 'Finite Element Method in Civil Engineering', code: 'CE23006', type: 'Theory', courseType: 'theory' },
+
+  // Vertical II: Construction Techniques and Practices
+  { name: 'Construction Equipment and Machinery', code: 'CE23007', type: 'Theory', courseType: 'theory' },
+  { name: 'Construction Project Management Through Lean Concepts', code: 'CE23008', type: 'Theory', courseType: 'theory' },
+  { name: 'Construction Quality and Safety', code: 'CE23009', type: 'Theory', courseType: 'theory' },
+  { name: 'Advanced Construction Techniques', code: 'CE23010', type: 'Theory', courseType: 'theory' },
+  { name: 'Energy Efficient Buildings', code: 'ME23C07', type: 'Theory', courseType: 'theory' },
+  { name: 'Digitalized Construction Lab', code: 'CE23011', type: 'Laboratory · 60% CA / 40% ESE', courseType: 'laboratory-course' },
+
+  // Vertical III: Geotechnical
+  { name: 'Geo-Environmental Engineering', code: 'CE23012', type: 'Theory', courseType: 'theory' },
+  { name: 'Ground Improvement Techniques', code: 'CE23013', type: 'Theory', courseType: 'theory' },
+  { name: 'Soil Dynamics and Machine Foundations', code: 'CE23014', type: 'Theory', courseType: 'theory' },
+  { name: 'Rock Mechanics', code: 'CE23015', type: 'Theory', courseType: 'theory' },
+  { name: 'Earth and Earth Retaining Structures', code: 'CE23016', type: 'Theory', courseType: 'theory' },
+  { name: 'Pile Foundations', code: 'CE23017', type: 'Theory', courseType: 'theory' },
+
+  // Vertical IV: Geo-Informatics
+  { name: 'Environmental Geoinformatics', code: 'GI23C02', type: 'Theory', courseType: 'theory' },
+  { name: 'Transportation Geomatics', code: 'CE23018', type: 'Theory', courseType: 'theory' },
+  { name: 'Geomatics for Hydrology and Water Resources', code: 'GI23C03', type: 'Theory', courseType: 'theory' },
+  { name: 'Geomatics for Disaster and Risk Mitigation', code: 'GI23C04', type: 'Theory', courseType: 'theory' },
+  { name: 'Geomatics for Agriculture and Forestry', code: 'CE23019', type: 'Theory', courseType: 'theory' },
+  { name: 'Geomatics for Ocean and Coastal Applications', code: 'GI23C05', type: 'Theory', courseType: 'theory' },
+
+  // Vertical V: Transportation Infrastructure
+  { name: 'Traffic Engineering and Management', code: 'CE23020', type: 'Theory', courseType: 'theory' },
+  { name: 'Transportation Planning Process', code: 'CE23021', type: 'Theory', courseType: 'theory' },
+  { name: 'Urban and Regional Planning', code: 'CE23022', type: 'Theory', courseType: 'theory' },
+  { name: 'Transport and Environment', code: 'CE23023', type: 'Theory', courseType: 'theory' },
+  { name: 'Smart Cities', code: 'CE23024', type: 'Theory', courseType: 'theory' },
+  { name: 'Intelligent Transportation Systems', code: 'CE23025', type: 'Theory', courseType: 'theory' },
+
+  // Vertical VI: Environment
+  { name: 'Climate Change Adaptation and Mitigation', code: 'CE23026', type: 'Theory', courseType: 'theory' },
+  { name: 'Air Pollution Control Engineering', code: 'CE23027', type: 'Theory', courseType: 'theory' },
+  { name: 'Environmental Impact Assessment', code: 'CE23028', type: 'Theory', courseType: 'theory' },
+  { name: 'Industrial Wastewater Management', code: 'CE23029', type: 'Theory', courseType: 'theory' },
+  { name: 'Solid and Hazardous Waste Management', code: 'CE23030', type: 'Theory', courseType: 'theory' },
+  { name: 'Environmental Legislations in India', code: 'CE23031', type: 'Theory', courseType: 'theory' },
+
+  // Vertical VII: Water Resources
+  { name: 'Hydrology and Water Resources Engineering', code: 'CE23032', type: 'Theory', courseType: 'theory' },
+  { name: 'Integrated Water Resources Management', code: 'CE23033', type: 'Theory', courseType: 'theory' },
+  { name: 'Groundwater Engineering', code: 'CE23034', type: 'Theory', courseType: 'theory' },
+  { name: 'Watershed Management', code: 'CE23035', type: 'Theory', courseType: 'theory' },
+  { name: 'Rainwater Harvesting', code: 'CE23036', type: 'Theory', courseType: 'theory' },
+  { name: 'Water Resources and Global Climate Change', code: 'CE23037', type: 'Theory', courseType: 'theory' },
+
+  // Vertical VIII: Ocean Engineering
+  { name: 'Oceanography', code: 'CE23038', type: 'Theory', courseType: 'theory' },
+  { name: 'Ocean Wave Dynamics', code: 'CE23039', type: 'Theory', courseType: 'theory' },
+  { name: 'Sea Surveying and Monitoring', code: 'CE23040', type: 'Theory', courseType: 'theory' },
+  { name: 'Port and Harbour Engineering', code: 'CE23041', type: 'Theory', courseType: 'theory' },
+  { name: 'Coastal Engineering', code: 'CE23042', type: 'Theory', courseType: 'theory' },
+  { name: 'Offshore Technology', code: 'CE23043', type: 'Theory', courseType: 'theory' },
+];
+
+// Civil Emerging Technology Courses (ETC-I in Sem 6; ETC-II in Sem 7)
+const CIVIL_ETC_COURSES: Array<{ name: string; code: string; type: string; courseType: CourseType }> = [
+  { name: 'Artificial Intelligence in Civil Engineering', code: 'CE23E01', type: 'Theory', courseType: 'theory' },
+  { name: 'Unmanned Aerial System (UAS) For Large Scale Mapping', code: 'CE23E02', type: 'Theory', courseType: 'theory' },
+  { name: 'Robotics in Construction', code: 'CE23E03', type: 'Theory', courseType: 'theory' },
+  { name: 'Advances in Water Resources Engineering', code: 'CE23E04', type: 'Theory', courseType: 'theory' },
+];
+
+// Civil Open Electives (OE-I in Sem 5; OE-II in Sem 6)
+const CIVIL_OE_COURSES: Array<{ name: string; code: string; type: string; courseType: CourseType }> = [
+  { name: 'Sustainable Engineering', code: 'CE23901', type: 'Theory', courseType: 'theory' },
+  { name: 'Waste to Energy', code: 'CE23902', type: 'Theory', courseType: 'theory' },
+  { name: 'Hydrology', code: 'CE23903', type: 'Theory', courseType: 'theory' },
+  { name: 'Automotive Electronics', code: 'EC23901', type: 'Theory', courseType: 'theory' },
+  { name: 'Electronics Engineering', code: 'EC23902', type: 'Theory', courseType: 'theory' },
+  { name: 'Wireless Technologies', code: 'EC23903', type: 'Theory', courseType: 'theory' },
+  { name: 'Microcontroller Programming', code: 'EC23904', type: 'Theory', courseType: 'theory' },
+  { name: 'Consumer Electronics', code: 'EC23905', type: 'Theory', courseType: 'theory' },
+  { name: 'Robotics and its Applications', code: 'EC23908', type: 'Theory', courseType: 'theory' },
+  { name: 'UI and UX Design', code: 'CS23013', type: '2-0-2', courseType: '2-0-2' },
+  { name: 'Web Technologies', code: 'CS23010', type: '2-0-2', courseType: '2-0-2' },
+];
+
+const CIVIL_ELECTIVE_OPTION_BOOK: PresetCourse[] = [
+  // Sem 5: Professional Elective I
+  ...CIVIL_VERTICAL_ELECTIVES.map((course, idx) => ({
+    id: `civil-5-PE-I-${idx}`,
+    ...course,
+    semester: 5 as SemesterNumber,
+    group: 'elective' as const,
+    electiveSlot: 'Professional Elective I',
+  })),
+
+  // Sem 5: Professional Elective II
+  ...CIVIL_VERTICAL_ELECTIVES.map((course, idx) => ({
+    id: `civil-5-PE-II-${idx}`,
+    ...course,
+    semester: 5 as SemesterNumber,
+    group: 'elective' as const,
+    electiveSlot: 'Professional Elective II',
+  })),
+
+  // Sem 5: Open Elective I
+  ...CIVIL_OE_COURSES.map((course, idx) => ({
+    id: `civil-5-OE-I-${idx}`,
+    ...course,
+    semester: 5 as SemesterNumber,
+    group: 'elective' as const,
+    electiveSlot: 'Open Elective I',
+  })),
+
+  // Sem 6: Professional Elective III
+  ...CIVIL_VERTICAL_ELECTIVES.map((course, idx) => ({
+    id: `civil-6-PE-III-${idx}`,
+    ...course,
+    semester: 6 as SemesterNumber,
+    group: 'elective' as const,
+    electiveSlot: 'Professional Elective III',
+  })),
+
+  // Sem 6: Open Elective II
+  ...CIVIL_OE_COURSES.map((course, idx) => ({
+    id: `civil-6-OE-II-${idx}`,
+    ...course,
+    semester: 6 as SemesterNumber,
+    group: 'elective' as const,
+    electiveSlot: 'Open Elective II',
+  })),
+
+  // Sem 6: Emerging Technology Course I
+  ...CIVIL_ETC_COURSES.map((course, idx) => ({
+    id: `civil-6-ETC-I-${idx}`,
+    ...course,
+    semester: 6 as SemesterNumber,
+    group: 'elective' as const,
+    electiveSlot: 'Emerging Technology Course I',
+  })),
+
+  // Sem 7: Professional Elective IV
+  ...CIVIL_VERTICAL_ELECTIVES.map((course, idx) => ({
+    id: `civil-7-PE-IV-${idx}`,
+    ...course,
+    semester: 7 as SemesterNumber,
+    group: 'elective' as const,
+    electiveSlot: 'Professional Elective IV',
+  })),
+
+  // Sem 7: Professional Elective V
+  ...CIVIL_VERTICAL_ELECTIVES.map((course, idx) => ({
+    id: `civil-7-PE-V-${idx}`,
+    ...course,
+    semester: 7 as SemesterNumber,
+    group: 'elective' as const,
+    electiveSlot: 'Professional Elective V',
+  })),
+
+  // Sem 7: Professional Elective VI
+  ...CIVIL_VERTICAL_ELECTIVES.map((course, idx) => ({
+    id: `civil-7-PE-VI-${idx}`,
+    ...course,
+    semester: 7 as SemesterNumber,
+    group: 'elective' as const,
+    electiveSlot: 'Professional Elective VI',
+  })),
+
+  // Sem 7: Emerging Technology Course II
+  ...CIVIL_ETC_COURSES.map((course, idx) => ({
+    id: `civil-7-ETC-II-${idx}`,
+    ...course,
+    semester: 7 as SemesterNumber,
+    group: 'elective' as const,
+    electiveSlot: 'Emerging Technology Course II',
+  })),
+];
+
+export const CIVIL_PRESET_COURSES: PresetCourse[] = [
+  // Semester I (22 credits)
+  {
+    id: 'EN23C05',
+    name: 'Foundation English',
+    code: 'EN23C05',
+    type: '2-0-2',
+    courseType: '2-0-2',
+    semester: 1,
+    group: 'core',
+  },
+  {
+    id: 'MA23C11_CIVIL',
+    name: 'Calculus',
+    code: 'MA23C11',
+    type: 'Theory',
+    courseType: 'theory',
+    semester: 1,
+    group: 'core',
+  },
+  {
+    id: 'CY23C10_CIVIL',
+    name: 'Engineering Chemistry',
+    code: 'CY23C10',
+    type: '3-0-2',
+    courseType: '3-0-2',
+    semester: 1,
+    group: 'core',
+  },
+  {
+    id: 'EE23C02_CIVIL',
+    name: 'Fundamentals of Electrical and Electronics Engineering',
+    code: 'EE23C02',
+    type: 'Theory',
+    courseType: 'theory',
+    semester: 1,
+    group: 'core',
+  },
+  {
+    id: 'ME23C01_CIVIL',
+    name: 'Engineering Drawing and 3D Modelling',
+    code: 'ME23C01',
+    type: '2-0-4',
+    courseType: '2-0-4',
+    semester: 1,
+    group: 'core',
+  },
+  {
+    id: 'ME23C04_CIVIL',
+    name: 'Makerspace',
+    code: 'ME23C04',
+    type: '1-0-4',
+    courseType: '1-0-4',
+    semester: 1,
+    group: 'core',
+  },
+  {
+    id: 'UC23H01_CIVIL',
+    name: 'Heritage of Tamils',
+    code: 'UC23H01',
+    type: 'Theory',
+    courseType: 'heritage-course',
+    semester: 1,
+    group: 'core',
+  },
+  {
+    id: 'AUDIT_COURSE_I_CIVIL',
+    name: 'Audit Course I',
+    code: '',
+    type: 'Two Tests · Equal Weight · No ESE',
+    courseType: 'audit-course',
+    semester: 1,
+    group: 'core',
+  },
+
+  // Semester II (23 credits)
+  {
+    id: 'EN23C04_CIVIL',
+    name: 'Professional Communication',
+    code: 'EN23C04',
+    type: '2-0-2',
+    courseType: '2-0-2',
+    semester: 2,
+    group: 'core',
+  },
+  {
+    id: 'MA23C02_CIVIL',
+    name: 'Ordinary Differential Equations and Transform Techniques',
+    code: 'MA23C02',
+    type: 'Theory',
+    courseType: 'theory',
+    semester: 2,
+    group: 'core',
+  },
+  {
+    id: 'PH23C11_CIVIL',
+    name: 'Engineering Physics',
+    code: 'PH23C11',
+    type: '3-0-2',
+    courseType: '3-0-2',
+    semester: 2,
+    group: 'core',
+  },
+  {
+    id: 'CS23C04_CIVIL',
+    name: 'Programming in C',
+    code: 'CS23C04',
+    type: '2-0-4',
+    courseType: '2-0-4',
+    semester: 2,
+    group: 'core',
+  },
+  {
+    id: 'GY23C01',
+    name: 'Engineering Geology',
+    code: 'GY23C01',
+    type: '2-0-2',
+    courseType: '2-0-2',
+    semester: 2,
+    group: 'core',
+  },
+  {
+    id: 'ME23C03',
+    name: 'Engineering Mechanics',
+    code: 'ME23C03',
+    type: 'Theory',
+    courseType: 'theory',
+    semester: 2,
+    group: 'core',
+  },
+  {
+    id: 'UC23H02_CIVIL',
+    name: 'Tamils and Technology',
+    code: 'UC23H02',
+    type: 'Theory',
+    courseType: 'heritage-course',
+    semester: 2,
+    group: 'core',
+  },
+
+  // Semester III (26 credits)
+  {
+    id: 'CE23301',
+    name: 'Strength of Materials - I',
+    code: 'CE23301',
+    type: '3-0-2',
+    courseType: '3-0-2',
+    semester: 3,
+    group: 'core',
+  },
+  {
+    id: 'CE23302',
+    name: 'Construction Engineering',
+    code: 'CE23302',
+    type: '3-0-2',
+    courseType: '3-0-2',
+    semester: 3,
+    group: 'core',
+  },
+  {
+    id: 'CE23303',
+    name: 'Fluid Mechanics',
+    code: 'CE23303',
+    type: '3-0-2',
+    courseType: '3-0-2',
+    semester: 3,
+    group: 'core',
+  },
+  {
+    id: 'CE23304',
+    name: 'Railways, Airports and Harbour Engineering',
+    code: 'CE23304',
+    type: 'Theory',
+    courseType: 'theory',
+    semester: 3,
+    group: 'core',
+  },
+  {
+    id: 'CE23305',
+    name: 'Water Supply Engineering',
+    code: 'CE23305',
+    type: '3-0-2',
+    courseType: '3-0-2',
+    semester: 3,
+    group: 'core',
+  },
+  {
+    id: 'CE23C04',
+    name: 'Principles of Surveying',
+    code: 'CE23C04',
+    type: '3-0-4',
+    courseType: '3-0-4',
+    semester: 3,
+    group: 'core',
+  },
+  {
+    id: 'CE23S01',
+    name: 'Skill Development Course – I',
+    code: 'CE23S01',
+    type: 'SDC · 60% CA / 40% ESE',
+    courseType: 'self-development',
+    semester: 3,
+    group: 'core',
+  },
+  {
+    id: 'AUDIT_COURSE_II_CIVIL',
+    name: 'Audit Course II',
+    code: '',
+    type: 'Two Tests · Equal Weight · No ESE',
+    courseType: 'audit-course',
+    semester: 3,
+    group: 'core',
+  },
+
+  // Semester IV (26 credits)
+  {
+    id: 'CE23401',
+    name: 'Strength of Materials - II',
+    code: 'CE23401',
+    type: 'Theory',
+    courseType: 'theory',
+    semester: 4,
+    group: 'core',
+  },
+  {
+    id: 'CE23402',
+    name: 'Soil Mechanics',
+    code: 'CE23402',
+    type: '3-0-4',
+    courseType: '3-0-4',
+    semester: 4,
+    group: 'core',
+  },
+  {
+    id: 'CE23403',
+    name: 'Applied Hydraulic Engineering',
+    code: 'CE23403',
+    type: '3-0-2',
+    courseType: '3-0-2',
+    semester: 4,
+    group: 'core',
+  },
+  {
+    id: 'CE23404',
+    name: 'Highway Engineering',
+    code: 'CE23404',
+    type: '3-0-4',
+    courseType: '3-0-4',
+    semester: 4,
+    group: 'core',
+  },
+  {
+    id: 'CE23405',
+    name: 'Waste Water Engineering',
+    code: 'CE23405',
+    type: '3-0-2',
+    courseType: '3-0-2',
+    semester: 4,
+    group: 'core',
+  },
+  {
+    id: 'CE23U01',
+    name: 'Standards – Civil Engineering',
+    code: 'CE23U01',
+    type: 'Two Tests · Equal Weight · No ESE',
+    courseType: 'standards-course',
+    semester: 4,
+    group: 'core',
+  },
+  {
+    id: 'UC23U01_CIVIL',
+    name: 'Universal Human Values',
+    code: 'UC23U01',
+    type: 'Test 70% · Assignments 30%',
+    courseType: 'universal-human-values',
+    semester: 4,
+    group: 'core',
+  },
+  {
+    id: 'CE23S02',
+    name: 'Skill Development Course – II',
+    code: 'CE23S02',
+    type: 'SDC · 60% CA / 40% ESE',
+    courseType: 'self-development',
+    semester: 4,
+    group: 'core',
+  },
+
+  // Semester V (25 credits)
+  {
+    id: 'CE23501',
+    name: 'Structural Analysis - I',
+    code: 'CE23501',
+    type: 'Theory',
+    courseType: 'theory',
+    semester: 5,
+    group: 'core',
+  },
+  {
+    id: 'CE23502',
+    name: 'Design of Reinforced Cement Concrete Structures',
+    code: 'CE23502',
+    type: 'Theory',
+    courseType: 'theory',
+    semester: 5,
+    group: 'core',
+  },
+  {
+    id: 'CE23503',
+    name: 'Foundation Engineering',
+    code: 'CE23503',
+    type: 'Theory',
+    courseType: 'theory',
+    semester: 5,
+    group: 'core',
+  },
+  {
+    id: 'CE23504',
+    name: 'Environmental Engineering Drawing',
+    code: 'CE23504',
+    type: 'Laboratory · 60% CA / 40% ESE',
+    courseType: 'laboratory-course',
+    semester: 5,
+    group: 'core',
+  },
+  {
+    id: 'CE23U02',
+    name: 'Perspectives of Sustainable Development',
+    code: 'CE23U02',
+    type: '2-0-2',
+    courseType: '2-0-2',
+    semester: 5,
+    group: 'core',
+  },
+  {
+    id: 'CE23S03',
+    name: 'Skill Development Course – III',
+    code: 'CE23S03',
+    type: 'SDC · 60% CA / 40% ESE',
+    courseType: 'self-development',
+    semester: 5,
+    group: 'core',
+  },
+  {
+    id: 'IOC_SEM5_I_CIVIL',
+    name: 'Industry Oriented Course I',
+    code: '',
+    type: 'Two Tests · 50% each',
+    courseType: 'industry-oriented-tests',
+    semester: 5,
+    group: 'core',
+  },
+
+  // Semester VI (21 credits)
+  {
+    id: 'CE23601',
+    name: 'Structural Analysis - II',
+    code: 'CE23601',
+    type: 'Theory',
+    courseType: 'theory',
+    semester: 6,
+    group: 'core',
+  },
+  {
+    id: 'CE23602',
+    name: 'Design of Steel Structures',
+    code: 'CE23602',
+    type: 'Theory',
+    courseType: 'theory',
+    semester: 6,
+    group: 'core',
+  },
+  {
+    id: 'CE23603',
+    name: 'Building and Structural Drawing',
+    code: 'CE23603',
+    type: 'Laboratory · 60% CA / 40% ESE',
+    courseType: 'laboratory-course',
+    semester: 6,
+    group: 'core',
+  },
+  {
+    id: 'UC23E01_CIVIL',
+    name: 'Engineering Entrepreneurship Development',
+    code: 'UC23E01',
+    type: '2-0-2',
+    courseType: '2-0-2',
+    semester: 6,
+    group: 'core',
+  },
+  {
+    id: 'IOC_SEM6_II_CIVIL',
+    name: 'Industry Oriented Course II',
+    code: '',
+    type: 'Two Tests · 50% each',
+    courseType: 'industry-oriented-tests',
+    semester: 6,
+    group: 'core',
+  },
+
+  // Semester VII (21 credits)
+  {
+    id: 'CE23701',
+    name: 'Irrigation Engineering',
+    code: 'CE23701',
+    type: '3-0-2',
+    courseType: '3-0-2',
+    semester: 7,
+    group: 'core',
+  },
+  {
+    id: 'CE23702',
+    name: 'Estimation, Costing and Valuation Engineering',
+    code: 'CE23702',
+    type: 'Theory',
+    courseType: 'theory',
+    semester: 7,
+    group: 'core',
+  },
+  {
+    id: 'IOC_SEM7_III_CIVIL',
+    name: 'Industry Oriented Course III',
+    code: '',
+    type: 'Two Tests · 50% each',
+    courseType: 'industry-oriented-tests',
+    semester: 7,
+    group: 'core',
+  },
+  {
+    id: 'CE23L01_CIVIL',
+    name: 'Self-Learning Course',
+    code: 'CE23L01',
+    type: 'Pass / Fail (Credits Awarded)',
+    courseType: 'self-learning',
+    semester: 7,
+    group: 'core',
+  },
+
+  // Semester VIII (8 credits)
+  {
+    id: 'CE23801',
+    name: 'Project Work / Internship cum Project Work',
+    code: 'CE23801',
+    type: 'PW · Regulation 17.7 (60% CA / 40% ESE)',
+    courseType: 'project',
+    semester: 8,
+    group: 'core',
+  },
+
+  ...CIVIL_ELECTIVE_OPTION_BOOK,
+];
+
 export function getPresetCourses(department?: string): PresetCourse[] {
-    return department === 'ECE' ? ECE_PRESET_COURSES : CSE_PRESET_COURSES;
+  if (department === 'ECE') return ECE_PRESET_COURSES;
+  if (department === 'CIVIL' || department === 'CE') return CIVIL_PRESET_COURSES;
+  return CSE_PRESET_COURSES;
 }
 
 export function getElectiveSlotsBySemester(department?: string): Record<number, string[]> {
-    return department === 'ECE' ? ECE_ELECTIVE_SLOTS_BY_SEMESTER : CSE_ELECTIVE_SLOTS_BY_SEMESTER;
+  if (department === 'ECE') return ECE_ELECTIVE_SLOTS_BY_SEMESTER;
+  if (department === 'CIVIL' || department === 'CE') return CIVIL_ELECTIVE_SLOTS_BY_SEMESTER;
+  return CSE_ELECTIVE_SLOTS_BY_SEMESTER;
 }
 
 export function getAllPresetCourses(): PresetCourse[] {
-  return [...CSE_PRESET_COURSES, ...ECE_PRESET_COURSES];
+  return [...CSE_PRESET_COURSES, ...ECE_PRESET_COURSES, ...CIVIL_PRESET_COURSES];
 }
 
 // Preserve backwards-compatibility for existing code expecting PRESET_COURSES and ELECTIVE_SLOTS_BY_SEMESTER

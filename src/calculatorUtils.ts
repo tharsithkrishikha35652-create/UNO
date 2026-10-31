@@ -162,7 +162,13 @@ export function getCourseType(data: SubjectData): CourseType {
     normalizedName === 'standards electronics and communication engineering' ||
     normalizedName.startsWith('standards')
   ) return 'standards-course';
-  if (normalizedName === 'mini project' || normalizedName === 'idea to product') return 'laboratory-course';
+  if (
+    normalizedName === 'mini project' ||
+    normalizedName === 'idea to product' ||
+    normalizedName === 'building and structural drawing' ||
+    normalizedName === 'environmental engineering drawing' ||
+    normalizedName === 'digitalized construction lab'
+  ) return 'laboratory-course';
   if (normalizedName === 'self learning course') return 'self-learning';
   if (normalizedName === 'audit course i' || normalizedName === 'audit course ii') return 'audit-course';
   if (normalizedName === 'heritage of tamils' || normalizedName === 'tamils and technology') return 'heritage-course';

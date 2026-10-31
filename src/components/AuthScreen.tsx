@@ -18,7 +18,7 @@ import { motionVariants } from '../motion';
 interface AuthScreenProps {
   configurationError?: string;
   forceGoogleAccountSelection?: boolean;
-  onContinueAsGuest: (department: 'CSE' | 'ECE') => void;
+  onContinueAsGuest: (department: 'CSE' | 'ECE' | 'CIVIL') => void;
   theme: AppTheme;
   onToggleTheme: () => void;
 }
@@ -81,7 +81,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [showGuestDeptModal, setShowGuestDeptModal] = useState(false);
-  const [guestDeptChoice, setGuestDeptChoice] = useState<'CSE' | 'ECE'>('CSE');
+  const [guestDeptChoice, setGuestDeptChoice] = useState<'CSE' | 'ECE' | 'CIVIL'>('CSE');
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -387,6 +387,12 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
                   id: 'ECE' as const,
                   title: 'Electronics and Communication Engineering',
                   badge: 'B.E. ECE',
+                  desc: 'Anna University Regulations 2023 · CEG Campus',
+                },
+                {
+                  id: 'CIVIL' as const,
+                  title: 'Civil Engineering',
+                  badge: 'B.E. CIVIL',
                   desc: 'Anna University Regulations 2023 · CEG Campus',
                 },
               ].map((opt) => {

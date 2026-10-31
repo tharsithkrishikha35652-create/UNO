@@ -2,12 +2,14 @@ import { describe, it, expect } from 'vitest';
 import {
   CSE_GPA_COURSES,
   ECE_GPA_COURSES,
+  CIVIL_GPA_COURSES,
   getGpaCourses,
   getAllGpaCourses,
 } from '../src/gpaCourses';
 import {
   CSE_PRESET_COURSES,
   ECE_PRESET_COURSES,
+  CIVIL_PRESET_COURSES,
   getPresetCourses,
   getElectiveSlotsBySemester,
 } from '../src/components/SubjectSelectionDialog';
@@ -31,13 +33,76 @@ describe('Department Course & Curriculum Verification', () => {
     expect(eceSemCredits.reduce((a, b) => a + b, 0)).toBe(170);
   });
 
+  it('verifies Civil Engineering total credits is 172 and individual semesters match CEG curriculum exactly', () => {
+    const civilSemCredits = [1, 2, 3, 4, 5, 6, 7, 8].map((sem) =>
+      CIVIL_GPA_COURSES.filter((c) => c.semester === sem).reduce((s, c) => s + c.credits, 0)
+    );
+    // Sem 1: 22, Sem 2: 23, Sem 3: 26, Sem 4: 26, Sem 5: 25, Sem 6: 21, Sem 7: 21, Sem 8: 8
+    expect(civilSemCredits).toEqual([22, 23, 26, 26, 25, 21, 21, 8]);
+    expect(civilSemCredits.reduce((a, b) => a + b, 0)).toBe(172);
+  });
+
+  it('verifies getPresetCourses and elective slots for Civil Engineering', () => {
+    expect(getPresetCourses('CIVIL')).toBe(CIVIL_PRESET_COURSES);
+    expect(getPresetCourses('CE')).toBe(CIVIL_PRESET_COURSES);
+
+    const civilSlots = getElectiveSlotsBySemester('CIVIL');
+    expect(civilSlots[5]).toEqual(['Professional Elective I', 'Professional Elective II', 'Open Elective I']);
+    expect(civilSlots[6]).toEqual(['Professional Elective III', 'Open Elective II', 'Emerging Technology Course I']);
+    expect(civilSlots[7]).toEqual([
+      'Professional Elective IV',
+      'Professional Elective V',
+      'Professional Elective VI',
+      'Emerging Technology Course II',
+    ]);
+  });
+
+  it('verifies Civil Engineering specific course types and weights', () => {
+    expect(getCourseType({ id: 'ce1', name: 'Building and Structural Drawing', courseType: 'laboratory-course' } as any)).toBe('laboratory-course');
+    expect(getCourseType({ id: 'ce2', name: 'Environmental Engineering Drawing', courseType: 'laboratory-course' } as any)).toBe('laboratory-course');
+    expect(getCourseType({ id: 'ce3', name: 'Digitalized Construction Lab', courseType: 'laboratory-course' } as any)).toBe('laboratory-course');
+    expect(getCourseType({ id: 'ce4', name: 'Standards – Civil Engineering', courseType: 'standards-course' } as any)).toBe('standards-course');
+
+    // 3-0-4 LIT (Surveying, Soil Mechanics, Highway Engineering)
+    expect(getCourseWeights('3-0-4')).toMatchObject({
+      caMax: 25,
+      internalMax: 50,
+      eseWeight: 50,
+      eseTheoryWeight: 40,
+      eseLabWeight: 10,
+      totalMax: 100,
+    });
+  });
+
+  it('verifies explicit grade-based GPA calculation for Civil Engineering Semester 1', () => {
+    const sem1Courses = CIVIL_GPA_COURSES.filter((c) => c.semester === 1);
+    const mockGrades: Record<string, number> = {
+      'EN23C05': 9,  // A+ (3 credits = 27)
+      'MA23C11': 10, // S  (4 credits = 40)
+      'CY23C10': 8,  // A  (4 credits = 32)
+      'EE23C02': 9,  // A+ (3 credits = 27)
+      'ME23C01': 10, // S  (4 credits = 40)
+      'ME23C04': 10, // S  (3 credits = 30)
+      'UC23H01': 10, // S  (1 credit  = 10)
+    };
+    const totalCredits = sem1Courses.reduce((sum, c) => sum + c.credits, 0);
+    const totalWeightedPoints = sem1Courses.reduce((sum, c) => sum + c.credits * (mockGrades[c.code] ?? 10), 0);
+    const gpa = totalWeightedPoints / totalCredits;
+    expect(totalCredits).toBe(22);
+    expect(totalWeightedPoints).toBe(206);
+    expect(Number(gpa.toFixed(2))).toBe(9.36);
+  });
+
+
   it('verifies getGpaCourses returns correct catalog for CSE and ECE without mutation', () => {
     expect(getGpaCourses('CSE')).toBe(CSE_GPA_COURSES);
     expect(getGpaCourses('ECE')).toBe(ECE_GPA_COURSES);
     expect(getGpaCourses(undefined)).toBe(CSE_GPA_COURSES);
     expect(getAllGpaCourses().length).toBe(
-      CSE_GPA_COURSES.length + ECE_GPA_COURSES.length
+      CSE_GPA_COURSES.length + ECE_GPA_COURSES.length + CIVIL_GPA_COURSES.length
     );
+    expect(getGpaCourses('CIVIL')).toBe(CIVIL_GPA_COURSES);
+    expect(getGpaCourses('CE')).toBe(CIVIL_GPA_COURSES);
   });
 
   it('verifies getPresetCourses and elective slots for CSE and ECE', () => {

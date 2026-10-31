@@ -22,19 +22,35 @@ export interface CGPAHubProps {
   department?: string;
 }
 
+const getUhvSemester = (department?: string): number =>
+  (department === 'CIVIL' || department === 'CE') ? 4 : 3;
+
+const getUhvSemTotalCredits = (department?: string): number => {
+  if (department === 'CIVIL' || department === 'CE') return 26;
+  if (department === 'ECE') return 22;
+  return 27;
+};
+
+const getUhvSemCgpaCredits = (department?: string): number => {
+  if (department === 'CIVIL' || department === 'CE') return 24;
+  if (department === 'ECE') return 20;
+  return 25;
+};
+
 const getInitialSemesterInputs = (
   department?: string
 ): Record<number, SemesterResultInput> => {
   const courses = getGpaCourses(department);
-  const sem3Credits = department === "ECE" ? 20 : 25;
+  const uhvSem = getUhvSemester(department);
+  const uhvCgpaCredits = getUhvSemCgpaCredits(department);
   return Object.fromEntries(
     SEMESTERS.map((semester) => [
       semester,
       {
         gpa: "",
         credits: String(
-          semester === 3
-            ? sem3Credits
+          semester === uhvSem
+            ? uhvCgpaCredits
             : courses
                 .filter((course) => course.semester === semester)
                 .reduce((total, course) => total + course.credits, 0)
@@ -50,6 +66,9 @@ let cachedSelectedSemester = 1;
 
 export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
   const reduceMotion = useReducedMotion();
+  const uhvSem = getUhvSemester(department);
+  const uhvSemTotalCredits = getUhvSemTotalCredits(department);
+  const uhvSemCgpaCredits = getUhvSemCgpaCredits(department);
   const [selectedSemester, setSelectedSemester] = useState<number>(() => cachedSelectedSemester);
   const [semesterInputs, setSemesterInputs] = useState(() => {
     const key = department || 'CSE';
@@ -129,7 +148,7 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
             semesterInputs[semester].credits.trim() !== "" &&
             Number.isFinite(credits) &&
             credits > 0 &&
-            (semester !== 3 ||
+            (semester !== uhvSem ||
               (uhvGradePointValue.trim() !== "" &&
                 Number.isFinite(uhvGradePoint) &&
                 uhvGradePoint >= 0 &&
@@ -149,8 +168,8 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
       total +
       (entry.valid
         ? entry.gpa *
-            (entry.semester === 3 ? department === "ECE" ? 22 : 27 : entry.credits) -
-          (entry.semester === 3 ? 2 * entry.uhvGradePoint : 0)
+            (entry.semester === uhvSem ? uhvSemTotalCredits : entry.credits) -
+          (entry.semester === uhvSem ? 2 * entry.uhvGradePoint : 0)
         : 0),
     0
   );
@@ -277,7 +296,7 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
               </h2>
               <label className="block">
                 <span className="mb-1 block text-xs font-semibold text-slate-600">
-                  {semester === 3
+                  {semester === uhvSem
                     ? "Semester GPA (including UHV)"
                     : "Semester GPA"}
                 </span>
@@ -299,11 +318,11 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
               <div className="block">
                 <div className="mb-1 flex items-center justify-between gap-1 text-xs font-semibold text-slate-600">
                   <label htmlFor={`semester-${semester}-credits`}>
-                    {semester === 3
+                    {semester === uhvSem
                       ? "Credits counted (UHV excluded)"
                       : "Credits counted"}
                   </label>
-                  {semester === 3 && (
+                  {semester === uhvSem && (
                     <div
                       className="relative inline-flex items-center"
                       ref={uhvHelpRef}
@@ -315,7 +334,7 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
                           setShowUhvHelp((prev) => !prev);
                         }}
                         className="cursor-pointer rounded-full p-0.5 text-slate-400 transition-colors hover:text-[#172554] focus:text-[#172554] focus:outline-hidden"
-                        aria-label="How Semester 3 UHV credits and GPA work"
+                        aria-label={`How Semester ${uhvSem} UHV credits and GPA work`}
                         aria-expanded={showUhvHelp}
                         aria-controls="uhv-help-popover"
                       >
@@ -329,7 +348,7 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
                         >
                           <div className="flex items-center justify-between pb-1 border-b border-slate-100">
                             <p className="font-bold text-[#172554]">
-                              Semester III CGPA &amp; UHV
+                              Semester {uhvSem === 4 ? "IV" : "III"} CGPA &amp; UHV
                             </p>
                             <button
                               type="button"
@@ -345,13 +364,13 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
                             CGPA calculation.
                           </p>
                           <p className="leading-relaxed text-[11px] text-slate-600">
-                            Semester III is counted as{" "}
-                            <strong>{department === "ECE" ? "20" : "25"} CGPA credits</strong>. Enter its GPA
+                            Semester {uhvSem === 4 ? "IV" : "III"} is counted as{" "}
+                            <strong>{uhvSemCgpaCredits} CGPA credits</strong>. Enter its GPA
                             including UHV and the UHV grade point; the hub
                             subtracts UHV’s two-credit contribution.
                           </p>
                           <p className="leading-relaxed text-[11px] text-slate-500">
-                            UHV remains included in the Semester III GPA Hub
+                            UHV remains included in the Semester {uhvSem === 4 ? "IV" : "III"} GPA Hub
                             calculation.
                           </p>
                         </div>
@@ -370,13 +389,13 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
                   onChange={(event) =>
                     updateInput(semester, "credits", event.currentTarget.value)
                   }
-                  readOnly={semester === 3}
+                  readOnly={semester === uhvSem}
                   className={`min-h-11 w-full border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-[#172554] focus:outline-2 focus:outline-[#172554] ${
-                    semester === 3 ? "bg-slate-100" : "bg-white"
+                    semester === uhvSem ? "bg-slate-100" : "bg-white"
                   }`}
                 />
               </div>
-              {semester === 3 && (
+              {semester === uhvSem && (
                 <label className="block sm:col-span-3">
                   <span className="mb-1 block text-xs font-semibold text-slate-600">
                     UHV grade point to exclude (2 credits)
