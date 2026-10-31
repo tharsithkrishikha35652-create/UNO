@@ -36,7 +36,9 @@
       "firebase": "$firebase"
     },
     "@grpc/grpc-js": "1.13.6",
-    "rollup": "npm:@rollup/wasm-node"
+    "@opentelemetry/core": "^2.8.0",
+    "rollup": "npm:@rollup/wasm-node",
+    "uuid": "^11.1.1"
   },
   "allowScripts": {
     "@firebase/util@1.15.3": true,
