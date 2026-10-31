@@ -229,7 +229,7 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
 
         <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-[#172554] dark:text-[#f1f1f3] pt-1">
           <span className="min-w-0 text-xs font-bold text-slate-700 dark:text-slate-300">
-            {estimatedMarks ? 'Marks contributed (estimate):' : 'Marks contributed:'}
+            {estimatedMarks ? 'Individual Marks Contribution (estimate):' : 'Individual Marks Contribution:'}
           </span>
           <div className="flex shrink-0 items-baseline gap-1">
             <span className="text-lg font-black tabular-nums font-numeric text-[#172554] dark:text-[#f1f1f3]">

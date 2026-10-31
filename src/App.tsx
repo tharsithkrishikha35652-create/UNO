@@ -1799,7 +1799,7 @@ function AuthenticatedApp({
   }
 
   return (
-    <div className="min-h-screen bg-transparent text-slate-900 flex flex-col font-sans">
+    <div className="min-h-screen bg-transparent text-slate-900 flex flex-col">
       {/* Top Bar */}
       <div className="sticky top-0 z-30">
         <header className="bg-white border-b border-slate-200 shadow-sm pt-[env(safe-area-inset-top)]">

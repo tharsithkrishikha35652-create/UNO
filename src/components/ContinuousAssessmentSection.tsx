@@ -154,7 +154,7 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
         {/* Subtotal without enclosing rectangular border box */}
         <div className="flex items-baseline gap-2 self-start sm:self-auto text-white">
           <span className="text-xs font-bold text-slate-200">
-            Marks contributed:
+            Total Marks Contribution:
           </span>
           <span className="text-lg font-black tabular-nums font-numeric">
             {subtotal.toFixed(2)}{' '}
@@ -196,9 +196,6 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
                 >
                   Marks scored:
                 </label>
-                <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
-                  Scale: <span className="font-numeric font-bold text-[#1e3a8a] dark:text-[#e08564]">{currentMax}</span> marks
-                </span>
               </div>
 
               <div className="relative">
@@ -313,7 +310,7 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
           <div className="mt-4 pt-1 border-t border-slate-100 dark:border-slate-800">
             <div className="flex items-baseline justify-between text-[#172554] dark:text-[#f1f1f3]">
               <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                Marks contributed:
+                Individual Marks Contribution:
               </span>
               <div className="flex items-baseline gap-1">
                 <span className="text-lg font-black tabular-nums font-numeric text-[#172554] dark:text-[#f1f1f3]">
