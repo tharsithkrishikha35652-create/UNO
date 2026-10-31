@@ -13,8 +13,8 @@ import {
 } from 'firebase/firestore';
 import type { AcademicProfileData, SubjectData } from './types';
 import { db } from './firebase';
-import { GPA_COURSES } from './gpaCourses';
-import { PRESET_COURSES } from './components/SubjectSelectionDialog';
+import { GPA_COURSES, getAllGpaCourses } from './gpaCourses';
+import { PRESET_COURSES, getAllPresetCourses } from './components/SubjectSelectionDialog';
 
 export const FEEDBACK_CATEGORIES = ['General', 'Bug report', 'Suggestion', 'Other'] as const;
 export type FeedbackCategory = (typeof FEEDBACK_CATEGORIES)[number];
@@ -214,7 +214,7 @@ export async function loadUserWorkspace(uid: string): Promise<UserWorkspaceData>
     ? {
         studentName: (profileData.studentName as string).trim(),
         rollNumber: (profileData.rollNumber as string).trim(),
-        department: 'CSE',
+        department: (profileData.department as string).trim().toUpperCase() === 'ECE' ? 'ECE' : 'CSE',
       }
     : null;
 
@@ -413,11 +413,13 @@ export async function skipLegacyMigration(uid: string) {
 }
 
 function subjectCredits(subject: SubjectData): number {
-  const course = GPA_COURSES.find(
+  const allGpa = getAllGpaCourses();
+  const allPresets = getAllPresetCourses();
+  const course = allGpa.find(
     (item) => (Boolean(item.code) && item.code === subject.code) || item.name.toLowerCase() === subject.name.trim().toLowerCase()
   );
   if (course?.electiveSlot) return course.credits;
-  const electivePreset = PRESET_COURSES.find((preset) =>
+  const electivePreset = allPresets.find((preset) =>
     preset.group === 'elective' &&
     ((Boolean(preset.code) && preset.code === subject.code) || preset.name.trim().toLowerCase() === subject.name.trim().toLowerCase())
   );

@@ -1,8 +1,11 @@
 import React, { useState, type FormEvent } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
   sendPasswordResetEmail,
+  signInWithCredential,
   signInWithEmailAndPassword,
   signInWithPopup,
 } from 'firebase/auth';
@@ -50,6 +53,10 @@ function friendlyAuthError(error: unknown, provider: 'email' | 'google' = 'email
       return 'Too many attempts. Wait a moment and try again.';
     case 'auth/network-request-failed':
       return 'A network error occurred. Check your connection and try again.';
+    case '10':
+      return 'Google Sign-In configuration error (Code 10). Make sure your SHA-1 fingerprint and google-services.json are added to the Firebase Console.';
+    case '12500':
+      return 'Google Sign-In failed (Code 12500). Verify your Google Play Services and Firebase project configuration.';
     default:
       return 'Authentication failed. Please try again.';
   }
@@ -96,16 +103,36 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
     setNotice('');
     const slowTimer = window.setTimeout(() => setGoogleSlow(true), 5000);
     try {
-      const provider = new GoogleAuthProvider();
-      if (forceGoogleAccountSelection) {
-        provider.setCustomParameters({ prompt: 'select_account' });
+      if (Capacitor.isNativePlatform()) {
+        const result = await FirebaseAuthentication.signInWithGoogle();
+        const idToken = result.credential?.idToken;
+        if (!idToken) {
+          throw new Error('No ID token received from native Google Sign-In.');
+        }
+        const credential = GoogleAuthProvider.credential(idToken);
+        await signInWithCredential(auth, credential);
+      } else {
+        const provider = new GoogleAuthProvider();
+        if (forceGoogleAccountSelection) {
+          provider.setCustomParameters({ prompt: 'select_account' });
+        }
+        await signInWithPopup(auth, provider);
       }
-      await signInWithPopup(auth, provider);
     } catch (authError) {
       const code = typeof authError === 'object' && authError !== null && 'code' in authError
         ? String(authError.code)
         : '';
-      if (code !== 'auth/popup-closed-by-user' && code !== 'auth/cancelled-popup-request') {
+      const message = typeof authError === 'object' && authError !== null && 'message' in authError
+        ? String(authError.message)
+        : '';
+      const isCancellation =
+        code === 'auth/popup-closed-by-user' ||
+        code === 'auth/cancelled-popup-request' ||
+        code === '12501' ||
+        message.toLowerCase().includes('cancel') ||
+        message.toLowerCase().includes('12501');
+
+      if (!isCancellation) {
         setError(friendlyAuthError(authError, 'google'));
       }
     } finally {

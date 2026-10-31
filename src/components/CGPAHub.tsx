@@ -5,7 +5,7 @@ import {
   ChevronDown,
   HelpCircle,
 } from "lucide-react";
-import { GPA_COURSES } from "../gpaCourses";
+import { GPA_COURSES, getGpaCourses } from "../gpaCourses";
 
 interface SemesterResultInput {
   gpa: string;
@@ -15,27 +15,51 @@ interface SemesterResultInput {
 
 const SEMESTERS = [1, 2, 3, 4, 5, 6, 7, 8] as const;
 
-const initialSemesterInputs: Record<number, SemesterResultInput> =
-  Object.fromEntries(
+export interface CGPAHubProps {
+  department?: string;
+}
+
+const getInitialSemesterInputs = (
+  department?: string
+): Record<number, SemesterResultInput> => {
+  const courses = getGpaCourses(department);
+  const sem3Credits = department === "ECE" ? 20 : 25;
+  return Object.fromEntries(
     SEMESTERS.map((semester) => [
       semester,
       {
         gpa: "",
         credits: String(
           semester === 3
-            ? 25
-            : GPA_COURSES.filter(
-                (course) => course.semester === semester
-              ).reduce((total, course) => total + course.credits, 0)
+            ? sem3Credits
+            : courses
+                .filter((course) => course.semester === semester)
+                .reduce((total, course) => total + course.credits, 0)
         ),
         uhvGradePoint: "",
       },
     ])
   );
+};
 
-export const CGPAHub: React.FC = () => {
+export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
   const [selectedSemester, setSelectedSemester] = useState<number>(1);
-  const [semesterInputs, setSemesterInputs] = useState(initialSemesterInputs);
+  const [semesterInputs, setSemesterInputs] = useState(() =>
+    getInitialSemesterInputs(department)
+  );
+
+  useEffect(() => {
+    setSemesterInputs((prev) => {
+      const defaults = getInitialSemesterInputs(department);
+      const updated = { ...prev };
+      for (const sem of SEMESTERS) {
+        if (!updated[sem].gpa) {
+          updated[sem] = { ...updated[sem], credits: defaults[sem].credits };
+        }
+      }
+      return updated;
+    });
+  }, [department]);
   const [showUhvHelp, setShowUhvHelp] = useState(false);
   const [isSemesterMenuOpen, setIsSemesterMenuOpen] = useState(false);
   const uhvHelpRef = useRef<HTMLDivElement>(null);
@@ -113,7 +137,12 @@ export const CGPAHub: React.FC = () => {
     (total, entry) =>
       total +
       (entry.valid
-        ? entry.gpa * (entry.semester === 3 ? 27 : entry.credits) -
+        ? entry.gpa *
+            (entry.semester === 3
+              ? department === "ECE"
+                ? 22
+                : 27
+              : entry.credits) -
           (entry.semester === 3 ? 2 * entry.uhvGradePoint : 0)
         : 0),
     0
@@ -310,7 +339,7 @@ export const CGPAHub: React.FC = () => {
                           </p>
                           <p className="leading-relaxed text-[11px] text-slate-600">
                             Semester III is counted as{" "}
-                            <strong>25 CGPA credits</strong>. Enter its GPA
+                            <strong>{department === "ECE" ? "20" : "25"} CGPA credits</strong>. Enter its GPA
                             including UHV and the UHV grade point; the hub
                             subtracts UHV’s two-credit contribution.
                           </p>

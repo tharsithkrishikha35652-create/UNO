@@ -155,9 +155,14 @@ export function getCourseType(data: SubjectData): CourseType {
   if (normalizedName === 'industry oriented course i' || normalizedName === 'industry oriented course ii') {
     return 'industry-oriented-tests';
   }
-  if (normalizedName === 'industry oriented course iii') return 'industry-oriented-tests';
+  if (normalizedName === 'industry oriented course iii' || normalizedName.startsWith('industry oriented course')) return 'industry-oriented-tests';
   if (normalizedName === 'universal human values') return 'universal-human-values';
-  if (normalizedName === 'standards computer science & engg.') return 'standards-course';
+  if (
+    normalizedName === 'standards computer science & engg.' ||
+    normalizedName === 'standards electronics and communication engineering' ||
+    normalizedName.startsWith('standards')
+  ) return 'standards-course';
+  if (normalizedName === 'mini project') return 'laboratory-course';
   if (normalizedName === 'self learning course') return 'self-learning';
   if (normalizedName === 'audit course i' || normalizedName === 'audit course ii') return 'audit-course';
   if (normalizedName === 'heritage of tamils' || normalizedName === 'tamils and technology') return 'heritage-course';

@@ -10,6 +10,7 @@
     "test:rules": "firebase emulators:exec --only firestore \"vitest run\""
   },
   "dependencies": {
+    "@capacitor-firebase/authentication": "^8.5.2",
     "@capacitor/android": "^8.5.3",
     "@capacitor/core": "^8.5.3",
     "firebase": "^13.0.0",
@@ -31,6 +32,9 @@
     "vitest": "^5.0.5"
   },
   "overrides": {
+    "@capacitor-firebase/authentication": {
+      "firebase": "$firebase"
+    },
     "@grpc/grpc-js": "1.13.6",
     "rollup": "npm:@rollup/wasm-node"
   },

@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { CheckCircle2, GraduationCap } from 'lucide-react';
 import type { SubjectData } from '../types';
 import type { GpaHistoryEntry } from '../firebaseData';
-import { GPA_COURSES, type GpaCourse } from '../gpaCourses';
-import { PRESET_COURSES } from './SubjectSelectionDialog';
+import { GPA_COURSES, getGpaCourses, getAllGpaCourses, type GpaCourse } from '../gpaCourses';
+import { PRESET_COURSES, getPresetCourses, getAllPresetCourses, type PresetCourse } from './SubjectSelectionDialog';
 import {
   calculateMarks,
   getCourseType,
@@ -14,37 +14,41 @@ const matchesPresetSubject = (subject: SubjectData, course: (typeof PRESET_COURS
   (Boolean(course.code) && subject.code === course.code) ||
   subject.name.trim().toLowerCase() === course.name.trim().toLowerCase();
 
-const findCourseSubject = (subjects: SubjectData[], course: GpaCourse) =>
+const findCourseSubject = (subjects: SubjectData[], course: GpaCourse, presets: PresetCourse[] = PRESET_COURSES as PresetCourse[]) =>
   [...subjects].reverse().find((subject) => {
     if (course.electiveSlot) {
-      return PRESET_COURSES.some((preset) =>
+      return presets.some((preset) =>
         preset.semester === course.semester &&
         preset.electiveSlot === course.electiveSlot &&
         matchesPresetSubject(subject, preset)
       );
     }
     return (Boolean(course.code) && subject.code === course.code) ||
-      (course.code === 'CS23801' && ['project', 'project-work'].includes(getCourseType(subject))) ||
+      ((course.code === 'CS23801' || course.code === 'EC23801') && ['project', 'project-work'].includes(getCourseType(subject))) ||
       subject.name.trim().toLowerCase() === course.name.toLowerCase();
   });
 
-const getGpaCourseSemester = (subject: SubjectData): number | null => {
-  const match = GPA_COURSES.find(
+const getGpaCourseSemester = (
+  subject: SubjectData,
+  gpaList: readonly GpaCourse[] = getAllGpaCourses(),
+  presets: PresetCourse[] = getAllPresetCourses()
+): number | null => {
+  const match = gpaList.find(
     (course) =>
       (Boolean(course.code) && subject.code === course.code) ||
-      (course.code === 'CS23801' && ['project', 'project-work'].includes(getCourseType(subject))) ||
+      ((course.code === 'CS23801' || course.code === 'EC23801') && ['project', 'project-work'].includes(getCourseType(subject))) ||
       subject.name.trim().toLowerCase() === course.name.toLowerCase() ||
-      (Boolean(course.electiveSlot) && PRESET_COURSES.some((preset) =>
+      (Boolean(course.electiveSlot) && presets.some((preset) =>
         preset.semester === course.semester && preset.electiveSlot === course.electiveSlot && matchesPresetSubject(subject, preset)
       ))
   );
   return match ? match.semester : null;
 };
 
-const getHistorySemester = (entry: GpaHistoryEntry): number | null => {
+const getHistorySemester = (entry: GpaHistoryEntry, gpaList: readonly GpaCourse[] = getAllGpaCourses()): number | null => {
   if (Number.isInteger(entry.semester)) return entry.semester ?? null;
   const semesters = entry.courses.map((savedCourse) =>
-    GPA_COURSES.find((course) =>
+    gpaList.find((course) =>
       (Boolean(course.code) && course.code === savedCourse.code) ||
       course.name.trim().toLowerCase() === savedCourse.name.trim().toLowerCase()
     )?.semester
@@ -181,17 +185,20 @@ export function isGpaReady(
   subjects: SubjectData[],
   includeEstimates = false,
   selectedSemester = 1,
-  calculatedSignatures: Record<string, string> = {}
+  calculatedSignatures: Record<string, string> = {},
+  department?: string
 ): boolean {
-  const semesterCourses = GPA_COURSES.filter((course) => course.semester === selectedSemester);
+  const courseList = getGpaCourses(department);
+  const presets = getPresetCourses(department);
+  const semesterCourses = courseList.filter((course) => course.semester === selectedSemester);
   const selectedSemester8Projects = subjects.filter((subject) =>
-    getGpaCourseSemester(subject) === selectedSemester &&
+    getGpaCourseSemester(subject, courseList, presets) === selectedSemester &&
     ['project', 'project-work'].includes(getCourseType(subject))
   );
   if (selectedSemester === 8 && selectedSemester8Projects.length > 1) return false;
 
   return semesterCourses.every((course) => {
-    const subject = findCourseSubject(subjects, course);
+    const subject = findCourseSubject(subjects, course, presets);
     return Boolean(subject && (
       subjectMarksComplete(subject, includeEstimates) ||
       calculatedSignatures[subject.id] === JSON.stringify(subject)
@@ -208,6 +215,7 @@ interface GPACalculatorProps {
   includeEstimates: boolean;
   estimatePercentage: number;
   guestMode: boolean;
+  department?: string;
 }
 
 export const GPACalculator: React.FC<GPACalculatorProps> = ({
@@ -219,25 +227,29 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
   includeEstimates,
   estimatePercentage,
   guestMode,
+  department,
 }) => {
   const [calculatedInputSignature, setCalculatedInputSignature] = useState<string | null>(null);
   const [calculationState, setCalculationState] = useState<'idle' | 'calculating' | 'saving' | 'success' | 'error'>('idle');
   const selectedSemester = initialSemester;
   const [calculationError, setCalculationError] = useState('');
-  const semesterCourses = GPA_COURSES.filter((course) => course.semester === selectedSemester);
-  const gpaReady = isGpaReady(subjects, includeEstimates, selectedSemester, calculatedSignatures);
+  const deptGpaCourses = getGpaCourses(department);
+  const deptPresets = getPresetCourses(department);
+  const semesterCourses = deptGpaCourses.filter((course) => course.semester === selectedSemester);
+  const gpaReady = isGpaReady(subjects, includeEstimates, selectedSemester, calculatedSignatures, department);
   const inputSignature = JSON.stringify({
     semester: selectedSemester,
+    department: department || 'CSE',
     courses: semesterCourses.map((course) => ({
       courseCode: course.code,
-      subject: findCourseSubject(subjects, course) ?? null,
+      subject: findCourseSubject(subjects, course, deptPresets) ?? null,
     })),
     includeEstimates,
     estimatePercentage,
   });
   const isBusy = calculationState === 'calculating' || calculationState === 'saving';
   const rows = semesterCourses.map((course) => {
-    const subject = findCourseSubject(subjects, course);
+    const subject = findCourseSubject(subjects, course, deptPresets);
     const complete = Boolean(subject && (
       subjectMarksComplete(subject, includeEstimates) ||
       calculatedSignatures[subject.id] === JSON.stringify(subject)
@@ -327,7 +339,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
           </div>
           <div>
             <p className="text-xs font-bold text-slate-500">
-              Semester {selectedSemester} · B.E. CSE
+              Semester {selectedSemester} · B.E. {department === 'ECE' ? 'ECE' : 'CSE'}
             </p>
             <h2 className="text-xl sm:text-2xl font-black text-[#172554]">
               GPA Calculator

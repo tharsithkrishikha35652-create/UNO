@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1021203430303",
+    "project_id": "project-uno-5b7c1",
+    "storage_bucket": "project-uno-5b7c1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1021203430303:android:b7324564f26b9a63ccdbaa",
+        "android_client_info": {
+          "package_name": "com.calcredit.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1021203430303-s45qmgjqro6i326t07n4nfmejksipo0c.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.calcredit.app",
+            "certificate_hash": "e27ce3ba6211c95d376f9ff273d6ee2dad2c21e2"
+          }
+        },
+        {
+          "client_id": "1021203430303-8jvshisq9hq4h2br0q9621mb225b5hfl.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAqjwUQ2o519kvRPBI7ZwJ0SVAZFGpyzCE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1021203430303-8jvshisq9hq4h2br0q9621mb225b5hfl.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

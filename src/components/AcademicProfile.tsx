@@ -31,7 +31,7 @@ export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
 }) => {
   const [studentName, setStudentName] = useState(profile?.studentName ?? '');
   const [rollNumber, setRollNumber] = useState(profile?.rollNumber ?? '');
-  const [department, setDepartment] = useState('CSE');
+  const [department, setDepartment] = useState(profile?.department || 'CSE');
   const [semester, setSemester] = useState(initialSemester?.toString() ?? '');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -39,7 +39,7 @@ export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
   useEffect(() => {
     setStudentName(profile?.studentName ?? '');
     setRollNumber(profile?.rollNumber ?? '');
-    setDepartment('CSE');
+    setDepartment(profile?.department || 'CSE');
     setSemester(initialSemester?.toString() ?? '');
     setError('');
   }, [profile, initialSemester]);
@@ -137,9 +137,10 @@ export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
             className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900"
           >
             <option value="CSE">Computer Science and Engineering (CSE)</option>
+            <option value="ECE">Electronics and Communication Engineering (ECE)</option>
           </select>
           <span className="mt-1 block text-[11px] text-slate-500">
-            Only CSE is currently supported.
+            Supported departments: CSE & ECE (Regulations 2023)
           </span>
         </label>
 
@@ -366,7 +367,7 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
               <div className="rounded-xl bg-[#172554] px-4 py-3 text-white flex items-center justify-between shadow-sm">
                 <span className="text-xs font-black">Your Profile</span>
                 <span className="rounded-md bg-blue-900/60 border border-blue-400/30 px-2 py-0.5 text-[10px] font-bold text-cyan-300 uppercase">
-                  CSE
+                  {profile?.department || 'CSE'}
                 </span>
               </div>
 

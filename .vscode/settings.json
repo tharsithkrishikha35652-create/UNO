@@ -13,5 +13,6 @@
     "android",
     "ios"
   ],
-  "semgrep.scan.onlyGitDirty": false
+  "semgrep.scan.onlyGitDirty": false,
+  "java.configuration.updateBuildConfiguration": "interactive"
 }

@@ -25,6 +25,9 @@ import {
   ELECTIVE_SLOTS_BY_SEMESTER,
   PRESET_COURSES,
   SubjectSelectionDialog,
+  getPresetCourses,
+  getElectiveSlotsBySemester,
+  getAllPresetCourses,
   type PresetCourse,
   type SemesterNumber,
 } from "./components/SubjectSelectionDialog";
@@ -51,7 +54,7 @@ import {
 import { StickyResultSummary } from "./components/StickyResultSummary";
 import { ThemeToggle, type AppTheme } from "./components/ThemeToggle";
 import { CGPAHub } from "./components/CGPAHub";
-import { GPA_COURSES } from "./gpaCourses";
+import { GPA_COURSES, getGpaCourses, getAllGpaCourses } from "./gpaCourses";
 import { AuthScreen } from "./components/AuthScreen";
 import { FeedbackHub } from "./components/FeedbackHub";
 import { CreditsScreen } from "./components/CreditsScreen";
@@ -114,8 +117,13 @@ function findSubjectForCourse(
   });
 }
 
-function findPresetForSubject(subject: SubjectData): PresetCourse | undefined {
-  return PRESET_COURSES.find((course) => {
+function findPresetForSubject(
+  subject: SubjectData,
+  department?: string
+): PresetCourse | undefined {
+  const dept = typeof department === "string" ? department : undefined;
+  const presets = dept ? getPresetCourses(dept) : getAllPresetCourses();
+  return presets.find((course) => {
     if (subject.id === `course_${course.id}` || subject.id === course.id)
       return true;
     if (
@@ -130,7 +138,11 @@ function findPresetForSubject(subject: SubjectData): PresetCourse | undefined {
   });
 }
 
-function getSubjectSemester(subject: SubjectData): number | null {
+function getSubjectSemester(
+  subject: SubjectData,
+  department?: string
+): number | null {
+  const dept = typeof department === "string" ? department : undefined;
   const match =
     subject.name.match(/(?:sem|semester)[-.\s_]*([1-8])/i) ||
     (subject.code && subject.code.match(/(?:sem|semester)[-.\s_]*([1-8])/i));
@@ -144,11 +156,12 @@ function getSubjectSemester(subject: SubjectData): number | null {
   ) {
     return subject.semester;
   }
-  const preset = findPresetForSubject(subject);
+  const preset = findPresetForSubject(subject, department);
   if (preset?.semester) {
     return preset.semester;
   }
-  const gpaMatch = GPA_COURSES.find(
+  const gpaList = dept ? getGpaCourses(dept) : getAllGpaCourses();
+  const gpaMatch = gpaList.find(
     (c) =>
       (Boolean(c.code) && subject.code === c.code) ||
       c.name.trim().toLowerCase() === subject.name.trim().toLowerCase()
@@ -236,11 +249,14 @@ function normalizeSubjectForSyllabus(subject: SubjectData): SubjectData {
     return {
       ...subject,
       name: "Project Work / Internship cum Project Work",
-      code: "CS23801",
+      code:
+        subject.code?.toUpperCase() === "EC23801"
+          ? "EC23801"
+          : subject.code || "CS23801",
       courseType: "project",
     };
   }
-  const matchingPreset = PRESET_COURSES.find(
+  const matchingPreset = getAllPresetCourses().find(
     (course) =>
       course.name
         .trim()
@@ -586,6 +602,19 @@ function AuthenticatedApp({
 }: AuthenticatedAppProps) {
   const [subjects, setSubjects] = useState<SubjectData[]>([]);
   const [profile, setProfile] = useState<AcademicProfileData | null>(null);
+  const currentDepartment = profile?.department === "ECE" ? "ECE" : "CSE";
+  const deptPresets = useMemo(
+    () => getPresetCourses(currentDepartment),
+    [currentDepartment]
+  );
+  const deptElectiveSlots = useMemo(
+    () => getElectiveSlotsBySemester(currentDepartment),
+    [currentDepartment]
+  );
+  const deptGpaCourses = useMemo(
+    () => getGpaCourses(currentDepartment),
+    [currentDepartment]
+  );
   const [currentSubjectId, setCurrentSubjectId] = useState("");
   const [selectedSemester, setSelectedSemester] =
     useState<SemesterNumber | null>(null);
@@ -764,7 +793,9 @@ function AuthenticatedApp({
         setSubjects(loadedSubjects);
         setCurrentSubjectId(selectedId);
         const firstMatchedCourse = loadedSubjects
-          .map(findPresetForSubject)
+          .map((subject) =>
+            findPresetForSubject(subject, workspace.profile?.department)
+          )
           .find(Boolean);
         const savedSemester = workspace.preferences.selectedSemester;
         const initialSemester =
@@ -1290,24 +1321,24 @@ function AuthenticatedApp({
       : subjectSnapshot;
     const calculationBreakdown = calculateMarks(calculationSubject);
     const inputSignature = JSON.stringify(subjectSnapshot);
-    const presetCourse = PRESET_COURSES.find(
+    const presetCourse = deptPresets.find(
       (item) =>
         (Boolean(item.code) && item.code === subjectSnapshot.code) ||
         item.name.trim().toLowerCase() ===
           subjectSnapshot.name.trim().toLowerCase()
     );
     const course = presetCourse?.electiveSlot
-      ? GPA_COURSES.find(
+      ? deptGpaCourses.find(
           (item) =>
             item.semester === presetCourse.semester &&
             item.electiveSlot === presetCourse.electiveSlot
         )
-      : GPA_COURSES.find(
+      : deptGpaCourses.find(
           (item) =>
             (Boolean(item.code) && item.code === subjectSnapshot.code) ||
             item.name.toLowerCase() ===
               subjectSnapshot.name.trim().toLowerCase() ||
-            (item.code === "CS23801" &&
+            ((item.code === "CS23801" || item.code === "EC23801") &&
               ["project", "project-work"].includes(
                 subjectSnapshot.courseType ?? ""
               ))
@@ -1481,24 +1512,29 @@ function AuthenticatedApp({
 
   const semesterCourseRows = useMemo<SemesterCourseRow[]>(() => {
     if (selectedSemester === null) return [];
-    return PRESET_COURSES.filter(
-      (course) =>
-        course.semester === selectedSemester && course.group !== "elective"
-    ).map((course) => {
-      const subject = findSubjectForCourse(subjects, course) ?? null;
-      return {
-        course,
-        subject,
-        progress: getCourseProgress(subject ?? undefined, calculatedSignatures),
-      };
-    });
-  }, [selectedSemester, subjects, calculatedSignatures]);
+    return deptPresets
+      .filter(
+        (course) =>
+          course.semester === selectedSemester && course.group !== "elective"
+      )
+      .map((course) => {
+        const subject = findSubjectForCourse(subjects, course) ?? null;
+        return {
+          course,
+          subject,
+          progress: getCourseProgress(subject ?? undefined, calculatedSignatures),
+        };
+      });
+  }, [selectedSemester, subjects, calculatedSignatures, deptPresets]);
 
   const semesterElectiveRows = useMemo<SemesterElectiveRow[]>(() => {
     if (selectedSemester === null) return [];
-    return (ELECTIVE_SLOTS_BY_SEMESTER[selectedSemester] ?? []).map((slot) => {
+    return (deptElectiveSlots[selectedSemester] ?? []).map((slot) => {
       const existingOption = subjects
-        .map((subject) => ({ subject, course: findPresetForSubject(subject) }))
+        .map((subject) => ({
+          subject,
+          course: findPresetForSubject(subject, currentDepartment),
+        }))
         .filter(
           (entry) =>
             entry.course?.semester === selectedSemester &&
@@ -1515,24 +1551,30 @@ function AuthenticatedApp({
         progress: getCourseProgress(subject ?? undefined, calculatedSignatures),
       };
     });
-  }, [selectedSemester, subjects, calculatedSignatures]);
+  }, [
+    selectedSemester,
+    subjects,
+    calculatedSignatures,
+    deptElectiveSlots,
+    currentDepartment,
+  ]);
 
   const mobileElectiveOptions = useMemo(
     () =>
       Object.fromEntries(
         (selectedSemester === null
           ? []
-          : ELECTIVE_SLOTS_BY_SEMESTER[selectedSemester] ?? []
+          : deptElectiveSlots[selectedSemester] ?? []
         ).map((slot) => [
           slot,
-          PRESET_COURSES.filter(
+          deptPresets.filter(
             (course) =>
               course.semester === selectedSemester &&
               course.electiveSlot === slot
           ),
         ])
       ),
-    [selectedSemester]
+    [selectedSemester, deptElectiveSlots, deptPresets]
   );
 
   const otherCourseRows = useMemo(() => {
@@ -1740,7 +1782,7 @@ function AuthenticatedApp({
                     (guestMode ? "Guest Student" : "Student")}
                 </p>
                 <p className="mt-0.5 text-[9px] font-black uppercase tracking-[0.14em] text-slate-500">
-                  CSE
+                  {currentDepartment}
                 </p>
               </div>
             </div>
@@ -2937,6 +2979,7 @@ function AuthenticatedApp({
             includeEstimates={includeEstimates}
             estimatePercentage={estimatePercentage}
             guestMode={guestMode}
+            department={currentDepartment}
           />
         )}
         <div
@@ -2946,7 +2989,7 @@ function AuthenticatedApp({
               : "hidden"
           }
         >
-          <CGPAHub />
+          <CGPAHub department={currentDepartment} />
         </div>
       </main>
 
@@ -2998,6 +3041,7 @@ function AuthenticatedApp({
         onSelectCourse={handleOpenPresetCourse}
         initialSemester={selectedSemester}
         initialElectiveSlot={dialogElectiveSlot}
+        department={currentDepartment}
       />
     </div>
   );
