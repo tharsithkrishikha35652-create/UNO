@@ -103,7 +103,7 @@ Designed to feel like an intentional university utility rather than a generic Sa
 - Intentional sentence-case labeling throughout, preserving technical acronyms (`CA1`, `CA2`, `ESE`, `GPA`, `CGPA`, `CEG`).
 
 ### 7. Interactive CEG Architectural Artwork
-The Credits view features a bespoke, vector-accurate architectural elevation of the **CEG Main Building Clock Tower**:
+The Credits view features a bespoke, vector-accurate architectural elevation of the **CEG Red Building Clock Tower**:
 - **Real-Time Clock Tower**: Analog hour and minute hands reflect the user's actual local time.
 - **Day/Night Responsive**: Synchronizes lighting with the active theme—sunlit brick in light mode and glowing starry night windows in dark mode.
 - **Interactive Lighting**: Toggle or tap window bays to illuminate study lamps across campus wings.
@@ -172,7 +172,7 @@ UNO/
 │   │   ├── AuthScreen.tsx      # Email/Password & Google sign-in interface
 │   │   ├── CGPAHub.tsx         # Cumulative GPA calculator & target planner
 │   │   ├── ContinuousAssessmentSection.tsx # CA1 & CA2 mark entry forms
-│   │   ├── CreditsScreen.tsx   # Interactive CEG Main Building & creator credits
+│   │   ├── CreditsScreen.tsx   # Interactive CEG Red Building & creator credits
 │   │   ├── EndSemesterSection.tsx # ESE theory & practical marks inputs
 │   │   ├── FeedbackHub.tsx     # In-app feedback reporting to Firestore
 │   │   ├── GPACalculator.tsx   # Semester GPA calculation & predictive estimation
