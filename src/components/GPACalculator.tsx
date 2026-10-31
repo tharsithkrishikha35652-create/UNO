@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckCircle2, GraduationCap } from 'lucide-react';
+import { CheckCircle2, GraduationCap, Sparkles, X, RotateCcw, Award } from 'lucide-react';
 import type { SubjectData } from '../types';
 import type { GpaHistoryEntry } from '../firebaseData';
 import { GPA_COURSES, getGpaCourses, getAllGpaCourses, type GpaCourse } from '../gpaCourses';
@@ -233,6 +233,38 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
   const [calculationState, setCalculationState] = useState<'idle' | 'calculating' | 'saving' | 'success' | 'error'>('idle');
   const selectedSemester = initialSemester;
   const [calculationError, setCalculationError] = useState('');
+
+  // Explicit / Custom Grade-Based GPA state
+  const [showExplicitGradeModal, setShowExplicitGradeModal] = useState(false);
+  const [explicitGrades, setExplicitGrades] = useState<Record<string, string>>({});
+  const [explicitCalculationResult, setExplicitCalculationResult] = useState<{
+    gpa: number;
+    totalCredits: number;
+    totalWeightedPoints: number;
+    courses: Array<{
+      code: string;
+      name: string;
+      credits: number;
+      grade: string;
+      gradePoint: number;
+      weightedPoints: number;
+      mark?: number;
+    }>;
+  } | null>(null);
+
+  // Clear explicit result when semester or department changes
+  React.useEffect(() => {
+    setExplicitCalculationResult(null);
+  }, [selectedSemester, department]);
+
+  React.useEffect(() => {
+    if (!showExplicitGradeModal) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowExplicitGradeModal(false);
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [showExplicitGradeModal]);
   const deptGpaCourses = getGpaCourses(department);
   const deptPresets = getPresetCourses(department);
   const semesterCourses = deptGpaCourses.filter((course) => course.semester === selectedSemester);
@@ -330,22 +362,146 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
     }
   };
 
+  const GRADE_OPTIONS = [
+    { letter: 'S', point: 10, label: 'S (10)' },
+    { letter: 'A+', point: 9, label: 'A+ (9)' },
+    { letter: 'A', point: 8, label: 'A (8)' },
+    { letter: 'B+', point: 7, label: 'B+ (7)' },
+    { letter: 'B', point: 6, label: 'B (6)' },
+    { letter: 'C', point: 5, label: 'C (5)' },
+    { letter: 'U', point: 0, label: 'U (0)' },
+  ] as const;
+
+  const currentExplicitCourses = semesterCourses.map((course) => {
+    const key = course.code || course.name;
+    const chosenGrade = explicitGrades[key] || 'S';
+    const opt = GRADE_OPTIONS.find((g) => g.letter === chosenGrade) ?? GRADE_OPTIONS[0];
+    return {
+      code: course.code,
+      name: course.name,
+      credits: course.credits,
+      grade: opt.letter,
+      gradePoint: opt.point,
+      weightedPoints: course.credits * opt.point,
+    };
+  });
+
+  const explicitTotalCredits = currentExplicitCourses.reduce((sum, c) => sum + c.credits, 0);
+  const explicitWeightedPoints = currentExplicitCourses.reduce((sum, c) => sum + c.weightedPoints, 0);
+  const explicitLiveGpa = explicitTotalCredits ? explicitWeightedPoints / explicitTotalCredits : 0;
+
+  const setAllGrades = (letter: string) => {
+    const updated: Record<string, string> = {};
+    semesterCourses.forEach((c) => {
+      updated[c.code || c.name] = letter;
+    });
+    setExplicitGrades(updated);
+  };
+
+  const handleApplyExplicitGrades = async () => {
+    const coursesData = currentExplicitCourses.map((c) => ({
+      code: c.code,
+      name: c.name,
+      credits: c.credits,
+      mark: c.grade === 'S' ? 95 : c.grade === 'A+' ? 85 : c.grade === 'A' ? 75 : c.grade === 'B+' ? 65 : c.grade === 'B' ? 58 : c.grade === 'C' ? 52 : 0,
+      grade: c.grade,
+      gradePoint: c.gradePoint,
+      weightedPoints: c.weightedPoints,
+    }));
+
+    const result = {
+      gpa: explicitLiveGpa,
+      totalCredits: explicitTotalCredits,
+      totalWeightedPoints: explicitWeightedPoints,
+      courses: coursesData,
+    };
+
+    setExplicitCalculationResult(result);
+    setShowExplicitGradeModal(false);
+
+    try {
+      const entry: GpaHistoryEntry = {
+        id: `gpa_explicit_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+        semester: selectedSemester,
+        inputSignature: `explicit_${selectedSemester}_${Date.now()}`,
+        gpa: explicitLiveGpa,
+        totalCredits: explicitTotalCredits,
+        weightedGradePoints: explicitWeightedPoints,
+        createdAtMs: Date.now(),
+        courses: coursesData.map((c) => ({
+          code: c.code,
+          name: c.name,
+          credits: c.credits,
+          mark: c.mark,
+          grade: c.grade,
+          gradePoint: c.gradePoint,
+        })),
+      };
+      await onCalculate(entry);
+    } catch (err) {
+      console.error('Failed to save custom GPA entry to history:', err);
+    }
+  };
+
+  const displayGpa = explicitCalculationResult ? explicitCalculationResult.gpa : gpa;
+  const displayCredits = explicitCalculationResult ? explicitCalculationResult.totalCredits : totalCredits;
+  const displayWeightedPoints = explicitCalculationResult ? explicitCalculationResult.totalWeightedPoints : totalWeightedPoints;
+  const displayRows = explicitCalculationResult ? explicitCalculationResult.courses : rows;
+
   return (
     <section className="max-w-5xl mx-auto space-y-6">
       <div className="bg-white border border-slate-300 p-5 sm:p-7 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 flex items-center justify-center bg-[#172554] text-white">
-            <GraduationCap className="w-6 h-6" />
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 flex items-center justify-center bg-[#172554] text-white">
+              <GraduationCap className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-slate-500">
+                Semester {selectedSemester} · {department === 'VLSI' ? 'B.Tech. VLSI' : department === 'ECE' ? 'B.E. ECE' : 'B.E. CSE'}
+              </p>
+              <h2 className="text-xl sm:text-2xl font-black text-[#172554]">
+                GPA Calculator
+              </h2>
+            </div>
           </div>
-          <div>
-            <p className="text-xs font-bold text-slate-500">
-              Semester {selectedSemester} · {department === 'VLSI' ? 'B.Tech. VLSI' : department === 'ECE' ? 'B.E. ECE' : 'B.E. CSE'}
-            </p>
-            <h2 className="text-xl sm:text-2xl font-black text-[#172554]">
-              GPA Calculator
-            </h2>
-          </div>
+          <button
+            type="button"
+            onClick={() => setShowExplicitGradeModal(true)}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#172554] px-4 py-2.5 text-xs font-bold text-white shadow-xs transition-colors hover:bg-[#1e3a8a] cursor-pointer"
+          >
+            <Sparkles className="w-4 h-4 text-cyan-300" />
+            Enter Grades of Choice
+          </button>
         </div>
+
+        {explicitCalculationResult && (
+          <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl border border-blue-200 bg-blue-50/80 p-3.5 text-xs">
+            <div className="flex items-center gap-2 text-[#172554]">
+              <Award className="w-4 h-4 text-blue-700 shrink-0" />
+              <span className="font-semibold">
+                Displaying GPA calculated from your custom grades (GPA: <strong>{explicitCalculationResult.gpa.toFixed(2)}</strong>)
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setShowExplicitGradeModal(true)}
+                className="font-bold text-[#172554] hover:underline cursor-pointer"
+              >
+                Modify Grades
+              </button>
+              <span className="text-slate-300">|</span>
+              <button
+                type="button"
+                onClick={() => setExplicitCalculationResult(null)}
+                className="font-bold text-slate-600 hover:text-slate-900 cursor-pointer"
+              >
+                Clear Custom View
+              </button>
+            </div>
+          </div>
+        )}
 
         <p className="mt-5 border border-blue-200 bg-blue-50 p-4 text-sm font-bold text-[#172554]" role="status">
           Enter all marks for Semester {selectedSemester} before calculating GPA. Change semesters using the selector in the header.
@@ -431,22 +587,22 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
         {calculationError && <p className="border-t border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900" role="alert">{calculationError}</p>}
       </div>
 
-      {hasCalculated && (
+      {(hasCalculated || explicitCalculationResult) && (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="bg-white border border-slate-300 p-4">
               <p className="text-xs font-bold text-slate-500">Semester GPA</p>
-              <p className="text-3xl font-black text-[#172554] mt-1">{gpa.toFixed(2)}</p>
+              <p className="text-3xl font-black text-[#172554] mt-1">{displayGpa.toFixed(2)}</p>
               <p className="text-xs text-slate-500">Out of 10.00</p>
             </div>
             <div className="bg-white border border-slate-300 p-4">
               <p className="text-xs font-bold text-slate-500">Total Credits</p>
-              <p className="text-3xl font-black text-[#172554] mt-1">{totalCredits}</p>
+              <p className="text-3xl font-black text-[#172554] mt-1">{displayCredits}</p>
               <p className="text-xs text-slate-500">Across {totalSemesterCourses} courses</p>
             </div>
             <div className="bg-white border border-slate-300 p-4">
               <p className="text-xs font-bold text-slate-500">Weighted Grade Points</p>
-              <p className="text-3xl font-black text-[#172554] mt-1">{totalWeightedPoints.toFixed(2)}</p>
+              <p className="text-3xl font-black text-[#172554] mt-1">{displayWeightedPoints.toFixed(2)}</p>
               <p className="text-xs text-slate-500">Credits × grade points</p>
             </div>
           </div>
@@ -464,14 +620,14 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
-                {rows.map((row) => (
+                {displayRows.map((row) => (
                   <tr key={row.code} className="hover:bg-slate-50">
                     <td className="px-4 py-3">
                       <p className="font-bold text-[#172554]">{row.name}</p>
                       <p className="text-xs text-slate-500">{row.code}</p>
                     </td>
                     <td className="px-4 py-3 text-center">{row.credits}</td>
-                    <td className="px-4 py-3 text-center">{row.mark?.toFixed(2)}</td>
+                    <td className="px-4 py-3 text-center">{explicitCalculationResult ? "Custom" : (row.mark !== undefined && row.mark !== null ? row.mark.toFixed(2) : "-")}</td>
                     <td className="px-4 py-3 text-center font-bold">{row.grade}</td>
                     <td className="px-4 py-3 text-center">{row.gradePoint}</td>
                     <td className="px-4 py-3 text-center">{row.weightedPoints?.toFixed(2)}</td>
@@ -481,11 +637,11 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
               <tfoot className="bg-slate-50 font-black text-[#172554]">
                 <tr>
                   <td className="px-4 py-3">Total</td>
-                  <td className="px-4 py-3 text-center">{totalCredits}</td>
+                  <td className="px-4 py-3 text-center">{displayCredits}</td>
                   <td className="px-4 py-3 text-center">—</td>
                   <td className="px-4 py-3 text-center">—</td>
                   <td className="px-4 py-3 text-center">—</td>
-                  <td className="px-4 py-3 text-center">{totalWeightedPoints.toFixed(2)}</td>
+                  <td className="px-4 py-3 text-center">{displayWeightedPoints.toFixed(2)}</td>
                 </tr>
               </tfoot>
             </table>
@@ -527,6 +683,156 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
             </tbody>
           </table>
         </section>
+      )}
+      {/* Explicit / Custom Grade Entry Modal */}
+      {showExplicitGradeModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-xs animate-[profile-backdrop-in_180ms_ease-out]"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="custom-grade-modal-title"
+        >
+          <div className="w-full max-w-2xl max-h-[90vh] flex flex-col rounded-2xl border border-slate-300 bg-white shadow-2xl animate-[sticky-result-in_200ms_ease-out] overflow-hidden">
+            {/* Modal Header */}
+            <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-5 py-4 bg-[#172554] text-white shrink-0">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="rounded bg-blue-900/60 border border-blue-400/30 px-2 py-0.5 text-[10px] font-bold text-cyan-300 uppercase">
+                    Semester {selectedSemester} · {department === 'VLSI' ? 'VLSI' : department === 'ECE' ? 'ECE' : 'CSE'}
+                  </span>
+                </div>
+                <h3 id="custom-grade-modal-title" className="text-lg font-black text-white mt-1">
+                  Enter Grades of Your Choice
+                </h3>
+                <p className="text-xs text-blue-100/80 mt-0.5">
+                  Select grades for each course to calculate your semester GPA immediately.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowExplicitGradeModal(false)}
+                className="rounded-lg p-1.5 text-blue-200 hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
+                aria-label="Close"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Quick Presets Bar */}
+            <div className="px-5 py-2.5 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 shrink-0">
+              <span className="text-xs font-bold text-slate-600">Quick Fill:</span>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {['S', 'A+', 'A', 'B+'].map((letter) => (
+                  <button
+                    key={letter}
+                    type="button"
+                    onClick={() => setAllGrades(letter)}
+                    className="rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-bold text-[#172554] hover:bg-blue-50 transition-colors cursor-pointer"
+                  >
+                    All {letter}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setExplicitGrades({})}
+                  className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  Reset
+                </button>
+              </div>
+            </div>
+
+            {/* Courses List */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3 divide-y divide-slate-100">
+              {semesterCourses.map((course) => {
+                const key = course.code || course.name;
+                const currentGrade = explicitGrades[key] || 'S';
+                return (
+                  <div key={key} className="pt-3 first:pt-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="min-w-0 pr-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-sm text-[#172554]">{course.name}</span>
+                        <span className="shrink-0 rounded bg-slate-100 border border-slate-200 px-1.5 py-0.5 text-[10px] font-bold text-slate-700">
+                          {course.credits} Credits
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-400 font-mono mt-0.5">{course.code || 'Elective Course'}</p>
+                    </div>
+
+                    {/* Grade Selector Button Group */}
+                    <div className="flex flex-wrap items-center gap-1 shrink-0">
+                      {GRADE_OPTIONS.map((opt) => {
+                        const isSelected = currentGrade === opt.letter;
+                        return (
+                          <button
+                            key={opt.letter}
+                            type="button"
+                            onClick={() => {
+                              setExplicitGrades((prev) => ({
+                                ...prev,
+                                [key]: opt.letter,
+                              }));
+                            }}
+                            className={`px-2.5 py-1.5 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
+                              isSelected
+                                ? 'bg-[#172554] border-[#172554] text-white shadow-xs'
+                                : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
+                            }`}
+                          >
+                            {opt.letter}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Live Calculation Footer */}
+            <div className="border-t border-slate-200 bg-slate-50 p-4 shrink-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex items-baseline gap-4">
+                <div>
+                  <span className="block text-[10px] font-bold uppercase text-slate-500">Calculated GPA</span>
+                  <span className="text-2xl font-black text-[#172554] tabular-nums">
+                    {explicitLiveGpa.toFixed(2)}
+                  </span>
+                  <span className="text-xs text-slate-400 font-medium"> / 10.00</span>
+                </div>
+                <div className="border-l border-slate-200 pl-4">
+                  <span className="block text-[10px] font-bold uppercase text-slate-500">Total Credits</span>
+                  <span className="text-lg font-bold text-slate-800 tabular-nums">
+                    {explicitTotalCredits}
+                  </span>
+                </div>
+                <div className="border-l border-slate-200 pl-4">
+                  <span className="block text-[10px] font-bold uppercase text-slate-500">Weighted Points</span>
+                  <span className="text-lg font-bold text-slate-800 tabular-nums">
+                    {explicitWeightedPoints.toFixed(1)}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowExplicitGradeModal(false)}
+                  className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleApplyExplicitGrades}
+                  className="rounded-xl bg-[#172554] px-5 py-2 text-xs font-bold text-white hover:bg-[#1e3a8a] transition-colors shadow-xs cursor-pointer"
+                >
+                  Calculate &amp; Apply GPA
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </section>
   );

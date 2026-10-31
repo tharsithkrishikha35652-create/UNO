@@ -1,5 +1,5 @@
 import React from 'react';
-import { GraduationCap, Target, FlaskConical, SlidersHorizontal, ChevronDown } from 'lucide-react';
+import { GraduationCap, Target, FlaskConical, ChevronDown } from 'lucide-react';
 import { GRADE_SCALE } from '../calculatorUtils';
 import { CourseType } from '../types';
 
@@ -156,24 +156,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                 <span className="absolute right-3.5 top-2.5 text-xs font-bold text-[#1e3a8a]">/ 100</span>
               </div>
 
-              {/* Theory Slider */}
-              <div className="pt-1 mb-3">
-                <div className="flex justify-between text-xs font-bold text-[#172554] mb-1">
-                  <span>0</span>
-                  <span className="sr-only">Adjust theory marks</span>
-                  <span>100</span>
-                </div>
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  step={1}
-                  value={numericEse}
-                  onChange={(e) => onEseChange(parseFloat(e.target.value))}
-                  aria-label="Adjust ESE Theory Marks slider"
-                  className="w-full accent-[#172554] cursor-pointer"
-                />
-              </div>
+
 
             </div>
 
@@ -234,25 +217,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                 </span>
               </div>
 
-              {/* Lab Slider */}
-              <div className="pt-1 mb-3">
-                <div className="flex justify-between text-xs font-bold text-[#172554] mb-1">
-                  <span>0</span>
-                  <span className="sr-only">Adjust lab marks</span>
-                  <span>{numericLabMax}</span>
-                </div>
-                <input
-                  type="range"
-                  min={0}
-                  max={numericLabMax}
-                  step={1}
-                  value={Math.min(numericLabMax, numericLab)}
-                  onChange={(e) => onEseLabChange && onEseLabChange(parseFloat(e.target.value))}
-                  onInput={(e) => onEseLabChange && onEseLabChange(parseFloat((e.target as HTMLInputElement).value))}
-                  aria-label="Adjust ESE Lab Marks slider"
-                  className="w-full accent-[#172554] cursor-pointer"
-                />
-              </div>
+
 
             </div>
 
@@ -399,24 +364,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                 <span className="absolute right-3.5 top-2.5 text-xs font-bold text-[#1e3a8a]">/ 100</span>
               </div>
 
-              {/* Slider */}
-              <div className="pt-1 mb-3">
-                <div className="flex justify-between text-xs font-bold text-[#172554] mb-1">
-                  <span>0</span>
-                  <span className="sr-only">Adjust end-semester marks</span>
-                  <span>100</span>
-                </div>
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  step={1}
-                  value={numericEse}
-                  onChange={(e) => onEseChange(parseFloat(e.target.value))}
-                  aria-label="Adjust End Semester Marks slider"
-                  className="w-full accent-[#172554] cursor-pointer"
-                />
-              </div>
+
             </div>
 
             {/* Marks Contributed for Total at bottom */}

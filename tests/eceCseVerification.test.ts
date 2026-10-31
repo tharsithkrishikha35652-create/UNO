@@ -197,4 +197,23 @@ describe('Department Course & Curriculum Verification', () => {
     expect(breakdown.grade.letter).toBe('S');
     expect(breakdown.grade.gradePoint).toBe(10);
   });
+it('verifies explicit grade-based GPA calculation for a chosen semester', () => {
+    const sem1Courses = CSE_GPA_COURSES.filter((c) => c.semester === 1);
+    const mockGrades: Record<string, number> = {
+      'EN23C03': 10, // S
+      'MA23C11': 10, // S
+      'PH23C11': 9,  // A+
+      'EE23C02': 8,  // A
+      'CS23C04': 10, // S
+      'CS23101': 10, // S
+      'UC23H01': 10, // S
+    };
+    const totalCredits = sem1Courses.reduce((sum, c) => sum + c.credits, 0);
+    const totalWeightedPoints = sem1Courses.reduce((sum, c) => sum + c.credits * (mockGrades[c.code] ?? 10), 0);
+    const gpa = totalWeightedPoints / totalCredits;
+    expect(totalCredits).toBe(21);
+    expect(totalWeightedPoints).toBe(200);
+    expect(Number(gpa.toFixed(2))).toBe(9.52);
+  });
 });
+
