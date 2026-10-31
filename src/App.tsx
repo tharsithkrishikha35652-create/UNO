@@ -375,7 +375,7 @@ function getCourseProgress(
 interface AuthenticatedAppProps {
   user: User | null;
   guestMode: boolean;
-  initialDepartment?: 'CSE' | 'ECE' | 'VLSI';
+  initialDepartment?: 'CSE' | 'ECE';
   onSignOut: () => Promise<void>;
   onExitGuest: () => void;
   signOutPending: boolean;
@@ -418,7 +418,7 @@ export default function App() {
   const reduceMotion = useReducedMotion();
   const [user, setUser] = useState<User | null>(null);
   const [guestMode, setGuestMode] = useState(false);
-  const [guestDepartment, setGuestDepartment] = useState<'CSE' | 'ECE' | 'VLSI'>('CSE');
+  const [guestDepartment, setGuestDepartment] = useState<'CSE' | 'ECE'>('CSE');
   const [theme, setTheme] = useState<AppTheme>(getInitialTheme);
   const [authResolved, setAuthResolved] = useState(false);
   const [authError, setAuthError] = useState("");
@@ -515,7 +515,7 @@ export default function App() {
     }
   };
 
-  const handleContinueAsGuest = (dept: 'CSE' | 'ECE' | 'VLSI' = 'CSE') => {
+  const handleContinueAsGuest = (dept: 'CSE' | 'ECE' = 'CSE') => {
     setAuthError("");
     setGuestDepartment(dept);
     setGuestMode(true);
@@ -626,8 +626,6 @@ function AuthenticatedApp({
   const currentDepartment =
     profile?.department === "ECE"
       ? "ECE"
-      : profile?.department === "VLSI"
-      ? "VLSI"
       : "CSE";
   const deptPresets = useMemo(
     () => getPresetCourses(currentDepartment),

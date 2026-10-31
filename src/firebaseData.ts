@@ -229,7 +229,7 @@ export async function loadUserWorkspace(uid: string): Promise<UserWorkspaceData>
     ? {
         studentName: (profileData.studentName as string).trim(),
         rollNumber: (profileData.rollNumber as string).trim(),
-        department: (profileData.department as string).trim().toUpperCase() === 'VLSI' ? 'VLSI' : (profileData.department as string).trim().toUpperCase() === 'ECE' ? 'ECE' : 'CSE',
+        department: (profileData.department as string).trim().toUpperCase() === 'ECE' ? 'ECE' : 'CSE',
       }
     : null;
 
