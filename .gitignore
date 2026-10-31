@@ -13,3 +13,5 @@ node_modules/.tmp
 !**/.env.example
 firestore-debug.log
 firebase-debug.log
+release-apk/
+*.apk
