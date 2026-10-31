@@ -220,7 +220,7 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
                         readOnly={estimatedMarks}
                         onChange={(e) => handleBoxChange(idx, e.target.value)}
                         aria-label={`${accessibleItemLabel} ${displayIndex} mark out of ${maxMarkPerBox}`}
-                        className="h-8 w-10 sm:h-9 sm:w-14 px-1 text-xs sm:text-sm font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] text-center read-only:bg-blue-50 read-only:text-[#1e3a8a]"
+                        className="h-8 w-10 sm:h-9 sm:w-14 px-1 text-xs sm:text-sm font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] text-center read-only:bg-blue-50 read-only:text-[#1e3a8a] font-numeric tabular-nums"
                       />
                       <button
                         type="button"
@@ -231,7 +231,7 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
                       >
                         +
                       </button>
-                      <span className="text-[10px] sm:text-xs font-bold text-[#1e3a8a]">/{maxMarkPerBox}</span>
+                      <span className="text-[10px] sm:text-xs font-bold text-[#1e3a8a] font-numeric tabular-nums">/{maxMarkPerBox}</span>
                     </div>
                   </motion.div>
                 );
@@ -247,7 +247,7 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
       <div className="mt-2 pt-2 space-y-1 border-t border-slate-200">
         <div className="flex items-center justify-between text-xs text-[#172554]">
           <span className="font-medium">Total Marks Obtained:</span>
-          <span className="font-bold">
+          <span className="font-bold font-numeric tabular-nums">
             {sum} / {maxPossibleSum}
           </span>
         </div>
@@ -257,10 +257,10 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
             {estimatedMarks ? 'Marks contributed (estimate):' : 'Marks contributed:'}
           </span>
           <div className="flex shrink-0 items-baseline gap-1">
-            <span className="text-lg font-black tabular-nums">
+            <span className="text-lg font-black tabular-nums font-numeric">
               {calculatedPoints.toFixed(2)}
             </span>
-            <span className="text-xs font-bold text-[#1e3a8a]">/ {weight}</span>
+            <span className="text-xs font-bold text-[#1e3a8a] font-numeric tabular-nums">/ {weight}</span>
           </div>
         </div>
       </div>

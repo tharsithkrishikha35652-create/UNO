@@ -99,7 +99,7 @@ Engineering curricula encompass varying course structures with differing ratios 
 Designed to feel like an intentional university utility rather than a generic SaaS dashboard:
 - **Light Theme**: Warm cream backdrop (`#FAF8F5`) layered with delicate peach and slate decorative educational elements (`warm-scholar-bg.png`).
 - **Dark Theme**: Charcoal/navy base (`#161618`) accented with muted copper, deep slate academic motifs, and subtle coordinate grids (`dark-scholar-bg.png`).
-- Strict typography using **Plus Jakarta Sans** for crisp form inputs and **Fraunces/Merriweather** serif accents for editorial elegance.
+- Strict typography using **Figtree Variable** for crisp form inputs and **Inter (data) and Newsreader** serif accents for editorial elegance.
 - Intentional sentence-case labeling throughout, preserving technical acronyms (`CA1`, `CA2`, `ESE`, `GPA`, `CGPA`, `CEG`).
 
 ### 7. Interactive CEG Architectural Artwork

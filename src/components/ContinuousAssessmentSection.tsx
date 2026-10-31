@@ -104,9 +104,9 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
           <span className="text-xs font-bold text-slate-200">
             Marks contributed:
           </span>
-          <span className="text-lg font-black tabular-nums">
+          <span className="text-lg font-black tabular-nums font-numeric">
             {subtotal.toFixed(2)}{' '}
-            <span className="text-xs font-semibold text-slate-300">
+            <span className="text-xs font-semibold text-slate-300 font-numeric tabular-nums">
               / {caMax.toFixed(2)}
             </span>
           </span>
@@ -180,7 +180,7 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
                       const val = parseFloat(raw);
                       onTestMaxChange(isNaN(val) ? '' : Math.max(1, val));
                     }}
-                    className="h-11 w-full min-w-0 px-3 pr-24 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm"
+                    className="h-11 w-full min-w-0 px-3 pr-24 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm font-numeric tabular-nums"
                   />
                   <span className="absolute right-3 top-2.5 text-[11px] font-semibold text-slate-500">
                     Max Scale
@@ -240,9 +240,9 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
                       raw === '' ? '' : Math.max(0, Math.min(currentMax, parseFloat(raw) || 0))
                     );
                   }}
-                  className="h-11 w-full min-w-0 px-3 pr-16 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm"
+                  className="h-11 w-full min-w-0 px-3 pr-16 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm font-numeric tabular-nums"
                 />
-                <span className="absolute right-3 top-2.5 text-xs font-bold text-[#1e3a8a]">
+                <span className="absolute right-3 top-2.5 text-xs font-bold text-[#1e3a8a] font-numeric tabular-nums">
                   / {currentMax}
                 </span>
               </div>
@@ -256,10 +256,10 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
                 Marks contributed:
               </span>
               <div className="flex items-baseline gap-1">
-                <span className="text-lg font-black tabular-nums">
+                <span className="text-lg font-black tabular-nums font-numeric">
                   {testPoints.toFixed(2)}
                 </span>
-                <span className="text-xs font-bold text-[#1e3a8a]">
+                <span className="text-xs font-bold text-[#1e3a8a] font-numeric tabular-nums">
                   / {testWeight}
                 </span>
               </div>

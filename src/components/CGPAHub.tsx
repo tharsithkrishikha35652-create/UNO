@@ -352,7 +352,7 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
                           </p>
                           <p className="leading-relaxed text-[11px] text-slate-600">
                             Semester III is counted as{" "}
-                            <strong>{department === "VLSI" ? "21" : department === "ECE" ? "20" : "25"} CGPA credits</strong>. Enter its GPA
+                            <strong><span className="font-numeric tabular-nums">{department === "VLSI" ? "21" : department === "ECE" ? "20" : "25"}</span> CGPA credits</strong>. Enter its GPA
                             including UHV and the UHV grade point; the hub
                             subtracts UHV’s two-credit contribution.
                           </p>
@@ -427,7 +427,7 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
           <p className="text-xs font-bold text-emerald-800">
             Cumulative GPA through Semester {selectedSemester}
           </p>
-          <AnimatedNumber value={cgpa} className="mt-1 text-4xl font-black text-[#172554]" />
+          <AnimatedNumber value={cgpa} className="mt-1 text-4xl font-black text-[#172554] font-numeric tabular-nums" />
         </motion.section>
       ) : (
         <motion.p

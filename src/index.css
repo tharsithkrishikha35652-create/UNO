@@ -1,7 +1,60 @@
 @import "tailwindcss";
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
+/* Warm Scholar Typography System - Local Font Declarations */
+@font-face {
+  font-family: "Figtree";
+  src: url("/fonts/Figtree/Figtree-VariableFont_wght.ttf") format("truetype");
+  font-weight: 300 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Figtree";
+  src: url("/fonts/Figtree/Figtree-Italic-VariableFont_wght.ttf") format("truetype");
+  font-weight: 300 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Figtree Variable";
+  src: url("/fonts/Figtree/Figtree-VariableFont_wght.ttf") format("truetype");
+  font-weight: 300 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Figtree Variable";
+  src: url("/fonts/Figtree/Figtree-Italic-VariableFont_wght.ttf") format("truetype");
+  font-weight: 300 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/Inter/Inter-VariableFont_opsz,wght.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/Inter/Inter-Italic-VariableFont_opsz,wght.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+
 :root {
+  --font-primary: "Figtree", "Figtree Variable", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-numeric: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-editorial: "Newsreader", Georgia, "Times New Roman", serif;
   color-scheme: light;
   accent-color: #d97757;
   --radius-control: 8px;
@@ -52,7 +105,7 @@
   button,
   select,
   textarea {
-    font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+    font-family: var(--font-primary);
     color: var(--app-primary-text);
     background-color: var(--app-background);
     -webkit-font-smoothing: antialiased;
@@ -194,9 +247,16 @@ input[type="number"]::-webkit-outer-spin-button {
   margin: 0;
 }
 
+.font-primary {
+  font-family: var(--font-primary);
+}
+
+.font-numeric,
+.font-data,
 .tabular-nums {
+  font-family: var(--font-numeric);
   font-variant-numeric: tabular-nums;
-  font-feature-settings: "zero" 0;
+  font-feature-settings: "tnum" 1, "zero" 0;
 }
 
 [data-theme="dark"] body {
@@ -719,6 +779,34 @@ input[type="number"]::-webkit-outer-spin-button {
 [data-theme="dark"] [class~="border-[#172554]"] {
   border-color: #4a4a50;
 }
+[data-theme="dark"] [class*="bg-[#FCFAF6]"],
+[data-theme="dark"] [class*="bg-[#fcfaf6]"],
+.dark [class*="bg-[#FCFAF6]"],
+.dark [class*="bg-[#fcfaf6]"] {
+  background-color: var(--app-surface) !important;
+}
+
+[data-theme="dark"] [class*="border-[#E4DDD2]"],
+[data-theme="dark"] [class*="border-[#e4ddd2]"],
+.dark [class*="border-[#E4DDD2]"],
+.dark [class*="border-[#e4ddd2]"] {
+  border-color: var(--app-divider) !important;
+}
+
+[data-theme="dark"] [class*="text-[#2C2C30]"],
+[data-theme="dark"] [class*="text-[#2c2c30]"],
+.dark [class*="text-[#2C2C30]"],
+.dark [class*="text-[#2c2c30]"] {
+  color: var(--app-primary-text) !important;
+}
+
+[data-theme="dark"] [class*="text-[#6E6E73]"],
+[data-theme="dark"] [class*="text-[#6e6e73]"],
+.dark [class*="text-[#6E6E73]"],
+.dark [class*="text-[#6e6e73]"] {
+  color: var(--app-muted-text) !important;
+}
+
 [data-theme="dark"] [class~="border-[#1e3a8a]"] {
   border-color: #e08564;
 }
@@ -811,7 +899,7 @@ input[type="number"]::-webkit-outer-spin-button {
 /* Credits screen (CreditsScreen.tsx): serif voice, choreographed entrance, and the theme-aware Main Building elevation.
    Motion uses transform and opacity wherever possible; the global prefers-reduced-motion rule above switches it all off. */
 .credits-serif {
-  font-family: "Newsreader", Georgia, "Times New Roman", serif;
+  font-family: var(--font-editorial, "Newsreader", Georgia, "Times New Roman", serif);
   font-optical-sizing: auto;
 }
 

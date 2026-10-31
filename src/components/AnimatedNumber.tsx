@@ -47,5 +47,11 @@ export const AnimatedNumber: React.FC<AnimatedNumberProps> = ({ value, decimals 
     };
   }, [value, reduceMotion]);
 
-  return <span className={className}>{displayValue.toFixed(decimals)}</span>;
+  const combinedClassName = className
+    ? className.includes('font-numeric')
+      ? className
+      : `font-numeric tabular-nums ${className}`
+    : 'font-numeric tabular-nums';
+
+  return <span className={combinedClassName}>{displayValue.toFixed(decimals)}</span>;
 };

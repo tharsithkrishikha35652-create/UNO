@@ -484,7 +484,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
             <div className="flex items-center gap-2 text-[#172554]">
               <Award className="w-4 h-4 text-blue-700 shrink-0" />
               <span className="font-semibold">
-                Displaying GPA calculated from your custom grades (GPA: <strong>{explicitCalculationResult.gpa.toFixed(2)}</strong>)
+                Displaying GPA calculated from your custom grades (GPA: <strong className="tabular-nums font-numeric">{explicitCalculationResult.gpa.toFixed(2)}</strong>)
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -514,8 +514,8 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
             {completedCourses} of {totalSemesterCourses} courses complete
           </p>
           {incompleteCourses.length > 0 && (
-            <div className="mt-2 rounded-lg border border-[#E4DDD2] bg-[#FCFAF6] px-3 py-2.5 text-xs leading-relaxed text-[#6E6E73]" role="status">
-              <span className="font-bold text-[#2C2C30]">Still missing marks: </span>
+            <div className="mt-2 rounded-lg border border-slate-300 bg-slate-50 px-3 py-2.5 text-xs leading-relaxed text-slate-600" role="status">
+              <span className="font-bold text-slate-800">Still missing marks: </span>
               {incompleteCourses.slice(0, 3).map((course) => course.name).join(', ')}
               {incompleteCourses.length > 3 ? ` and ${incompleteCourses.length - 3} more` : ''}.
               <span className="block mt-1">Complete these courses before calculating GPA. Your GPA is not calculated from incomplete marks.</span>
@@ -540,7 +540,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
                     <p className="font-bold text-[#172554]">{row.name}</p>
                     <p className="text-xs text-slate-500">{row.code}</p>
                   </td>
-                  <td className="px-4 py-3 text-center">{row.credits}</td>
+                  <td className="px-4 py-3 text-center tabular-nums font-numeric">{row.credits}</td>
                   <td className="px-4 py-3 text-center">
                     {row.complete ? (
                       <span className={`inline-flex items-center gap-1.5 font-bold ${row.usedEstimate ? 'text-amber-800' : 'text-emerald-800'}`}>
@@ -605,17 +605,17 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
             <div className="flex flex-col justify-between rounded-xl border border-slate-300 bg-white p-4.5 sm:p-5 shadow-xs">
               <p className="text-xs font-bold text-slate-500">Semester GPA</p>
-              <AnimatedNumber value={displayGpa} className="my-2 block text-3xl sm:text-4xl font-black text-[#172554] tabular-nums tracking-tight leading-none" />
+              <AnimatedNumber value={displayGpa} className="my-2 block text-3xl sm:text-4xl font-black text-[#172554] tabular-nums font-numeric tracking-tight leading-none" />
               <p className="text-xs font-medium text-slate-500">Out of 10.00</p>
             </div>
             <div className="flex flex-col justify-between rounded-xl border border-slate-300 bg-white p-4.5 sm:p-5 shadow-xs">
               <p className="text-xs font-bold text-slate-500">Total Credits</p>
-              <AnimatedNumber value={displayCredits} decimals={0} className="my-2 block text-3xl sm:text-4xl font-black text-[#172554] tabular-nums tracking-tight leading-none" />
+              <AnimatedNumber value={displayCredits} decimals={0} className="my-2 block text-3xl sm:text-4xl font-black text-[#172554] tabular-nums font-numeric tracking-tight leading-none" />
               <p className="text-xs font-medium text-slate-500">Across {totalSemesterCourses} courses</p>
             </div>
             <div className="flex flex-col justify-between rounded-xl border border-slate-300 bg-white p-4.5 sm:p-5 shadow-xs">
               <p className="text-xs font-bold text-slate-500">Weighted Grade Points</p>
-              <AnimatedNumber value={displayWeightedPoints} className="my-2 block text-3xl sm:text-4xl font-black text-[#172554] tabular-nums tracking-tight leading-none" />
+              <AnimatedNumber value={displayWeightedPoints} className="my-2 block text-3xl sm:text-4xl font-black text-[#172554] tabular-nums font-numeric tracking-tight leading-none" />
               <p className="text-xs font-medium text-slate-500">Credits × grade points</p>
             </div>
           </div>
@@ -650,8 +650,8 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
                         <p className="font-bold text-[#172554]">{row.name}</p>
                         <p className="text-xs font-mono text-slate-500">{row.code}</p>
                       </td>
-                      <td className="px-4 py-3.5 text-center tabular-nums font-semibold text-slate-700">{row.credits}</td>
-                      <td className="px-4 py-3.5 text-center tabular-nums text-slate-700">
+                      <td className="px-4 py-3.5 text-center tabular-nums font-numeric font-semibold text-slate-700">{row.credits}</td>
+                      <td className="px-4 py-3.5 text-center tabular-nums font-numeric text-slate-700">
                         {explicitCalculationResult ? (
                           <span className="inline-flex items-center rounded-md border border-blue-200 bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-700">
                             Custom
@@ -667,10 +667,10 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
                           {row.grade ?? '—'}
                         </span>
                       </td>
-                      <td className="px-4 py-3.5 text-center tabular-nums font-semibold text-slate-800">
+                      <td className="px-4 py-3.5 text-center tabular-nums font-numeric font-semibold text-slate-800">
                         {row.gradePoint !== null && row.gradePoint !== undefined ? row.gradePoint : '—'}
                       </td>
-                      <td className="px-4 py-3.5 text-center tabular-nums font-bold text-[#172554] sm:px-5">
+                      <td className="px-4 py-3.5 text-center tabular-nums font-numeric font-bold text-[#172554] sm:px-5">
                         {row.weightedPoints !== null && row.weightedPoints !== undefined
                           ? row.weightedPoints.toFixed(2)
                           : '—'}
@@ -681,11 +681,11 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
                 <tfoot className="border-t-2 border-slate-300 bg-slate-50/90 font-black text-[#172554]">
                   <tr>
                     <td className="px-4 py-3.5 text-sm font-black sm:px-5">Total</td>
-                    <td className="px-4 py-3.5 text-center tabular-nums text-sm font-black">{displayCredits}</td>
+                    <td className="px-4 py-3.5 text-center tabular-nums font-numeric text-sm font-black">{displayCredits}</td>
                     <td className="px-4 py-3.5 text-center text-slate-400 font-normal">—</td>
                     <td className="px-4 py-3.5 text-center text-slate-400 font-normal">—</td>
                     <td className="px-4 py-3.5 text-center text-slate-400 font-normal">—</td>
-                    <td className="px-4 py-3.5 text-center tabular-nums text-sm font-black text-[#172554] sm:px-5">
+                    <td className="px-4 py-3.5 text-center tabular-nums font-numeric text-sm font-black text-[#172554] sm:px-5">
                       {displayWeightedPoints.toFixed(2)}
                     </td>
                   </tr>
@@ -695,7 +695,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
           </div>
 
           <p className="px-1 text-xs text-slate-500">
-            Total Semester {selectedSemester} credits: {totalCredits}.
+            Total Semester {selectedSemester} credits: <span className="tabular-nums font-numeric">{totalCredits}</span>.
           </p>
         </>
         </motion.div>
@@ -722,7 +722,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
                   <tr key={entry.id}>
                     <td className="px-4 py-3">{new Date(entry.createdAtMs).toLocaleString()}</td>
                     <td className="px-4 py-3 text-center">{entry.totalCredits}</td>
-                    <td className="px-4 py-3 text-center font-black text-[#172554]">{entry.gpa.toFixed(2)}</td>
+                    <td className="px-4 py-3 text-center font-black text-[#172554] tabular-nums font-numeric">{entry.gpa.toFixed(2)}</td>
                     <td className="px-4 py-3 text-center text-xs">
                       {entry.estimate?.enabled && entry.estimate.appliedToCourses > 0
                         ? `${entry.estimate.percentage}% (${entry.estimate.appliedToCourses} courses)`
@@ -816,7 +816,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-sm text-[#172554]">{course.name}</span>
                         <span className="shrink-0 rounded bg-slate-100 border border-slate-200 px-1.5 py-0.5 text-[10px] font-bold text-slate-700">
-                          {course.credits} Credits
+                          <span className="tabular-nums font-numeric">{course.credits}</span> Credits
                         </span>
                       </div>
                       <p className="text-xs text-slate-400 font-mono mt-0.5">{course.code || 'Elective Course'}</p>
@@ -857,20 +857,20 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
               <div className="flex items-baseline gap-4">
                 <div>
                   <span className="block text-[10px] font-bold uppercase text-slate-500">Calculated GPA</span>
-                  <span className="text-2xl font-black text-[#172554] tabular-nums">
+                  <span className="text-2xl font-black text-[#172554] tabular-nums font-numeric">
                     {explicitLiveGpa.toFixed(2)}
                   </span>
                   <span className="text-xs text-slate-400 font-medium"> / 10.00</span>
                 </div>
                 <div className="border-l border-slate-200 pl-4">
                   <span className="block text-[10px] font-bold uppercase text-slate-500">Total Credits</span>
-                  <span className="text-lg font-bold text-slate-800 tabular-nums">
+                  <span className="text-lg font-bold text-slate-800 tabular-nums font-numeric">
                     {explicitTotalCredits}
                   </span>
                 </div>
                 <div className="border-l border-slate-200 pl-4">
                   <span className="block text-[10px] font-bold uppercase text-slate-500">Weighted Points</span>
-                  <span className="text-lg font-bold text-slate-800 tabular-nums">
+                  <span className="text-lg font-bold text-slate-800 tabular-nums font-numeric">
                     {explicitWeightedPoints.toFixed(1)}
                   </span>
                 </div>
