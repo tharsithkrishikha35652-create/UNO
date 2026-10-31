@@ -14,5 +14,7 @@
     "ios"
   ],
   "semgrep.scan.onlyGitDirty": false,
-  "java.configuration.updateBuildConfiguration": "interactive"
+  "java.configuration.updateBuildConfiguration": "interactive",
+  "emulator.emulatorPathWindows": "C:\\Users\\Tharsith R\\AppData\\Local\\Android\\Sdk",
+  "emulator.hasEditorTitleIcon": true
 }
