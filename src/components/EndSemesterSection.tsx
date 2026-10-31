@@ -169,10 +169,10 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                   Marks contributed:
                 </span>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-lg font-black tabular-nums">
+                  <span className="text-lg font-black tabular-nums font-numeric">
                     {eseTheoryPoints.toFixed(2)}
                   </span>
-                  <span className="text-xs font-bold text-[#1e3a8a]">/ {eseTheoryWeight.toFixed(2)}</span>
+                  <span className="text-xs font-bold text-[#1e3a8a] font-numeric tabular-nums">/ {eseTheoryWeight.toFixed(2)}</span>
                 </div>
               </div>
             </div>
@@ -230,10 +230,10 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                   {estimatedLabMark ? 'Marks contributed (estimate):' : 'Marks contributed:'}
                 </span>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-lg font-black tabular-nums">
+                  <span className="text-lg font-black tabular-nums font-numeric">
                     {eseLabPoints.toFixed(2)}
                   </span>
-                  <span className="text-xs font-bold text-[#1e3a8a]">/ {eseLabWeight.toFixed(2)}</span>
+                  <span className="text-xs font-bold text-[#1e3a8a] font-numeric tabular-nums">/ {eseLabWeight.toFixed(2)}</span>
                 </div>
               </div>
             </div>
@@ -292,7 +292,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                           </span>
                         ) : (
                           <span className="text-[#172554] font-bold text-[11px]">
-                            Need <strong className="text-[#1e3a8a]">{neededTotalEse.toFixed(1)}</strong>/{eseWeight} in ESE
+                            Need <strong className="text-[#1e3a8a] font-numeric tabular-nums">{neededTotalEse.toFixed(1)}</strong>/{eseWeight} in ESE
                             {approxNeeded <= approxScale && (
                               <span className="block text-[10px] font-normal text-slate-600">
                                 ~{approxNeeded}/{approxScale} in {approxName}
@@ -315,15 +315,15 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                     ? `Practical: ${eseLabPoints.toFixed(2)} / ${eseLabWeight}`
                     : `Theory: ${eseTheoryPoints.toFixed(2)} / ${eseTheoryWeight} + Lab: ${eseLabPoints.toFixed(2)} / ${eseLabWeight}`}
                 </span>
-                <span className="font-bold tabular-nums">{esePoints.toFixed(2)} / {eseWeight}M</span>
+                <span className="font-bold tabular-nums font-numeric">{esePoints.toFixed(2)} / {eseWeight}M</span>
               </div>
               <div className="flex justify-between text-[#172554] font-medium pt-1 border-t border-slate-300">
                 <span>Internal CA Secured:</span>
-                <span className="font-bold tabular-nums">{internalTotal.toFixed(2)} / {internalMax}M</span>
+                <span className="font-bold tabular-nums font-numeric">{internalTotal.toFixed(2)} / {internalMax}M</span>
               </div>
               <div className="flex justify-between text-[#172554] font-black pt-1 border-t border-[#172554]">
                 <span>Total Course Mark:</span>
-                <span className="text-sm tabular-nums">{(internalTotal + esePoints).toFixed(2)} / 100M</span>
+                <span className="text-sm tabular-nums font-numeric">{(internalTotal + esePoints).toFixed(2)} / 100M</span>
               </div>
             </div>
           </div>
@@ -375,10 +375,10 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
               <div className="flex items-baseline justify-between text-[#172554]">
                 <span className="text-xs font-bold">Marks contributed:</span>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-lg font-black tabular-nums">
+                  <span className="text-lg font-black tabular-nums font-numeric">
                     {esePoints.toFixed(2)}
                   </span>
-                  <span className="text-xs font-bold text-[#1e3a8a]">/ {eseTheoryWeight.toFixed(2)}</span>
+                  <span className="text-xs font-bold text-[#1e3a8a] font-numeric tabular-nums">/ {eseTheoryWeight.toFixed(2)}</span>
                 </div>
               </div>
             </div>
@@ -408,7 +408,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                     >
                       <div className="flex items-center gap-2">
                         <span className="w-8 font-black text-sm text-[#172554]">{g.letter}</span>
-                        <span className="text-[#172554] font-semibold">{g.minScore}+ marks</span>
+                        <span className="text-[#172554] font-semibold font-numeric tabular-nums">{g.minScore}+ marks</span>
                       </div>
 
                       <div className="text-right">

@@ -1,7 +1,8 @@
 import React from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { transitions } from '../motion';
-import { Plus, Minus, FlaskConical, FileText } from 'lucide-react';
+import { FlaskConical, FileText } from 'lucide-react';
+import { NumberStepper } from './NumberStepper';
 
 interface DynamicScoreBoxesProps {
   title: string;
@@ -49,33 +50,23 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
     if (val === '') {
       newScores[index] = '';
     } else {
-      const num = Math.max(0, Math.min(maxMarkPerBox, parseFloat(val) || 0));
-      newScores[index] = num;
+      const num = parseFloat(val);
+      newScores[index] = isNaN(num) ? '' : Math.max(0, Math.min(maxMarkPerBox, num));
     }
     onScoresChange(newScores);
   };
 
-  const adjustBoxScore = (index: number, amount: number) => {
-    const currentScore = Number(scores[index]) || 0;
-    const nextScores = [...scores];
-    nextScores[index] = Math.max(0, Math.min(maxMarkPerBox, Math.round((currentScore + amount) * 2) / 2));
-    onScoresChange(nextScores);
-  };
-
-  const handleCountInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value;
-    if (raw === '') {
-      onCountChange(minimumCount > 0 ? minimumCount : '');
-      return;
-    }
-    const val = parseInt(raw, 10);
-    const safeVal = isNaN(val) ? minimumCount : Math.max(minimumCount, Math.min(maximumCount, val));
-    onCountChange(safeVal);
+  const adjustBoxScore = (index: number, delta: number) => {
+    const current = parseFloat(String(scores[index] ?? 0)) || 0;
+    const updated = Math.max(0, Math.min(maxMarkPerBox, parseFloat((current + delta).toFixed(2))));
+    const newScores = [...scores];
+    newScores[index] = updated;
+    onScoresChange(newScores);
   };
 
   const incrementCount = () => {
     if (numericCount < maximumCount) {
-      onCountChange(numericCount < minimumCount ? minimumCount : numericCount + 1);
+      onCountChange(numericCount + 1);
     }
   };
 
@@ -85,18 +76,31 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
     }
   };
 
-  const sum = scores
-    .slice(0, numericCount)
-    .reduce<number>((acc, curr) => acc + (curr === '' || isNaN(Number(curr)) ? 0 : Number(curr)), 0);
+  const handleCountInputChange = (val: number | string) => {
+    const strVal = String(val);
+    if (strVal === '') {
+      onCountChange('');
+      return;
+    }
+    const parsed = parseInt(strVal, 10);
+    if (isNaN(parsed)) {
+      onCountChange('');
+      return;
+    }
+    const clamped = Math.max(minimumCount, Math.min(maximumCount, parsed));
+    onCountChange(clamped);
+  };
+
+  const sum = scores.reduce<number>((acc, curr) => acc + (parseFloat(String(curr)) || 0), 0);
   const maxPossibleSum = numericCount * maxMarkPerBox;
 
   return (
-    <div className="p-2.5 sm:p-3 flex flex-col justify-between h-full bg-white">
-      {/* Category Header - no horizontal underline */}
+    <div className="flex flex-col justify-between h-full bg-white dark:bg-[#202024] p-3 rounded-lg border border-slate-200 dark:border-slate-700">
       <div>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+        {/* Header with Title and Count Stepper */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 mb-2 border-b border-slate-200 dark:border-slate-700">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-[#172554] text-white shrink-0">
+            <div className="text-[#172554] dark:text-[#f1f1f3]">
               {category === 'assignment' ? (
                 <FileText className="w-5 h-5" />
               ) : (
@@ -104,56 +108,40 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
               )}
             </div>
             <div>
-              <h4 className="text-sm font-bold text-[#172554]">{title}</h4>
-              <span className="text-xs font-semibold text-[#1e3a8a]">
+              <h4 className="text-sm font-bold text-[#172554] dark:text-[#f1f1f3]">{title}</h4>
+              <span className="text-xs font-semibold text-[#1e3a8a] dark:text-[#e08564]">
                 Weightage: {weight}%
               </span>
             </div>
           </div>
 
-          {/* Stepper with the word "number" */}
+          {/* Stepper for number of items */}
           <div className="flex items-center gap-2 self-start sm:self-auto">
             <label
               htmlFor={`count-${category}-${caName}`}
-              className="text-xs font-bold text-[#172554]"
+              className="text-xs font-bold text-[#172554] dark:text-[#f1f1f3]"
             >
               Number:
             </label>
-            <div className="flex items-center border border-[#172554] bg-white">
-              <button
-                type="button"
-                onClick={decrementCount}
-                disabled={estimatedMarks || numericCount <= minimumCount}
-                aria-label={`Decrease number of ${accessibleItemLabel.toLowerCase()} items in ${caName}`}
-                className="flex h-11 w-10 items-center justify-center text-[#172554] hover:bg-slate-100 disabled:opacity-30 disabled:pointer-events-none transition-colors border-r border-slate-300"
-              >
-                <Minus className="w-4 h-4" />
-              </button>
-              <input
-                id={`count-${category}-${caName}`}
-                type="number"
-                min={minimumCount}
-                max={maximumCount}
-                value={count === '' || count === undefined ? '' : count}
-                placeholder="0"
-                disabled={estimatedMarks}
-                onChange={handleCountInputChange}
-                className="h-11 w-14 text-center text-base font-bold bg-white text-[#172554] focus:outline-hidden disabled:bg-blue-50 disabled:text-[#1e3a8a]"
-              />
-              <button
-                type="button"
-                onClick={incrementCount}
-                disabled={estimatedMarks || numericCount >= maximumCount}
-                aria-label={`Increase number of ${accessibleItemLabel.toLowerCase()} items in ${caName}`}
-                className="flex h-11 w-10 items-center justify-center text-[#172554] hover:bg-slate-100 disabled:opacity-30 disabled:pointer-events-none transition-colors border-l border-slate-300"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            </div>
+            <NumberStepper
+              id={`count-${category}-${caName}`}
+              value={count === '' || count === undefined ? '' : count}
+              onChange={handleCountInputChange}
+              onIncrement={incrementCount}
+              onDecrement={decrementCount}
+              min={minimumCount}
+              max={maximumCount}
+              step={1}
+              disabled={estimatedMarks}
+              ariaLabel={`Number of ${accessibleItemLabel.toLowerCase()} items in ${caName}`}
+              ariaLabelDecrement={`Decrease number of ${accessibleItemLabel.toLowerCase()} items in ${caName}`}
+              ariaLabelIncrement={`Increase number of ${accessibleItemLabel.toLowerCase()} items in ${caName}`}
+              size="md"
+            />
           </div>
         </div>
 
-        {/* Dynamic Entries: Separated only by simple vertical lines with no horizontal borders */}
+        {/* Dynamic Entries: Two-column grid row-by-row */}
         <AnimatePresence initial={false} mode="wait">
         {numericCount === 0 ? (
           <motion.div
@@ -162,9 +150,9 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
             animate={{ opacity: 1 }}
             exit={reduceMotion ? undefined : { opacity: 0 }}
             transition={transitions.feedback}
-            className="py-3 text-center text-[#172554] text-xs my-1"
+            className="py-3 text-center text-[#172554] dark:text-[#f1f1f3] text-xs my-1"
           >
-            <p className="font-medium text-slate-600">
+            <p className="font-medium text-slate-600 dark:text-slate-400">
               Set the number of {category === 'assignment' ? 'assignments' : 'lab practical evaluations'} above
             </p>
           </motion.div>
@@ -175,7 +163,7 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
             animate={{ opacity: 1 }}
             exit={reduceMotion ? undefined : { opacity: 0 }}
             transition={transitions.feedback}
-            className="my-2 bg-white"
+            className="my-2 bg-transparent"
           >
             <div className="grid grid-cols-2 gap-2 sm:gap-3">
               <AnimatePresence initial={false}>
@@ -192,46 +180,33 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={reduceMotion ? undefined : { opacity: 0, scale: 0.95, y: -4 }}
                     transition={transitions.state}
-                    className="min-w-0 p-1.5 sm:p-2 rounded-lg border border-slate-200 bg-white flex flex-col items-center justify-center hover:bg-slate-50 transition-colors"
+                    className="min-w-0 p-1.5 sm:p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#161618] flex flex-col items-center justify-center hover:bg-slate-50 dark:hover:bg-[#202024] transition-colors"
                   >
-                    <span className="text-[10px] sm:text-xs font-bold text-[#172554] mb-1 whitespace-normal text-center leading-tight">
+                    <span className="text-[10px] sm:text-xs font-bold text-[#172554] dark:text-[#f1f1f3] mb-1.5 whitespace-normal text-center leading-tight">
                       {accessibleItemLabel === 'Assignment' || accessibleItemLabel === 'Lab Evaluation'
                         ? category === 'assignment' ? `Assignment ${displayIndex}` : `Lab ${displayIndex}`
                         : `${accessibleItemLabel} ${displayIndex}`}
                     </span>
 
-                    <div className="flex items-center gap-0.5 sm:gap-1">
-                      <button
-                        type="button"
-                        onClick={() => adjustBoxScore(idx, -0.5)}
-                        disabled={estimatedMarks || Number(displayVal || 0) <= 0}
-                        aria-label={`Decrease ${category === 'assignment' ? 'assignment' : 'lab'} ${displayIndex} mark by 0.5`}
-                        className="flex h-8 w-7 sm:h-9 sm:w-8 items-center justify-center border border-slate-300 text-sm sm:text-base font-black text-[#172554] hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
-                      >
-                        −
-                      </button>
-                      <input
-                        type="number"
+                    <div className="flex items-center gap-1 sm:gap-1.5 w-full justify-center">
+                      <NumberStepper
+                        value={displayVal}
+                        onChange={(val) => handleBoxChange(idx, String(val))}
+                        onIncrement={() => adjustBoxScore(idx, 0.5)}
+                        onDecrement={() => adjustBoxScore(idx, -0.5)}
                         min={0}
                         max={maxMarkPerBox}
                         step={0.5}
-                        value={displayVal}
-                        placeholder="0"
+                        disabled={estimatedMarks}
                         readOnly={estimatedMarks}
-                        onChange={(e) => handleBoxChange(idx, e.target.value)}
-                        aria-label={`${accessibleItemLabel} ${displayIndex} mark out of ${maxMarkPerBox}`}
-                        className="h-8 w-10 sm:h-9 sm:w-14 px-1 text-xs sm:text-sm font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] text-center read-only:bg-blue-50 read-only:text-[#1e3a8a]"
+                        ariaLabel={`${accessibleItemLabel} ${displayIndex} mark out of ${maxMarkPerBox}`}
+                        ariaLabelDecrement={`Decrease ${category === 'assignment' ? 'assignment' : 'lab'} ${displayIndex} mark by 0.5`}
+                        ariaLabelIncrement={`Increase ${category === 'assignment' ? 'assignment' : 'lab'} ${displayIndex} mark by 0.5`}
+                        size="sm"
                       />
-                      <button
-                        type="button"
-                        onClick={() => adjustBoxScore(idx, 0.5)}
-                        disabled={estimatedMarks || Number(displayVal || 0) >= maxMarkPerBox}
-                        aria-label={`Increase ${category === 'assignment' ? 'assignment' : 'lab'} ${displayIndex} mark by 0.5`}
-                        className="flex h-8 w-7 sm:h-9 sm:w-8 items-center justify-center border border-slate-300 text-sm sm:text-base font-black text-[#172554] hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
-                      >
-                        +
-                      </button>
-                      <span className="text-[10px] sm:text-xs font-bold text-[#1e3a8a]">/{maxMarkPerBox}</span>
+                      <span className="text-[10px] sm:text-xs font-bold text-[#1e3a8a] dark:text-[#e08564] font-numeric tabular-nums shrink-0">
+                        /{maxMarkPerBox}
+                      </span>
                     </div>
                   </motion.div>
                 );
@@ -243,24 +218,26 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
         </AnimatePresence>
       </div>
 
-      {/* Marks Contributed for Total at bottom: NO horizontal line and NO rectangular box */}
-      <div className="mt-2 pt-2 space-y-1 border-t border-slate-200">
-        <div className="flex items-center justify-between text-xs text-[#172554]">
-          <span className="font-medium">Total Marks Obtained:</span>
-          <span className="font-bold">
+      {/* Marks Contributed for Total at bottom */}
+      <div className="mt-2 pt-2 space-y-1 border-t border-slate-200 dark:border-slate-700">
+        <div className="flex items-center justify-between text-xs text-[#172554] dark:text-[#f1f1f3]">
+          <span className="font-medium text-slate-600 dark:text-slate-400">Total Marks Obtained:</span>
+          <span className="font-bold font-numeric tabular-nums">
             {sum} / {maxPossibleSum}
           </span>
         </div>
 
-        <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-[#172554] pt-1">
-          <span className="min-w-0 text-xs font-bold">
-            {estimatedMarks ? 'Marks contributed (estimate):' : 'Marks contributed:'}
+        <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-[#172554] dark:text-[#f1f1f3] pt-1">
+          <span className="min-w-0 text-xs font-bold text-slate-700 dark:text-slate-300">
+            {estimatedMarks ? 'Individual Marks Contribution (estimate):' : 'Individual Marks Contribution:'}
           </span>
           <div className="flex shrink-0 items-baseline gap-1">
-            <span className="text-lg font-black tabular-nums">
+            <span className="text-lg font-black tabular-nums font-numeric text-[#172554] dark:text-[#f1f1f3]">
               {calculatedPoints.toFixed(2)}
             </span>
-            <span className="text-xs font-bold text-[#1e3a8a]">/ {weight}</span>
+            <span className="text-xs font-bold text-[#1e3a8a] dark:text-[#e08564] font-numeric tabular-nums">
+              / {weight}
+            </span>
           </div>
         </div>
       </div>

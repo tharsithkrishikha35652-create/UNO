@@ -159,7 +159,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
   };
 
   return (
-    <main className="min-h-screen bg-transparent text-slate-900 flex items-center justify-center px-4 py-10 font-sans">
+    <main className="min-h-screen bg-transparent text-slate-900 flex items-center justify-center px-4 py-10">
       <motion.section
         className="w-full max-w-md bg-white border border-slate-300 shadow-sm"
         variants={reduceMotion ? undefined : motionVariants.dialog}

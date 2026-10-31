@@ -34,7 +34,7 @@ export const StickyResultSummary: React.FC<StickyResultSummaryProps> = ({
         <dl className="mt-1 flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1 sm:gap-x-3">
           <div className="flex items-baseline gap-1">
             <dt className="text-[9px] font-semibold text-slate-500 sm:text-[10px]">Total</dt>
-            <dd className="text-base font-black leading-none tabular-nums text-[#2C2C30] sm:text-xl">
+            <dd className="text-base font-black leading-none tabular-nums font-numeric text-[#2C2C30] sm:text-xl">
               {total.toFixed(2)}<span className="ml-0.5 text-[9px] font-semibold text-slate-500 sm:text-[10px]">/100</span>
             </dd>
           </div>
@@ -47,8 +47,8 @@ export const StickyResultSummary: React.FC<StickyResultSummaryProps> = ({
             </div>
             <div>
               <dt className="sr-only">Grade point</dt>
-              <dd className="rounded-md border border-[#E4DDD2] bg-[#FCFAF6] px-1.5 py-0.5 text-[9px] font-bold leading-tight text-[#3B4D66] sm:text-[10px]">
-                GP {gradePoint}
+              <dd className="rounded-md border border-slate-300 bg-slate-50 px-1.5 py-0.5 text-[9px] font-bold leading-tight text-[#3B4D66] sm:text-[10px]">
+                GP <span className="tabular-nums font-numeric">{gradePoint}</span>
               </dd>
             </div>
           </div>
@@ -60,7 +60,7 @@ export const StickyResultSummary: React.FC<StickyResultSummaryProps> = ({
           <button
             type="button"
             onClick={onSummary}
-            className="hidden min-h-9 items-center justify-center gap-1 rounded-lg px-2.5 text-xs font-bold text-[#B95F43] hover:bg-[#FCFAF6] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3B4D66] lg:inline-flex"
+            className="hidden min-h-9 items-center justify-center gap-1 rounded-lg px-2.5 text-xs font-bold text-[#B95F43] hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#3B4D66] lg:inline-flex"
           >
             Summary at end <ArrowDown className="h-3.5 w-3.5" aria-hidden="true" />
           </button>
