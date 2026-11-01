@@ -245,8 +245,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
               markSize={36}
               wordHeight={22}
               style={{
-                '--cc-credit': '#9ab4d6',
-                '--cc-cal': '#d97757',
+                '--cc-credit': '#F5EEDC',
+                '--cc-cal': '#F0482E',
                 '--cc-dot': '#FFD23F',
               } as React.CSSProperties}
             />

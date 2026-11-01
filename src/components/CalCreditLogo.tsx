@@ -56,5 +56,5 @@ export default function CalCreditLogo({
 /* Add once to your global CSS (for example src/index.css). Dark values are also the fallbacks above.
 
 :root { --cc-cal: #d97757; --cc-credit: #1B1815; --cc-dot: #E89B00; }
-[data-theme="dark"] { --cc-cal: #d97757; --cc-credit: #9ab4d6; --cc-dot: #FFD23F; }
+[data-theme="dark"] { --cc-cal: #F0482E; --cc-credit: #F5EEDC; --cc-dot: #FFD23F; }
 */
