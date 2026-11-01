@@ -7,6 +7,7 @@ export interface AppVersionConfig {
   minimumVersion: string;
   latestVersion: string;
   updateUrl: string;
+  driveUrl?: string;
   releaseNotes?: string;
   maintenanceMode?: boolean;
   maintenanceMessage?: string;
@@ -60,13 +61,25 @@ export async function fetchAppVersionConfig(): Promise<AppVersionConfig | null> 
     if (!data || typeof data.minimumVersion !== 'string') {
       return null;
     }
+    const rawUpdateUrl =
+      typeof data.updateUrl === 'string' && data.updateUrl.trim()
+        ? data.updateUrl.trim()
+        : '';
+    const rawDriveUrl =
+      typeof data.driveUrl === 'string' && data.driveUrl.trim()
+        ? data.driveUrl.trim()
+        : rawUpdateUrl.includes('drive.google.com')
+        ? rawUpdateUrl
+        : '';
+
     return {
       minimumVersion: String(data.minimumVersion).trim(),
       latestVersion: typeof data.latestVersion === 'string' ? data.latestVersion.trim() : String(data.minimumVersion).trim(),
       updateUrl:
-        typeof data.updateUrl === 'string' && data.updateUrl.trim()
-          ? data.updateUrl.trim()
-          : 'https://github.com/tharsithkrishikha35652-create/UNO/releases/latest',
+        rawUpdateUrl ||
+        rawDriveUrl ||
+        'https://github.com/tharsithkrishikha35652-create/UNO/releases/latest',
+      driveUrl: rawDriveUrl || undefined,
       releaseNotes: typeof data.releaseNotes === 'string' ? data.releaseNotes : undefined,
       maintenanceMode: Boolean(data.maintenanceMode),
       maintenanceMessage: typeof data.maintenanceMessage === 'string' ? data.maintenanceMessage : undefined,
