@@ -104,6 +104,7 @@
 }
 
 @layer base {
+  html,
   body,
   input,
   button,
@@ -900,7 +901,7 @@ input[type="number"]::-webkit-outer-spin-button {
     white-space: normal;
   }
 }
-/* Credits screen (CreditsScreen.tsx): serif voice, choreographed entrance, and the theme-aware Main Building elevation.
+/* Credits screen (CreditsScreen.tsx): serif voice, choreographed entrance, and the theme-aware Red Building elevation.
    Motion uses transform and opacity wherever possible; the global prefers-reduced-motion rule above switches it all off. */
 .credits-serif {
   font-family: var(--font-editorial, "Newsreader", Georgia, "Times New Roman", serif);
@@ -1010,7 +1011,7 @@ input[type="number"]::-webkit-outer-spin-button {
   background-size: 100% 1.5px, 100% 1px;
 }
 
-/* Main Building plate — Authentic CEG Architectural Elevation */
+/* Red Building plate — Authentic CEG Architectural Elevation */
 .credits-plate {
   --cp-sky: #e7f1f8;
   --cp-ground: #c4b59d;

@@ -110,9 +110,9 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
           <span className="text-xs font-bold text-slate-200">
             Marks contributed:
           </span>
-          <span className="text-lg font-black tabular-nums">
+          <span className="text-lg font-black tabular-nums font-numeric">
             {esePoints.toFixed(2)}{' '}
-            <span className="text-xs font-semibold text-slate-300">/ {eseWeight.toFixed(2)}</span>
+            <span className="text-xs font-semibold text-slate-300 tabular-nums font-numeric">/ {eseWeight.toFixed(2)}</span>
           </span>
         </div>
       </div>
@@ -154,9 +154,9 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                   value={ese === '' || ese === undefined ? '' : ese}
                   placeholder="Enter theory marks (0 - 100)"
                   onChange={handleEseChange}
-                  className="h-11 w-full px-3 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm"
+                  className="h-11 w-full px-3 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm tabular-nums font-numeric"
                 />
-                <span className="absolute right-3.5 top-2.5 text-xs font-bold text-[#1e3a8a]">/ 100</span>
+                <span className="absolute right-3.5 top-2.5 text-xs font-bold text-[#1e3a8a] tabular-nums font-numeric">/ 100</span>
               </div>
 
 
@@ -213,9 +213,9 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                   value={eseLab === '' || eseLab === undefined ? '' : eseLab}
                   placeholder={`Enter ${labName.toLowerCase()} marks (0 - ${numericLabMax})`}
                   onChange={handleLabChange}
-                  className="h-11 w-full px-3 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm"
+                  className="h-11 w-full px-3 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm tabular-nums font-numeric"
                 />
-                <span className="absolute right-3.5 top-2.5 text-xs font-bold text-[#1e3a8a]">
+                <span className="absolute right-3.5 top-2.5 text-xs font-bold text-[#1e3a8a] tabular-nums font-numeric">
                   / {numericLabMax}
                 </span>
               </div>
@@ -362,9 +362,9 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                   value={ese === '' || ese === undefined ? '' : ese}
                   placeholder="Enter your ESE marks (0 - 100)"
                   onChange={handleEseChange}
-                  className="h-11 w-full px-3 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm"
+                  className="h-11 w-full px-3 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm tabular-nums font-numeric"
                 />
-                <span className="absolute right-3.5 top-2.5 text-xs font-bold text-[#1e3a8a]">/ 100</span>
+                <span className="absolute right-3.5 top-2.5 text-xs font-bold text-[#1e3a8a] tabular-nums font-numeric">/ 100</span>
               </div>
 
 

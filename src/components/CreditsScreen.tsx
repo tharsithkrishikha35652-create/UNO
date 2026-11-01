@@ -27,7 +27,7 @@ const linkIcons = { LinkedIn: Linkedin, Instagram } as const;
 
 const cssVars = (vars: Record<string, string | number>) => vars as React.CSSProperties;
 
-/* Elevation of the Main Building in a 640 x 280 box, symmetric about x = 320.
+/* Elevation of the Red Building in a 640 x 280 box, symmetric about x = 320.
    Window bays repeat every 39 units; the right wing mirrors the left (x -> 640 - x). */
 const BAYS = [58, 97, 136, 175, 214, 253] as const;
 const WING_ROWS = [
@@ -71,7 +71,7 @@ const MainBuilding: React.FC<{ hourAngle: number; minuteAngle: number }> = ({ ho
     viewBox="0 0 640 280"
     preserveAspectRatio="xMidYMid slice"
     role="img"
-    aria-label="Elevation of the Main Building at the College of Engineering, Guindy: a red-brick façade with pale bands, a central clock tower and a dome."
+    aria-label="Elevation of the Red Building at the College of Engineering, Guindy: a red-brick façade with pale bands, a central clock tower and a dome."
     className="block h-full w-full"
   >
     <defs>
@@ -289,7 +289,7 @@ export const CreditsScreen: React.FC = () => {
             <MainBuilding hourAngle={hourAngle} minuteAngle={minuteAngle} />
           </div>
           <figcaption className="mt-2.5 text-[11px] leading-snug text-[var(--app-muted-text)]">
-            Main Building · College of Engineering, Guindy · Anna University
+            Red Building · College of Engineering, Guindy · Anna University
           </figcaption>
         </figure>
       </header>

@@ -2417,7 +2417,7 @@ function AuthenticatedApp({
                                     )
                                   );
                                 }}
-                                className="w-14 border border-slate-300 bg-white px-1.5 py-1 text-center text-xs font-bold text-[#172554] focus:border-[#172554]"
+                                className="w-14 border border-slate-300 bg-white px-1.5 py-1 text-center text-xs font-bold text-[#172554] font-numeric tabular-nums focus:border-[#172554]"
                               />
                               <span>%</span>
                             </label>
@@ -2425,7 +2425,7 @@ function AuthenticatedApp({
                           {currentSubjectUsesEstimates && (
                             <span className="text-[11px] font-semibold text-amber-800">
                               Lab/activity marks calculated at{" "}
-                              {estimatePercentage}%
+                              <strong className="font-numeric tabular-nums">{estimatePercentage}%</strong>
                             </span>
                           )}
                         </div>
@@ -2471,7 +2471,7 @@ function AuthenticatedApp({
                                         ),
                                 });
                               }}
-                              className="w-full max-w-xs border border-[#172554] bg-white px-3 py-2 text-base font-bold text-[#172554]"
+                              className="w-full max-w-xs border border-[#172554] bg-white px-3 py-2 text-base font-bold text-[#172554] font-numeric tabular-nums"
                               placeholder="Score out of 100"
                             />
                             <label
@@ -2499,7 +2499,7 @@ function AuthenticatedApp({
                                         ),
                                 });
                               }}
-                              className="w-full max-w-xs border border-[#172554] bg-white px-3 py-2 text-base font-bold text-[#172554]"
+                              className="w-full max-w-xs border border-[#172554] bg-white px-3 py-2 text-base font-bold text-[#172554] font-numeric tabular-nums"
                               placeholder="Score out of 100"
                             />
                             <label
@@ -2527,7 +2527,7 @@ function AuthenticatedApp({
                                         ),
                                 });
                               }}
-                              className="w-full max-w-xs border border-[#172554] bg-white px-3 py-2 text-base font-bold text-[#172554]"
+                              className="w-full max-w-xs border border-[#172554] bg-white px-3 py-2 text-base font-bold text-[#172554] font-numeric tabular-nums"
                               placeholder="Score out of 100"
                             />
                           </section>
@@ -2572,7 +2572,7 @@ function AuthenticatedApp({
                                         ),
                                 });
                               }}
-                              className="mt-1 w-full max-w-xs border border-[#172554] bg-white px-3 py-2 text-base font-bold text-[#172554]"
+                              className="mt-1 w-full max-w-xs border border-[#172554] bg-white px-3 py-2 text-base font-bold text-[#172554] font-numeric tabular-nums"
                             />
                             <label
                               className="mt-4 flex max-w-sm flex-col gap-1 text-xs font-bold text-[#172554]"

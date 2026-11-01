@@ -160,7 +160,7 @@ export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
             onChange={(event) => setRollNumber(event.currentTarget.value)}
             aria-invalid={Boolean(error)}
             aria-describedby={error ? 'academic-profile-error' : undefined}
-            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 tabular-nums font-numeric"
           />
         </label>
 

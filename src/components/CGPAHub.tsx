@@ -354,7 +354,7 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
                   onChange={(event) =>
                     updateInput(semester, "gpa", event.currentTarget.value)
                   }
-                  className="min-h-11 w-full border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-[#172554] focus:outline-2 focus:outline-[#172554]"
+                  className="min-h-11 w-full border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 font-numeric tabular-nums focus:border-[#172554] focus:outline-2 focus:outline-[#172554]"
                 />
               </label>
               <div className="block">
@@ -432,7 +432,7 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
                     updateInput(semester, "credits", event.currentTarget.value)
                   }
                   readOnly={semester === uhvSem}
-                  className={`min-h-11 w-full border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-[#172554] focus:outline-2 focus:outline-[#172554] ${
+                  className={`min-h-11 w-full border border-slate-300 px-3 py-2 text-sm text-slate-900 font-numeric tabular-nums focus:border-[#172554] focus:outline-2 focus:outline-[#172554] ${
                     semester === uhvSem ? "bg-slate-100" : "bg-white"
                   }`}
                 />
@@ -458,7 +458,7 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
                         event.currentTarget.value
                       )
                     }
-                    className="min-h-11 w-full border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-[#172554] focus:outline-2 focus:outline-[#172554] sm:max-w-xs"
+                    className="min-h-11 w-full border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 font-numeric tabular-nums focus:border-[#172554] focus:outline-2 focus:outline-[#172554] sm:max-w-xs"
                   />
                 </label>
               )}
