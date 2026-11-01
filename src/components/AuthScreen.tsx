@@ -14,11 +14,12 @@ import { AlertCircle, BookOpen, Check, Eye, EyeOff, LoaderCircle, X } from 'luci
 import { auth } from '../firebase';
 import { ThemeToggle, type AppTheme } from './ThemeToggle';
 import { motionVariants } from '../motion';
+import { Department } from '../types';
 
 interface AuthScreenProps {
   configurationError?: string;
   forceGoogleAccountSelection?: boolean;
-  onContinueAsGuest: (department: 'CSE' | 'ECE' | 'CIVIL') => void;
+  onContinueAsGuest: (department: Department) => void;
   theme: AppTheme;
   onToggleTheme: () => void;
 }
@@ -81,7 +82,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [showGuestDeptModal, setShowGuestDeptModal] = useState(false);
-  const [guestDeptChoice, setGuestDeptChoice] = useState<'CSE' | 'ECE' | 'CIVIL'>('CSE');
+  const [guestDeptChoice, setGuestDeptChoice] = useState<Department>('CSE');
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -378,9 +379,27 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
             <div className="mt-4 space-y-2.5">
               {[
                 {
+                  id: 'BME' as const,
+                  title: 'Biomedical Engineering',
+                  badge: 'B.E. BME',
+                  desc: 'Anna University Regulations 2023 · CEG Campus',
+                },
+                {
+                  id: 'CIVIL' as const,
+                  title: 'Civil Engineering',
+                  badge: 'B.E. CIVIL',
+                  desc: 'Anna University Regulations 2023 · CEG Campus',
+                },
+                {
                   id: 'CSE' as const,
                   title: 'Computer Science and Engineering',
                   badge: 'B.E. CSE',
+                  desc: 'Anna University Regulations 2023 · CEG Campus',
+                },
+                {
+                  id: 'EEE' as const,
+                  title: 'Electrical and Electronics Engineering',
+                  badge: 'B.E. EEE',
                   desc: 'Anna University Regulations 2023 · CEG Campus',
                 },
                 {
@@ -390,9 +409,57 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
                   desc: 'Anna University Regulations 2023 · CEG Campus',
                 },
                 {
-                  id: 'CIVIL' as const,
-                  title: 'Civil Engineering',
-                  badge: 'B.E. CIVIL',
+                  id: 'VLSI' as const,
+                  title: 'Electronics Engg. (VLSI Design and Tech)',
+                  badge: 'B.Tech. VLSI',
+                  desc: 'Anna University Regulations 2023 · CEG Campus',
+                },
+                {
+                  id: 'GEO' as const,
+                  title: 'Geoinformatics',
+                  badge: 'B.E. GEO',
+                  desc: 'Anna University Regulations 2023 · CEG Campus',
+                },
+                {
+                  id: 'IE' as const,
+                  title: 'Industrial Engineering',
+                  badge: 'B.E. IE',
+                  desc: 'Anna University Regulations 2023 · CEG Campus',
+                },
+                {
+                  id: 'IT' as const,
+                  title: 'Information Technology',
+                  badge: 'B.Tech. IT',
+                  desc: 'Anna University Regulations 2023 · CEG / MIT Campuses',
+                },
+                {
+                  id: 'MFG' as const,
+                  title: 'Manufacturing Engineering',
+                  badge: 'B.E. MFG',
+                  desc: 'Anna University Regulations 2023 · CEG Campus',
+                },
+                {
+                  id: 'MSE' as const,
+                  title: 'Materials Science and Engineering',
+                  badge: 'B.E. MSE',
+                  desc: 'Anna University Regulations 2023 · CEG Campus',
+                },
+                {
+                  id: 'MECH' as const,
+                  title: 'Mechanical Engineering',
+                  badge: 'B.E. MECH',
+                  desc: 'Anna University Regulations 2023 · CEG Campus',
+                },
+                {
+                  id: 'MINING' as const,
+                  title: 'Mining Engineering',
+                  badge: 'B.E. MINING',
+                  desc: 'Anna University Regulations 2023 · CEG Campus',
+                },
+                {
+                  id: 'PT' as const,
+                  title: 'Printing and Packaging Technology',
+                  badge: 'B.E. PT',
                   desc: 'Anna University Regulations 2023 · CEG Campus',
                 },
               ].map((opt) => {

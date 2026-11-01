@@ -13,6 +13,40 @@ import {
 import { AnimatedNumber } from './AnimatedNumber';
 import { motionVariants } from '../motion';
 
+const getDepartmentDegreeName = (dept?: string): string => {
+  if (dept === 'ECE') return 'B.E. ECE';
+  if (dept === 'CIVIL' || dept === 'CE') return 'B.E. Civil';
+  if (dept === 'GEO' || dept === 'GI' || dept === 'GEOINFORMATICS') return 'B.E. Geoinformatics';
+  if (dept === 'BME' || dept === 'BM' || dept === 'BIOMEDICAL') return 'B.E. Biomedical';
+  if (dept === 'IT' || dept === 'INFORMATION_TECHNOLOGY' || dept === 'INFOTECH') return 'B.Tech. IT';
+  if (dept === 'EEE' || dept === 'ELECTRICAL') return 'B.E. EEE';
+  if (dept === 'MFG' || dept === 'MANUFACTURING') return 'B.E. MFG';
+  if (dept === 'VLSI' || dept === 'ELECTRONICS_VLSI') return 'B.Tech. VLSI';
+  if (dept === 'MECH' || dept === 'MECHANICAL') return 'B.E. Mechanical';
+  if (dept === 'PT' || dept === 'PRINTING' || dept === 'PPT') return 'B.E. PT';
+  if (dept === 'MINING' || dept === 'MINE' || dept === 'MN' || dept === 'MI') return 'B.E. Mining';
+  if (dept === 'MSE' || dept === 'MATSCI' || dept === 'MS') return 'B.E. MSE';
+  if (dept === 'IE' || dept === 'INDUSTRIAL') return 'B.E. IE';
+  return 'B.E. CSE';
+};
+
+const getDepartmentShortName = (dept?: string): string => {
+  if (dept === 'ECE') return 'ECE';
+  if (dept === 'CIVIL' || dept === 'CE') return 'Civil';
+  if (dept === 'GEO' || dept === 'GI' || dept === 'GEOINFORMATICS') return 'Geoinformatics';
+  if (dept === 'BME' || dept === 'BM' || dept === 'BIOMEDICAL') return 'Biomedical';
+  if (dept === 'IT' || dept === 'INFORMATION_TECHNOLOGY' || dept === 'INFOTECH') return 'IT';
+  if (dept === 'EEE' || dept === 'ELECTRICAL') return 'EEE';
+  if (dept === 'MFG' || dept === 'MANUFACTURING') return 'MFG';
+  if (dept === 'VLSI' || dept === 'ELECTRONICS_VLSI') return 'VLSI';
+  if (dept === 'MECH' || dept === 'MECHANICAL') return 'Mechanical';
+  if (dept === 'PT' || dept === 'PRINTING' || dept === 'PPT') return 'Printing';
+  if (dept === 'MINING' || dept === 'MINE' || dept === 'MN' || dept === 'MI') return 'Mining';
+  if (dept === 'MSE' || dept === 'MATSCI' || dept === 'MS') return 'Materials Science';
+  if (dept === 'IE' || dept === 'INDUSTRIAL') return 'Industrial';
+  return 'CSE';
+};
+
 const matchesPresetSubject = (subject: SubjectData, course: (typeof PRESET_COURSES)[number]) =>
   (Boolean(course.code) && subject.code === course.code) ||
   subject.name.trim().toLowerCase() === course.name.trim().toLowerCase();
@@ -27,7 +61,7 @@ const findCourseSubject = (subjects: SubjectData[], course: GpaCourse, presets: 
       );
     }
     return (Boolean(course.code) && subject.code === course.code) ||
-      ((course.code === 'CS23801' || course.code === 'EC23801' || course.code === 'VL23801') && ['project', 'project-work'].includes(getCourseType(subject))) ||
+      ((course.code === 'CS23801' || course.code === 'EC23801' || course.code === 'VL23801' || course.code === 'CE23801' || course.code === 'GI23801' || course.code === 'BM23801' || course.code === 'IT23801' || course.code.endsWith('801')) && ['project', 'project-work'].includes(getCourseType(subject))) ||
       subject.name.trim().toLowerCase() === course.name.toLowerCase();
   });
 
@@ -39,7 +73,7 @@ const getGpaCourseSemester = (
   const match = gpaList.find(
     (course) =>
       (Boolean(course.code) && subject.code === course.code) ||
-      ((course.code === 'CS23801' || course.code === 'EC23801' || course.code === 'VL23801') && ['project', 'project-work'].includes(getCourseType(subject))) ||
+      ((course.code === 'CS23801' || course.code === 'EC23801' || course.code === 'VL23801' || course.code === 'CE23801' || course.code === 'GI23801' || course.code === 'BM23801' || course.code === 'IT23801' || course.code.endsWith('801')) && ['project', 'project-work'].includes(getCourseType(subject))) ||
       subject.name.trim().toLowerCase() === course.name.toLowerCase() ||
       (Boolean(course.electiveSlot) && presets.some((preset) =>
         preset.semester === course.semester && preset.electiveSlot === course.electiveSlot && matchesPresetSubject(subject, preset)
@@ -462,7 +496,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
             </div>
             <div>
               <p className="text-xs font-bold text-slate-500">
-                Semester {selectedSemester} · {department === 'ECE' ? 'B.E. ECE' : department === 'CIVIL' || department === 'CE' ? 'B.E. Civil' : 'B.E. CSE'}
+                Semester {selectedSemester} · {getDepartmentDegreeName(department)}
               </p>
               <h2 className="text-xl sm:text-2xl font-black text-[#172554]">
                 GPA Calculator
@@ -760,7 +794,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
               <div>
                 <div className="flex items-center gap-2">
                   <span className="rounded bg-blue-900/60 border border-blue-400/30 px-2 py-0.5 text-[10px] font-bold text-cyan-300 uppercase">
-                    Semester {selectedSemester} · {department === 'ECE' ? 'ECE' : department === 'CIVIL' || department === 'CE' ? 'Civil' : 'CSE'}
+                    Semester {selectedSemester} · {getDepartmentShortName(department)}
                   </span>
                 </div>
                 <h3 id="custom-grade-modal-title" className="text-lg font-black text-white mt-1">

@@ -167,7 +167,12 @@ export function getCourseType(data: SubjectData): CourseType {
     normalizedName === 'idea to product' ||
     normalizedName === 'building and structural drawing' ||
     normalizedName === 'environmental engineering drawing' ||
-    normalizedName === 'digitalized construction lab'
+    normalizedName === 'digitalized construction lab' ||
+    normalizedName === 'hospital training' ||
+    normalizedName.startsWith('hospital training') ||
+    normalizedName === 'summer internship' ||
+    normalizedName === 'societal oriented project' ||
+    normalizedName === 'software development project laboratory'
   ) return 'laboratory-course';
   if (normalizedName === 'self learning course') return 'self-learning';
   if (normalizedName === 'audit course i' || normalizedName === 'audit course ii') return 'audit-course';

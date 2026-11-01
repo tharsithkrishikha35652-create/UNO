@@ -22,18 +22,60 @@ export interface CGPAHubProps {
   department?: string;
 }
 
-const getUhvSemester = (department?: string): number =>
-  (department === 'CIVIL' || department === 'CE') ? 4 : 3;
+const ROMAN_SEMESTERS: Record<number, string> = {
+  1: 'I',
+  2: 'II',
+  3: 'III',
+  4: 'IV',
+  5: 'V',
+  6: 'VI',
+  7: 'VII',
+  8: 'VIII',
+};
+
+const getUhvSemester = (department?: string): number => {
+  if (department === 'MFG' || department === 'MANUFACTURING') return 1;
+  if (department === 'MECH' || department === 'MECHANICAL') return 6;
+  if (department === 'CIVIL' || department === 'CE') return 4;
+  if (department === 'BME' || department === 'BM' || department === 'BIOMEDICAL') return 4;
+  if (department === 'PT' || department === 'PRINTING' || department === 'PPT') return 4;
+  if (department === 'MINING' || department === 'MINE' || department === 'MN' || department === 'MI') return 4;
+  if (department === 'MSE' || department === 'MATSCI' || department === 'MS') return 4;
+  if (department === 'IE' || department === 'INDUSTRIAL') return 3;
+  return 3;
+};
 
 const getUhvSemTotalCredits = (department?: string): number => {
+  if (department === 'MFG' || department === 'MANUFACTURING') return 25;
+  if (department === 'MECH' || department === 'MECHANICAL') return 21;
   if (department === 'CIVIL' || department === 'CE') return 26;
+  if (department === 'BME' || department === 'BM' || department === 'BIOMEDICAL') return 23;
   if (department === 'ECE') return 22;
+  if (department === 'GEO' || department === 'GI' || department === 'GEOINFORMATICS') return 24;
+  if (department === 'IT' || department === 'INFORMATION_TECHNOLOGY' || department === 'INFOTECH') return 21;
+  if (department === 'EEE' || department === 'ELECTRICAL') return 24;
+  if (department === 'VLSI' || department === 'ELECTRONICS_VLSI') return 23;
+  if (department === 'PT' || department === 'PRINTING' || department === 'PPT') return 25;
+  if (department === 'MINING' || department === 'MINE' || department === 'MN' || department === 'MI') return 26;
+  if (department === 'MSE' || department === 'MATSCI' || department === 'MS') return 27;
+  if (department === 'IE' || department === 'INDUSTRIAL') return 23;
   return 27;
 };
 
 const getUhvSemCgpaCredits = (department?: string): number => {
+  if (department === 'MFG' || department === 'MANUFACTURING') return 23;
+  if (department === 'MECH' || department === 'MECHANICAL') return 19;
   if (department === 'CIVIL' || department === 'CE') return 24;
+  if (department === 'BME' || department === 'BM' || department === 'BIOMEDICAL') return 21;
   if (department === 'ECE') return 20;
+  if (department === 'GEO' || department === 'GI' || department === 'GEOINFORMATICS') return 22;
+  if (department === 'IT' || department === 'INFORMATION_TECHNOLOGY' || department === 'INFOTECH') return 19;
+  if (department === 'EEE' || department === 'ELECTRICAL') return 22;
+  if (department === 'VLSI' || department === 'ELECTRONICS_VLSI') return 21;
+  if (department === 'PT' || department === 'PRINTING' || department === 'PPT') return 23;
+  if (department === 'MINING' || department === 'MINE' || department === 'MN' || department === 'MI') return 24;
+  if (department === 'MSE' || department === 'MATSCI' || department === 'MS') return 25;
+  if (department === 'IE' || department === 'INDUSTRIAL') return 21;
   return 25;
 };
 
@@ -348,7 +390,7 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
                         >
                           <div className="flex items-center justify-between pb-1 border-b border-slate-100">
                             <p className="font-bold text-[#172554]">
-                              Semester {uhvSem === 4 ? "IV" : "III"} CGPA &amp; UHV
+                              Semester {ROMAN_SEMESTERS[uhvSem] || uhvSem} CGPA &amp; UHV
                             </p>
                             <button
                               type="button"
@@ -364,13 +406,13 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
                             CGPA calculation.
                           </p>
                           <p className="leading-relaxed text-[11px] text-slate-600">
-                            Semester {uhvSem === 4 ? "IV" : "III"} is counted as{" "}
+                            Semester {ROMAN_SEMESTERS[uhvSem] || uhvSem} is counted as{" "}
                             <strong><span className="font-numeric tabular-nums">{uhvSemCgpaCredits}</span> CGPA credits</strong>. Enter its GPA
                             including UHV and the UHV grade point; the hub
                             subtracts UHV’s two-credit contribution.
                           </p>
                           <p className="leading-relaxed text-[11px] text-slate-500">
-                            UHV remains included in the Semester {uhvSem === 4 ? "IV" : "III"} GPA Hub
+                            UHV remains included in the Semester {ROMAN_SEMESTERS[uhvSem] || uhvSem} GPA Hub
                             calculation.
                           </p>
                         </div>

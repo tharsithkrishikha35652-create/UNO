@@ -3,6 +3,17 @@ import {
   CSE_GPA_COURSES,
   ECE_GPA_COURSES,
   CIVIL_GPA_COURSES,
+  GEO_GPA_COURSES,
+  BME_GPA_COURSES,
+  IT_GPA_COURSES,
+  EEE_GPA_COURSES,
+  MFG_GPA_COURSES,
+  VLSI_GPA_COURSES,
+  MECH_GPA_COURSES,
+  PT_GPA_COURSES,
+  MINING_GPA_COURSES,
+  MSE_GPA_COURSES,
+  IE_GPA_COURSES,
   getGpaCourses,
   getAllGpaCourses,
 } from '../src/gpaCourses';
@@ -10,10 +21,22 @@ import {
   CSE_PRESET_COURSES,
   ECE_PRESET_COURSES,
   CIVIL_PRESET_COURSES,
+  GEO_PRESET_COURSES,
+  BME_PRESET_COURSES,
+  IT_PRESET_COURSES,
+  EEE_PRESET_COURSES,
+  MFG_PRESET_COURSES,
+  VLSI_PRESET_COURSES,
+  MECH_PRESET_COURSES,
+  PT_PRESET_COURSES,
+  MINING_PRESET_COURSES,
+  MSE_PRESET_COURSES,
+  IE_PRESET_COURSES,
   getPresetCourses,
   getElectiveSlotsBySemester,
 } from '../src/components/SubjectSelectionDialog';
 import { getCourseWeights, getCourseType, calculateMarks, isGhostPlaceholderCourse } from '../src/calculatorUtils';
+import { DEPARTMENT_OPTIONS } from '../src/components/AcademicProfile';
 
 describe('Department Course & Curriculum Verification', () => {
   it('verifies CSE total credits is 171 and individual semesters match exactly', () => {
@@ -94,15 +117,204 @@ describe('Department Course & Curriculum Verification', () => {
   });
 
 
-  it('verifies getGpaCourses returns correct catalog for CSE and ECE without mutation', () => {
+  it('verifies getGpaCourses returns correct catalog for all 14 departments without mutation', () => {
     expect(getGpaCourses('CSE')).toBe(CSE_GPA_COURSES);
     expect(getGpaCourses('ECE')).toBe(ECE_GPA_COURSES);
     expect(getGpaCourses(undefined)).toBe(CSE_GPA_COURSES);
     expect(getAllGpaCourses().length).toBe(
-      CSE_GPA_COURSES.length + ECE_GPA_COURSES.length + CIVIL_GPA_COURSES.length
+      CSE_GPA_COURSES.length +
+        ECE_GPA_COURSES.length +
+        CIVIL_GPA_COURSES.length +
+        GEO_GPA_COURSES.length +
+        BME_GPA_COURSES.length +
+        IT_GPA_COURSES.length +
+        EEE_GPA_COURSES.length +
+        MFG_GPA_COURSES.length +
+        VLSI_GPA_COURSES.length +
+        MECH_GPA_COURSES.length +
+        PT_GPA_COURSES.length +
+        MINING_GPA_COURSES.length +
+        MSE_GPA_COURSES.length +
+        IE_GPA_COURSES.length
     );
     expect(getGpaCourses('CIVIL')).toBe(CIVIL_GPA_COURSES);
     expect(getGpaCourses('CE')).toBe(CIVIL_GPA_COURSES);
+    expect(getGpaCourses('GEO')).toBe(GEO_GPA_COURSES);
+    expect(getGpaCourses('GI')).toBe(GEO_GPA_COURSES);
+    expect(getGpaCourses('BME')).toBe(BME_GPA_COURSES);
+    expect(getGpaCourses('BM')).toBe(BME_GPA_COURSES);
+    expect(getGpaCourses('IT')).toBe(IT_GPA_COURSES);
+    expect(getGpaCourses('EEE')).toBe(EEE_GPA_COURSES);
+    expect(getGpaCourses('ELECTRICAL')).toBe(EEE_GPA_COURSES);
+    expect(getGpaCourses('MFG')).toBe(MFG_GPA_COURSES);
+    expect(getGpaCourses('MANUFACTURING')).toBe(MFG_GPA_COURSES);
+    expect(getGpaCourses('VLSI')).toBe(VLSI_GPA_COURSES);
+    expect(getGpaCourses('ELECTRONICS_VLSI')).toBe(VLSI_GPA_COURSES);
+    expect(getGpaCourses('MECH')).toBe(MECH_GPA_COURSES);
+    expect(getGpaCourses('MECHANICAL')).toBe(MECH_GPA_COURSES);
+    expect(getGpaCourses('PT')).toBe(PT_GPA_COURSES);
+    expect(getGpaCourses('PRINTING')).toBe(PT_GPA_COURSES);
+    expect(getGpaCourses('MINING')).toBe(MINING_GPA_COURSES);
+    expect(getGpaCourses('MINE')).toBe(MINING_GPA_COURSES);
+    expect(getGpaCourses('MSE')).toBe(MSE_GPA_COURSES);
+    expect(getGpaCourses('MATSCI')).toBe(MSE_GPA_COURSES);
+    expect(getGpaCourses('IE')).toBe(IE_GPA_COURSES);
+    expect(getGpaCourses('INDUSTRIAL')).toBe(IE_GPA_COURSES);
+  });
+
+  it('verifies Electrical and Electronics Engineering (EEE) total credits is 174 and individual semesters match exactly', () => {
+    const eeeSemCredits = [1, 2, 3, 4, 5, 6, 7, 8].map((sem) =>
+      EEE_GPA_COURSES.filter((c) => c.semester === sem).reduce((s, c) => s + c.credits, 0)
+    );
+    expect(eeeSemCredits).toEqual([24, 22, 24, 26, 25, 23, 22, 8]);
+    expect(eeeSemCredits.reduce((a, b) => a + b, 0)).toBe(174);
+    expect(getPresetCourses('EEE')).toBe(EEE_PRESET_COURSES);
+    expect(getPresetCourses('ELECTRICAL')).toBe(EEE_PRESET_COURSES);
+
+    const eeeSlots = getElectiveSlotsBySemester('EEE');
+    expect(eeeSlots[4]).toEqual(['Emerging Technology Course I']);
+    expect(eeeSlots[5]).toEqual(['Professional Elective I']);
+    expect(eeeSlots[6]).toEqual(['Professional Elective II', 'Professional Elective III', 'Open Elective I']);
+    expect(eeeSlots[7]).toEqual([
+      'Emerging Technology Course II',
+      'Professional Elective IV',
+      'Professional Elective V',
+      'Professional Elective VI',
+      'Open Elective II',
+    ]);
+  });
+
+  it('verifies Manufacturing Engineering (MFG) total credits is 168 and individual semesters match exactly', () => {
+    const mfgSemCredits = [1, 2, 3, 4, 5, 6, 7, 8].map((sem) =>
+      MFG_GPA_COURSES.filter((c) => c.semester === sem).reduce((s, c) => s + c.credits, 0)
+    );
+    expect(mfgSemCredits).toEqual([25, 21, 24, 23, 23, 21, 23, 8]);
+    expect(mfgSemCredits.reduce((a, b) => a + b, 0)).toBe(168);
+    expect(getPresetCourses('MFG')).toBe(MFG_PRESET_COURSES);
+    expect(getPresetCourses('MANUFACTURING')).toBe(MFG_PRESET_COURSES);
+
+    const mfgSlots = getElectiveSlotsBySemester('MFG');
+    expect(mfgSlots[5]).toEqual(['Emerging Technology Course I']);
+    expect(mfgSlots[6]).toEqual([
+      'Professional Elective I',
+      'Professional Elective II',
+      'Professional Elective III',
+      'Professional Elective IV',
+      'Professional Elective V',
+      'Open Elective I',
+    ]);
+    expect(mfgSlots[7]).toEqual([
+      'Emerging Technology Course II',
+      'Professional Elective VI',
+      'Open Elective II',
+    ]);
+  });
+
+  it('verifies Electronics Engineering (VLSI Design & Tech) total credits is 172 and individual semesters match exactly', () => {
+    const vlsiSemCredits = [1, 2, 3, 4, 5, 6, 7, 8].map((sem) =>
+      VLSI_GPA_COURSES.filter((c) => c.semester === sem).reduce((s, c) => s + c.credits, 0)
+    );
+    expect(vlsiSemCredits).toEqual([23, 24, 23, 24, 24, 24, 22, 8]);
+    expect(vlsiSemCredits.reduce((a, b) => a + b, 0)).toBe(172);
+    expect(getPresetCourses('VLSI')).toBe(VLSI_PRESET_COURSES);
+    expect(getPresetCourses('ELECTRONICS_VLSI')).toBe(VLSI_PRESET_COURSES);
+
+    const vlsiSlots = getElectiveSlotsBySemester('VLSI');
+    expect(vlsiSlots[5]).toEqual(['Emerging Technology I', 'Professional Elective I']);
+    expect(vlsiSlots[6]).toEqual([
+      'Emerging Technology II',
+      'Professional Elective II',
+      'Professional Elective III',
+      'Open Elective I',
+    ]);
+    expect(vlsiSlots[7]).toEqual([
+      'Professional Elective IV',
+      'Professional Elective V',
+      'Professional Elective VI',
+      'Open Elective II',
+    ]);
+  });
+
+  it('verifies Mechanical Engineering (MECH) total credits is 176 and individual semesters match exactly', () => {
+    const mechSemCredits = [1, 2, 3, 4, 5, 6, 7, 8].map((sem) =>
+      MECH_GPA_COURSES.filter((c) => c.semester === sem).reduce((s, c) => s + c.credits, 0)
+    );
+    expect(mechSemCredits).toEqual([23, 22, 25, 24, 27, 21, 26, 8]);
+    expect(mechSemCredits.reduce((a, b) => a + b, 0)).toBe(176);
+    expect(getPresetCourses('MECH')).toBe(MECH_PRESET_COURSES);
+    expect(getPresetCourses('MECHANICAL')).toBe(MECH_PRESET_COURSES);
+
+    const mechSlots = getElectiveSlotsBySemester('MECH');
+    expect(mechSlots[5]).toEqual(['Professional Elective I']);
+    expect(mechSlots[6]).toEqual([
+      'Professional Elective II',
+      'Professional Elective III',
+      'Professional Elective IV',
+      'Professional Elective V',
+      'Open Elective I',
+      'Emerging Technology Course I',
+    ]);
+    expect(mechSlots[7]).toEqual([
+      'Emerging Technology Course II',
+      'Professional Elective VI',
+      'Open Elective II',
+    ]);
+  });
+
+  it('verifies Geoinformatics (GEO) total credits is 171 and individual semesters match exactly', () => {
+    const geoSemCredits = [1, 2, 3, 4, 5, 6, 7, 8].map((sem) =>
+      GEO_GPA_COURSES.filter((c) => c.semester === sem).reduce((s, c) => s + c.credits, 0)
+    );
+    expect(geoSemCredits).toEqual([23, 21, 24, 25, 27, 24, 19, 8]);
+    expect(geoSemCredits.reduce((a, b) => a + b, 0)).toBe(171);
+    expect(getPresetCourses('GEO')).toBe(GEO_PRESET_COURSES);
+    expect(getPresetCourses('GI')).toBe(GEO_PRESET_COURSES);
+
+    const geoSlots = getElectiveSlotsBySemester('GEO');
+    expect(geoSlots[5]).toEqual(['Professional Elective I', 'Emerging Technology Course I', 'Open Elective I']);
+    expect(geoSlots[6]).toEqual(['Professional Elective II', 'Professional Elective III', 'Professional Elective IV', 'Open Elective II']);
+    expect(geoSlots[7]).toEqual(['Professional Elective V', 'Professional Elective VI', 'Emerging Technology Course II']);
+  });
+
+  it('verifies Biomedical Engineering (BME) total credits is 169 and individual semesters match exactly', () => {
+    const bmeSemCredits = [1, 2, 3, 4, 5, 6, 7, 8].map((sem) =>
+      BME_GPA_COURSES.filter((c) => c.semester === sem).reduce((s, c) => s + c.credits, 0)
+    );
+    expect(bmeSemCredits).toEqual([18, 27, 21, 23, 25, 24, 23, 8]);
+    expect(bmeSemCredits.reduce((a, b) => a + b, 0)).toBe(169);
+    expect(getPresetCourses('BME')).toBe(BME_PRESET_COURSES);
+    expect(getPresetCourses('BM')).toBe(BME_PRESET_COURSES);
+
+    const bmeSlots = getElectiveSlotsBySemester('BME');
+    expect(bmeSlots[4]).toEqual(['Open Elective I']);
+    expect(bmeSlots[5]).toEqual(['Professional Elective I', 'Professional Elective II']);
+    expect(bmeSlots[6]).toEqual(['Emerging Technology Course I', 'Professional Elective III', 'Open Elective II']);
+    expect(bmeSlots[7]).toEqual([
+      'Emerging Technology Course II',
+      'Professional Elective IV',
+      'Professional Elective V',
+      'Professional Elective VI',
+    ]);
+  });
+
+  it('verifies Information Technology (IT) total credits is 170 and individual semesters match exactly', () => {
+    const itSemCredits = [1, 2, 3, 4, 5, 6, 7, 8].map((sem) =>
+      IT_GPA_COURSES.filter((c) => c.semester === sem).reduce((s, c) => s + c.credits, 0)
+    );
+    expect(itSemCredits).toEqual([22, 23, 21, 24, 25, 25, 22, 8]);
+    expect(itSemCredits.reduce((a, b) => a + b, 0)).toBe(170);
+    expect(getPresetCourses('IT')).toBe(IT_PRESET_COURSES);
+
+    const itSlots = getElectiveSlotsBySemester('IT');
+    expect(itSlots[5]).toEqual(['Professional Elective I']);
+    expect(itSlots[6]).toEqual(['Emerging Technology Course I', 'Professional Elective II', 'Professional Elective III', 'Open Elective I']);
+    expect(itSlots[7]).toEqual([
+      'Emerging Technology Course II',
+      'Professional Elective IV',
+      'Professional Elective V',
+      'Professional Elective VI',
+      'Open Elective II',
+    ]);
   });
 
   it('verifies getPresetCourses and elective slots for CSE and ECE', () => {
@@ -257,5 +469,114 @@ it('verifies explicit grade-based GPA calculation for a chosen semester', () => 
     expect(isGhostPlaceholderCourse({ name: 'Matrices and Calculus' })).toBe(false);
     expect(isGhostPlaceholderCourse({ name: 'Digital VLSI Design' })).toBe(false);
     expect(isGhostPlaceholderCourse({ name: 'Object Oriented Programming' })).toBe(false);
+  });
+
+  it('verifies Printing and Packaging Technology (PT) total credits is 175 and individual semesters match exactly', () => {
+    const ptSemCredits = [1, 2, 3, 4, 5, 6, 7, 8].map((sem) =>
+      PT_GPA_COURSES.filter((c) => c.semester === sem).reduce((s, c) => s + c.credits, 0)
+    );
+    expect(ptSemCredits).toEqual([24, 21, 26, 25, 25, 23, 23, 8]);
+    expect(ptSemCredits.reduce((a, b) => a + b, 0)).toBe(175);
+    expect(getPresetCourses('PT')).toBe(PT_PRESET_COURSES);
+    expect(getPresetCourses('PRINTING')).toBe(PT_PRESET_COURSES);
+
+    const ptSlots = getElectiveSlotsBySemester('PT');
+    expect(ptSlots[5]).toEqual(['Emerging Technology Course I']);
+    expect(ptSlots[6]).toEqual([
+      'Emerging Technology Course II',
+      'Professional Elective I',
+      'Professional Elective II',
+      'Professional Elective III',
+      'Professional Elective IV',
+      'Open Elective I',
+    ]);
+    expect(ptSlots[7]).toEqual([
+      'Professional Elective V',
+      'Professional Elective VI',
+      'Open Elective II',
+    ]);
+  });
+
+  it('verifies Mining Engineering (MINING) total credits is 181 and individual semesters match exactly', () => {
+    const miningSemCredits = [1, 2, 3, 4, 5, 6, 7, 8].map((sem) =>
+      MINING_GPA_COURSES.filter((c) => c.semester === sem).reduce((s, c) => s + c.credits, 0)
+    );
+    expect(miningSemCredits).toEqual([22, 22, 21, 26, 26, 28, 28, 8]);
+    expect(miningSemCredits.reduce((a, b) => a + b, 0)).toBe(181);
+    expect(getPresetCourses('MINING')).toBe(MINING_PRESET_COURSES);
+    expect(getPresetCourses('MINE')).toBe(MINING_PRESET_COURSES);
+
+    const miningSlots = getElectiveSlotsBySemester('MINING');
+    expect(miningSlots[5]).toEqual(['Professional Elective I']);
+    expect(miningSlots[6]).toEqual([
+      'Open Elective I',
+      'Professional Elective II',
+      'Professional Elective III',
+      'Professional Elective IV',
+    ]);
+    expect(miningSlots[7]).toEqual([
+      'Professional Elective V',
+      'Professional Elective VI',
+      'Open Elective II',
+    ]);
+  });
+
+  it('verifies Materials Science and Engineering (MSE) total credits is 176 and individual semesters match exactly', () => {
+    const mseSemCredits = [1, 2, 3, 4, 5, 6, 7, 8].map((sem) =>
+      MSE_GPA_COURSES.filter((c) => c.semester === sem).reduce((s, c) => s + c.credits, 0)
+    );
+    expect(mseSemCredits).toEqual([23, 22, 24, 27, 28, 19, 25, 8]);
+    expect(mseSemCredits.reduce((a, b) => a + b, 0)).toBe(176);
+    expect(getPresetCourses('MSE')).toBe(MSE_PRESET_COURSES);
+    expect(getPresetCourses('MATSCI')).toBe(MSE_PRESET_COURSES);
+
+    const mseSlots = getElectiveSlotsBySemester('MSE');
+    expect(mseSlots[5]).toEqual(['Emerging Technology Course I']);
+    expect(mseSlots[6]).toEqual([
+      'Emerging Technology Course II',
+      'Professional Elective I',
+      'Professional Elective II',
+      'Professional Elective III',
+      'Open Elective I',
+    ]);
+    expect(mseSlots[7]).toEqual([
+      'Professional Elective IV',
+      'Professional Elective V',
+      'Professional Elective VI',
+      'Open Elective II',
+    ]);
+  });
+
+  it('verifies Industrial Engineering (IE) total credits is 177 and individual semesters match exactly', () => {
+    const ieSemCredits = [1, 2, 3, 4, 5, 6, 7, 8].map((sem) =>
+      IE_GPA_COURSES.filter((c) => c.semester === sem).reduce((s, c) => s + c.credits, 0)
+    );
+    expect(ieSemCredits).toEqual([24, 21, 23, 23, 28, 23, 27, 8]);
+    expect(ieSemCredits.reduce((a, b) => a + b, 0)).toBe(177);
+    expect(getPresetCourses('IE')).toBe(IE_PRESET_COURSES);
+    expect(getPresetCourses('INDUSTRIAL')).toBe(IE_PRESET_COURSES);
+
+    const ieSlots = getElectiveSlotsBySemester('IE');
+    expect(ieSlots[6]).toEqual([
+      'Professional Elective I',
+      'Professional Elective II',
+      'Professional Elective III',
+      'Professional Elective IV',
+      'Emerging Technology Course I',
+      'Open Elective I',
+      'Emerging Technology Course II',
+    ]);
+    expect(ieSlots[7]).toEqual([
+      'Professional Elective V',
+      'Professional Elective VI',
+      'Open Elective II',
+    ]);
+  });
+
+  it('verifies department dropdown options are arranged alphabetically by department name', () => {
+    const labels = DEPARTMENT_OPTIONS.map((opt) => opt.label);
+    const sortedLabels = [...labels].sort((a, b) => a.localeCompare(b));
+    expect(labels).toEqual(sortedLabels);
+    expect(labels.length).toBe(14);
   });
 });

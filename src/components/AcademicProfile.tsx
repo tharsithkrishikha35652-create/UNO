@@ -21,10 +21,21 @@ interface AcademicProfileFormProps {
 }
 
 const semesterOptions: SemesterNumber[] = [1, 2, 3, 4, 5, 6, 7, 8];
-const DEPARTMENT_OPTIONS = [
-  { value: 'CSE', label: 'Computer Science and Engineering (CSE)' },
-  { value: 'ECE', label: 'Electronics and Communication Engineering (ECE)' },
+export const DEPARTMENT_OPTIONS = [
+  { value: 'BME', label: 'Biomedical Engineering (BME)' },
   { value: 'CIVIL', label: 'Civil Engineering (CIVIL)' },
+  { value: 'CSE', label: 'Computer Science and Engineering (CSE)' },
+  { value: 'EEE', label: 'Electrical and Electronics Engineering (EEE)' },
+  { value: 'ECE', label: 'Electronics and Communication Engineering (ECE)' },
+  { value: 'VLSI', label: 'Electronics Engineering (VLSI Design and Technology)' },
+  { value: 'GEO', label: 'Geoinformatics (GEO)' },
+  { value: 'IE', label: 'Industrial Engineering (IE)' },
+  { value: 'IT', label: 'Information Technology (IT)' },
+  { value: 'MFG', label: 'Manufacturing Engineering (MFG)' },
+  { value: 'MSE', label: 'Materials Science and Engineering (MSE)' },
+  { value: 'MECH', label: 'Mechanical Engineering (MECH)' },
+  { value: 'MINING', label: 'Mining Engineering (MINING)' },
+  { value: 'PT', label: 'Printing and Packaging Technology (PT)' },
 ] as const;
 
 export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
@@ -519,6 +530,28 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
                       ? 'Electronics & Communication Engg.'
                       : profile?.department === 'CIVIL' || profile?.department === 'CE'
                       ? 'Civil Engineering'
+                      : profile?.department === 'GEO' || profile?.department === 'GI' || profile?.department === 'GEOINFORMATICS'
+                      ? 'Geoinformatics'
+                      : profile?.department === 'BME' || profile?.department === 'BM' || profile?.department === 'BIOMEDICAL'
+                      ? 'Biomedical Engineering'
+                      : profile?.department === 'IT' || profile?.department === 'INFORMATION_TECHNOLOGY' || profile?.department === 'INFOTECH'
+                      ? 'Information Technology'
+                      : profile?.department === 'EEE' || profile?.department === 'ELECTRICAL'
+                      ? 'Electrical & Electronics Engg.'
+                      : profile?.department === 'MFG' || profile?.department === 'MANUFACTURING'
+                      ? 'Manufacturing Engineering'
+                      : profile?.department === 'VLSI' || profile?.department === 'ELECTRONICS_VLSI'
+                      ? 'Electronics Engg. (VLSI Design & Tech)'
+                      : profile?.department === 'MECH' || profile?.department === 'MECHANICAL'
+                      ? 'Mechanical Engineering'
+                      : profile?.department === 'PT' || profile?.department === 'PRINTING' || profile?.department === 'PPT'
+                      ? 'Printing and Packaging Technology'
+                      : profile?.department === 'MINING' || profile?.department === 'MINE' || profile?.department === 'MN' || profile?.department === 'MI'
+                      ? 'Mining Engineering'
+                      : profile?.department === 'MSE' || profile?.department === 'MATSCI' || profile?.department === 'MS'
+                      ? 'Materials Science and Engineering'
+                      : profile?.department === 'IE' || profile?.department === 'INDUSTRIAL'
+                      ? 'Industrial Engineering'
                       : 'Computer Science & Engg.'}
                   </dd>
                 </div>
