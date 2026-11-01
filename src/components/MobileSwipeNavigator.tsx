@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { motion, useDragControls, useReducedMotion } from 'motion/react';
+import React, { useRef, useEffect } from 'react';
+import { motion, useDragControls, useReducedMotion, useMotionValue, animate } from 'motion/react';
 import { transitions } from '../motion';
 import { acknowledgeNavigation } from '../haptics';
 
@@ -42,6 +42,8 @@ export const MobileSwipeNavigator: React.FC<MobileSwipeNavigatorProps> = ({
   const dragControls = useDragControls();
   const reduceMotion = useReducedMotion();
   const mayDragRef = useRef(false);
+  const x = useMotionValue(0);
+
   const tabOrder: SwipeTab[] = ['calculator', 'gpa', 'cgpa'];
   const activeIndex = tabOrder.indexOf(activeTab as SwipeTab);
   const canSwipe = !disabled && activeIndex >= 0;
@@ -49,6 +51,12 @@ export const MobileSwipeNavigator: React.FC<MobileSwipeNavigatorProps> = ({
   // Boundary constraints based on current tab index
   const isFirstTab = activeIndex === 0;
   const isLastTab = activeIndex === tabOrder.length - 1;
+
+  // Reset x and indicator offset whenever activeTab changes
+  useEffect(() => {
+    x.set(0);
+    onSwipeOffsetChange?.(0);
+  }, [activeTab, x, onSwipeOffsetChange]);
 
   // Calculate indicator column offset from swipe drag pixel offset
   const calculateColOffset = (dragX: number): number => {
@@ -74,21 +82,26 @@ export const MobileSwipeNavigator: React.FC<MobileSwipeNavigatorProps> = ({
     return 0;
   };
 
+  const snapBack = () => {
+    mayDragRef.current = false;
+    onSwipeOffsetChange?.(0);
+    animate(x, 0, transitions.spring);
+  };
+
   return (
     <motion.div
       className="min-w-0 touch-pan-y"
+      style={{ x }}
       drag={canSwipe && !reduceMotion ? 'x' : false}
       dragControls={dragControls}
       dragListener={false}
       dragDirectionLock
-      dragConstraints={{
-        left: isLastTab ? 0 : -300,
-        right: isFirstTab ? 0 : 300,
+      dragConstraints={{ left: 0, right: 0 }}
+      dragElastic={{
+        left: isLastTab ? 0 : 0.25,
+        right: isFirstTab ? 0 : 0.25,
       }}
-      dragElastic={0.2}
       dragMomentum={false}
-      animate={{ x: 0 }}
-      transition={transitions.spring}
       onPointerDownCapture={(event) => {
         const target = event.target as Element | null;
         mayDragRef.current = Boolean(
@@ -97,8 +110,7 @@ export const MobileSwipeNavigator: React.FC<MobileSwipeNavigatorProps> = ({
         if (mayDragRef.current) dragControls.start(event);
       }}
       onPointerUpCapture={() => {
-        mayDragRef.current = false;
-        onSwipeOffsetChange?.(0);
+        snapBack();
       }}
       onDrag={(_, info) => {
         if (!mayDragRef.current) return;
@@ -106,7 +118,7 @@ export const MobileSwipeNavigator: React.FC<MobileSwipeNavigatorProps> = ({
         onSwipeOffsetChange?.(colOffset);
       }}
       onDragEnd={(_, info) => {
-        onSwipeOffsetChange?.(0);
+        snapBack();
         if (!mayDragRef.current && Math.abs(info.offset.x) < 1) return;
 
         const distanceThreshold = 72;

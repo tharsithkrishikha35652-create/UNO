@@ -106,6 +106,24 @@ import {
   X,
 } from "lucide-react";
 
+const LAST_WORKING_POSITION_KEY = "calcredit_last_working_position";
+
+interface LastWorkingPosition {
+  semester: SemesterNumber | null;
+  subjectId: string;
+  activeTab: "calculator" | "grades" | "gpa" | "cgpa";
+}
+
+function getStoredWorkingPosition(): Partial<LastWorkingPosition> | null {
+  try {
+    const raw = window.localStorage.getItem(LAST_WORKING_POSITION_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
 const LEGACY_STORAGE_KEY = "ca_ese_calculator_sem1_user_selected_v18";
 const THEME_STORAGE_KEY = "calcredit_theme";
 const GOOGLE_ACCOUNT_SELECTION_STORE_ID =
@@ -429,6 +447,15 @@ function getCourseProgress(
       (lab2Count > 0 && lab2Entered < lab2Count)
     ) {
       return "Missing information";
+    }
+
+    const weights = getCourseWeights(courseType);
+    if (weights.testWeight > 0) {
+      const hasTest1 = subject.test1 !== '' && subject.test1 !== null && subject.test1 !== undefined;
+      const hasTest2 = subject.test2 !== '' && subject.test2 !== null && subject.test2 !== undefined;
+      if ((hasTest1 && !hasTest2) || (!hasTest1 && hasTest2)) {
+        return "Missing information";
+      }
     }
   }
 
@@ -787,14 +814,20 @@ function AuthenticatedApp({
     () => getGpaCourses(currentDepartment),
     [currentDepartment]
   );
-  const [currentSubjectId, setCurrentSubjectId] = useState("");
-  const [selectedSemester, setSelectedSemester] =
-    useState<SemesterNumber | null>(null);
+  const storedWorkingPos = useRef(getStoredWorkingPosition());
+  const [currentSubjectId, setCurrentSubjectId] = useState(() => storedWorkingPos.current?.subjectId ?? "");
+  const [selectedSemester, setSelectedSemester] = useState<SemesterNumber | null>(() => {
+    const sem = storedWorkingPos.current?.semester;
+    return typeof sem === 'number' && sem >= 1 && sem <= 8 ? (sem as SemesterNumber) : null;
+  });
   const [isSemesterMenuOpen, setIsSemesterMenuOpen] = useState(false);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<
     "calculator" | "grades" | "gpa" | "cgpa"
-  >("calculator");
+  >(() => {
+    const tab = storedWorkingPos.current?.activeTab;
+    return tab && ["calculator", "grades", "gpa", "cgpa"].includes(tab) ? tab : "calculator";
+  });
   const [swipeColOffset, setSwipeColOffset] = useState(0);
   const [undoToast, setUndoToast] = useState<{
     subjectId: string;
@@ -845,6 +878,19 @@ function AuthenticatedApp({
   );
   const [dataLoading, setDataLoading] = useState(Boolean(user));
   const [dataError, setDataError] = useState("");
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(
+        LAST_WORKING_POSITION_KEY,
+        JSON.stringify({
+          semester: selectedSemester,
+          subjectId: currentSubjectId,
+          activeTab,
+        })
+      );
+    } catch {}
+  }, [selectedSemester, currentSubjectId, activeTab]);
+
   const [saveError, setSaveError] = useState("");
   const [isErrorDismissing, setIsErrorDismissing] = useState(false);
   const errorTimeoutRef = useRef<number | null>(null);
@@ -1245,6 +1291,10 @@ function AuthenticatedApp({
 
   // Update specific fields of the current subject
   const updateCurrentSubject = (updates: Partial<SubjectData>) => {
+    if (undoToast) {
+      setUndoToast(null);
+      if (undoTimeoutRef.current) window.clearTimeout(undoTimeoutRef.current);
+    }
     calculationRevisionRef.current += 1;
     setSubjects((prev) =>
       prev.map((s) => {
@@ -1357,6 +1407,11 @@ function AuthenticatedApp({
   };
 
   const handleOpenPresetCourse = (course: PresetCourse) => {
+    if (undoToast) {
+      setUndoToast(null);
+      if (undoTimeoutRef.current) window.clearTimeout(undoTimeoutRef.current);
+    }
+    acknowledgeSelection();
     calculationRevisionRef.current += 1;
     const isHeritageCourse =
       getCourseType({
@@ -1437,6 +1492,11 @@ function AuthenticatedApp({
   };
 
   const handleOpenOtherCourse = (subject: SubjectData) => {
+    if (undoToast) {
+      setUndoToast(null);
+      if (undoTimeoutRef.current) window.clearTimeout(undoTimeoutRef.current);
+    }
+    acknowledgeSelection();
     setCurrentSubjectId(subject.id);
     const subSem = getSubjectSemester(subject, currentDepartment);
     if (subSem !== null) {
