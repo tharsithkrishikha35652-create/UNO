@@ -343,6 +343,12 @@ export const CreditsScreen: React.FC = () => {
         </ol>
       </section>
 
+      <div className="credits-observe mt-8 sm:mt-10 rounded-xl border border-[var(--app-divider)] bg-[var(--app-surface)] px-4 py-3 sm:px-5 sm:py-3.5 text-xs text-[var(--app-muted-text)] shadow-xs">
+        <p className="leading-relaxed">
+          Formulated and calculated in accordance with the latest <strong className="font-semibold text-[var(--app-primary-text)]">Anna University Regulations</strong> for University Departments.
+        </p>
+      </div>
+
       <footer className="credits-observe mt-9 sm:mt-12">
         <span className="credits-rule mb-4 block h-px w-8 bg-[var(--app-action-accent-strong)]" aria-hidden="true" />
         <p className="credits-serif text-xl font-medium italic leading-snug text-[var(--app-primary-text)] sm:text-2xl">

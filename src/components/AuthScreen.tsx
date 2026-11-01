@@ -1,4 +1,4 @@
-import React, { useState, type FormEvent } from 'react';
+import React, { useState, useEffect, type FormEvent } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { Capacitor } from '@capacitor/core';
 import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
@@ -10,16 +10,17 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup,
 } from 'firebase/auth';
-import { AlertCircle, BookOpen, Check, Eye, EyeOff, LoaderCircle, X } from 'lucide-react';
+import { AlertCircle, BookOpen, Check, Eye, EyeOff, LoaderCircle, Search, X } from 'lucide-react';
 import { auth } from '../firebase';
 import { ThemeToggle, type AppTheme } from './ThemeToggle';
 import { motionVariants } from '../motion';
 import CalCreditLogo from './CalCreditLogo';
+import { Department } from '../types';
 
 interface AuthScreenProps {
   configurationError?: string;
   forceGoogleAccountSelection?: boolean;
-  onContinueAsGuest: (department: 'CSE' | 'ECE') => void;
+  onContinueAsGuest: (department: Department) => void;
   theme: AppTheme;
   onToggleTheme: () => void;
 }
@@ -70,6 +71,65 @@ function friendlyAuthError(error: unknown, provider: 'email' | 'google' = 'email
   }
 }
 
+export const GUEST_DEPARTMENT_OPTIONS = [
+  {
+    id: 'BME' as const,
+    title: 'Biomedical Engineering',
+  },
+  {
+    id: 'CIVIL' as const,
+    title: 'Civil Engineering',
+  },
+  {
+    id: 'CSE' as const,
+    title: 'Computer Science and Engineering',
+  },
+  {
+    id: 'EEE' as const,
+    title: 'Electrical and Electronics Engineering',
+  },
+  {
+    id: 'ECE' as const,
+    title: 'Electronics and Communication Engineering',
+  },
+  {
+    id: 'VLSI' as const,
+    title: 'Electronics Engg. (VLSI Design and Tech)',
+  },
+  {
+    id: 'GEO' as const,
+    title: 'Geoinformatics',
+  },
+  {
+    id: 'IE' as const,
+    title: 'Industrial Engineering',
+  },
+  {
+    id: 'IT' as const,
+    title: 'Information Technology',
+  },
+  {
+    id: 'MFG' as const,
+    title: 'Manufacturing Engineering',
+  },
+  {
+    id: 'MSE' as const,
+    title: 'Materials Science and Engineering',
+  },
+  {
+    id: 'MECH' as const,
+    title: 'Mechanical Engineering',
+  },
+  {
+    id: 'MINING' as const,
+    title: 'Mining Engineering',
+  },
+  {
+    id: 'PT' as const,
+    title: 'Printing and Packaging Technology',
+  },
+] as const;
+
 export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forceGoogleAccountSelection = false, onContinueAsGuest, theme, onToggleTheme }) => {
   const reduceMotion = useReducedMotion();
   const [mode, setMode] = useState<AuthMode>('login');
@@ -82,7 +142,19 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [showGuestDeptModal, setShowGuestDeptModal] = useState(false);
-  const [guestDeptChoice, setGuestDeptChoice] = useState<'CSE' | 'ECE'>('CSE');
+  const [guestDeptChoice, setGuestDeptChoice] = useState<Department>('CSE');
+  const [deptSearch, setDeptSearch] = useState('');
+
+  useEffect(() => {
+    if (!showGuestDeptModal) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setShowGuestDeptModal(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showGuestDeptModal]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -342,31 +414,30 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
       <AnimatePresence>
       {showGuestDeptModal && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-xs"
           role="dialog"
           aria-modal="true"
           aria-labelledby="guest-dept-title"
+          onClick={() => setShowGuestDeptModal(false)}
           variants={reduceMotion ? undefined : motionVariants.backdrop}
           initial={reduceMotion ? { opacity: 1 } : 'initial'}
           animate="animate"
           exit="exit"
         >
           <motion.div
-            className="w-full max-w-md rounded-2xl border border-slate-300 bg-white p-6 shadow-2xl"
+            className="w-full max-w-md max-h-[88vh] flex flex-col rounded-2xl border border-slate-300 bg-white p-5 sm:p-6 shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
             variants={reduceMotion ? undefined : motionVariants.dialog}
             initial={reduceMotion ? { opacity: 1 } : 'initial'}
             animate="animate"
             exit="exit"
           >
-            <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-4">
+            <div className="flex shrink-0 items-start justify-between gap-3 border-b border-slate-100 pb-3 sm:pb-4">
               <div>
                 <p className="text-[11px] font-bold uppercase tracking-wider text-blue-700">Guest Access</p>
                 <h2 id="guest-dept-title" className="text-lg font-black text-[#172554]">
                   Select your Department
                 </h2>
-                <p className="mt-1 text-xs text-slate-500">
-                  Choose your department to load the corresponding 2023 curriculum and subjects for this guest session:
-                </p>
               </div>
               <button
                 type="button"
@@ -378,61 +449,88 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
               </button>
             </div>
 
-            <div className="mt-4 space-y-2.5">
-              {[
-                {
-                  id: 'CSE' as const,
-                  title: 'Computer Science and Engineering',
-                  badge: 'B.E. CSE',
-                  desc: 'Anna University Regulations 2023 · CEG Campus',
-                },
-                {
-                  id: 'ECE' as const,
-                  title: 'Electronics and Communication Engineering',
-                  badge: 'B.E. ECE',
-                  desc: 'Anna University Regulations 2023 · CEG Campus',
-                },
-              ].map((opt) => {
-                const isSelected = guestDeptChoice === opt.id;
-                return (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    onClick={() => setGuestDeptChoice(opt.id)}
-                    className={`flex w-full items-start justify-between rounded-xl border p-3.5 text-left transition-all cursor-pointer ${
-                      isSelected
-                        ? 'border-[#172554] bg-blue-50/70 shadow-xs'
-                        : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
-                    }`}
-                  >
-                    <div className="pr-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-[#172554]">{opt.title}</span>
-                        <span className="rounded bg-blue-100/70 px-1.5 py-0.5 text-[10px] font-bold text-blue-900">
-                          {opt.badge}
-                        </span>
-                      </div>
-                      <p className="mt-1 text-xs text-slate-500">{opt.desc}</p>
-                    </div>
-                    <div
-                      className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-colors ${
-                        isSelected
-                          ? 'border-[#172554] bg-[#172554] text-white'
-                          : 'border-slate-300 bg-white'
-                      }`}
-                    >
-                      {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
-                    </div>
-                  </button>
-                );
-              })}
+            {/* Quick Search Filter */}
+            <div className="relative mt-3 shrink-0">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" aria-hidden="true" />
+              <input
+                type="text"
+                placeholder="Search department…"
+                value={deptSearch}
+                onChange={(e) => setDeptSearch(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-8 pr-8 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-[#172554] focus:outline-none transition-colors"
+              />
+              {deptSearch && (
+                <button
+                  type="button"
+                  onClick={() => setDeptSearch('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-0.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  aria-label="Clear search"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              )}
             </div>
 
-            <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-end">
+            {/* Scrollable Department List with Custom Scrollbar */}
+            <div
+              className="mt-3 flex-1 overflow-y-auto overscroll-contain pr-1.5 space-y-2 max-h-[46vh] sm:max-h-[50vh] custom-department-scrollbar"
+              role="radiogroup"
+              aria-labelledby="guest-dept-title"
+            >
+              {(() => {
+                const searchLower = deptSearch.trim().toLowerCase();
+                const filtered = GUEST_DEPARTMENT_OPTIONS.filter((opt) =>
+                  !searchLower ||
+                  opt.title.toLowerCase().includes(searchLower) ||
+                  opt.id.toLowerCase().includes(searchLower)
+                );
+                if (filtered.length === 0) {
+                  return (
+                    <div className="py-8 text-center text-xs text-slate-500">
+                      No departments matching &ldquo;{deptSearch}&rdquo;
+                    </div>
+                  );
+                }
+                return filtered.map((opt) => {
+                  const isSelected = guestDeptChoice === opt.id;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={isSelected}
+                      onClick={() => setGuestDeptChoice(opt.id)}
+                      className={`flex w-full items-start justify-between rounded-xl border p-3 text-left transition-all cursor-pointer ${
+                        isSelected
+                          ? 'border-[#172554] bg-blue-50/70 shadow-xs'
+                          : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+                      }`}
+                    >
+                      <div className="pr-2 min-w-0">
+                        <span className="text-sm font-bold text-[#172554]">{opt.title}</span>
+                      </div>
+                      <div
+                        className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-colors ${
+                          isSelected
+                            ? 'border-[#172554] bg-[#172554] text-white'
+                            : 'border-slate-300 bg-white'
+                        }`}
+                        aria-hidden="true"
+                      >
+                        {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
+                      </div>
+                    </button>
+                  );
+                });
+              })()}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="mt-4 shrink-0 border-t border-slate-100 pt-3.5 flex flex-col gap-2 sm:flex-row sm:justify-end">
               <button
                 type="button"
                 onClick={() => setShowGuestDeptModal(false)}
-                className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+                className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -442,7 +540,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
                   setShowGuestDeptModal(false);
                   onContinueAsGuest(guestDeptChoice);
                 }}
-                className="rounded-xl bg-[#172554] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#1e3a8a] transition-colors shadow-xs cursor-pointer"
+                className="rounded-xl bg-[#172554] px-5 py-2 text-xs font-bold text-white hover:bg-[#1e3a8a] transition-colors shadow-xs cursor-pointer"
               >
                 Continue as Guest
               </button>

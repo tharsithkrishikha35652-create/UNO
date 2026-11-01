@@ -229,7 +229,23 @@ export async function loadUserWorkspace(uid: string): Promise<UserWorkspaceData>
     ? {
         studentName: (profileData.studentName as string).trim(),
         rollNumber: (profileData.rollNumber as string).trim(),
-        department: (profileData.department as string).trim().toUpperCase() === 'ECE' ? 'ECE' : 'CSE',
+        department: (() => {
+          const d = (profileData.department as string).trim().toUpperCase();
+          if (d === 'ECE') return 'ECE';
+          if (d === 'CIVIL' || d === 'CE') return 'CIVIL';
+          if (d === 'GEO' || d === 'GI' || d === 'GEOINFORMATICS') return 'GEO';
+          if (d === 'BME' || d === 'BM' || d === 'BIOMEDICAL') return 'BME';
+          if (d === 'IT' || d === 'INFORMATION_TECHNOLOGY' || d === 'INFOTECH') return 'IT';
+          if (d === 'EEE' || d === 'ELECTRICAL') return 'EEE';
+          if (d === 'MFG' || d === 'MANUFACTURING') return 'MFG';
+          if (d === 'VLSI' || d === 'ELECTRONICS_VLSI') return 'VLSI';
+          if (d === 'MECH' || d === 'MECHANICAL') return 'MECH';
+          if (d === 'PT' || d === 'PRINTING' || d === 'PPT') return 'PT';
+          if (d === 'MINING' || d === 'MINE' || d === 'MN' || d === 'MI') return 'MINING';
+          if (d === 'MSE' || d === 'MATSCI' || d === 'MS') return 'MSE';
+          if (d === 'IE' || d === 'INDUSTRIAL') return 'IE';
+          return 'CSE';
+        })(),
       }
     : null;
 

@@ -6,7 +6,7 @@ import React, {
   useCallback,
 } from "react";
 import { onAuthStateChanged, signOut, type User } from "firebase/auth";
-import { AcademicProfileData, SubjectData } from "./types";
+import { AcademicProfileData, Department, SubjectData } from "./types";
 import {
   DEFAULT_SUBJECT,
   calculateMarks,
@@ -380,7 +380,7 @@ function getCourseProgress(
 interface AuthenticatedAppProps {
   user: User | null;
   guestMode: boolean;
-  initialDepartment?: 'CSE' | 'ECE';
+  initialDepartment?: Department;
   onSignOut: () => Promise<void>;
   onExitGuest: () => void;
   signOutPending: boolean;
@@ -423,7 +423,7 @@ export default function App() {
   const reduceMotion = useReducedMotion();
   const [user, setUser] = useState<User | null>(null);
   const [guestMode, setGuestMode] = useState(false);
-  const [guestDepartment, setGuestDepartment] = useState<'CSE' | 'ECE'>('CSE');
+  const [guestDepartment, setGuestDepartment] = useState<Department>('CSE');
   const [theme, setTheme] = useState<AppTheme>(getInitialTheme);
   const [authResolved, setAuthResolved] = useState(false);
   const [authError, setAuthError] = useState("");
@@ -521,7 +521,7 @@ export default function App() {
     }
   };
 
-  const handleContinueAsGuest = (dept: 'CSE' | 'ECE' = 'CSE') => {
+  const handleContinueAsGuest = (dept: Department = 'CSE') => {
     setAuthError("");
     setGuestDepartment(dept);
     setGuestMode(true);
@@ -643,6 +643,30 @@ function AuthenticatedApp({
   const currentDepartment =
     profile?.department === "ECE"
       ? "ECE"
+      : profile?.department === "CIVIL" || profile?.department === "CE"
+      ? "CIVIL"
+      : profile?.department === "GEO" || profile?.department === "GI" || profile?.department === "GEOINFORMATICS"
+      ? "GEO"
+      : profile?.department === "BME" || profile?.department === "BM" || profile?.department === "BIOMEDICAL"
+      ? "BME"
+      : profile?.department === "IT" || profile?.department === "INFORMATION_TECHNOLOGY" || profile?.department === "INFOTECH"
+      ? "IT"
+      : profile?.department === "EEE" || profile?.department === "ELECTRICAL"
+      ? "EEE"
+      : profile?.department === "MFG" || profile?.department === "MANUFACTURING"
+      ? "MFG"
+      : profile?.department === "VLSI" || profile?.department === "ELECTRONICS_VLSI"
+      ? "VLSI"
+      : profile?.department === "MECH" || profile?.department === "MECHANICAL"
+      ? "MECH"
+      : profile?.department === "PT" || profile?.department === "PRINTING" || profile?.department === "PPT"
+      ? "PT"
+      : profile?.department === "MINING" || profile?.department === "MINE" || profile?.department === "MN" || profile?.department === "MI"
+      ? "MINING"
+      : profile?.department === "MSE" || profile?.department === "MATSCI" || profile?.department === "MS"
+      ? "MSE"
+      : profile?.department === "IE" || profile?.department === "INDUSTRIAL"
+      ? "IE"
       : "CSE";
   const deptPresets = useMemo(
     () => getPresetCourses(currentDepartment),

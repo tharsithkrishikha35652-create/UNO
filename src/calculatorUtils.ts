@@ -151,6 +151,7 @@ export function isCourseType(value: unknown): value is CourseType {
 }
 
 export function getCourseType(data: SubjectData): CourseType {
+  if (isCourseType(data.courseType)) return data.courseType;
   const normalizedName = data.name.trim().toLowerCase().replace(/[–—-]/g, ' ').replace(/\s+/g, ' ');
   if (normalizedName === 'industry oriented course i' || normalizedName === 'industry oriented course ii') {
     return 'industry-oriented-tests';
@@ -158,15 +159,32 @@ export function getCourseType(data: SubjectData): CourseType {
   if (normalizedName === 'industry oriented course iii' || normalizedName.startsWith('industry oriented course')) return 'industry-oriented-tests';
   if (normalizedName === 'universal human values') return 'universal-human-values';
   if (
-    normalizedName === 'standards computer science & engg.' ||
-    normalizedName === 'standards electronics and communication engineering' ||
+    normalizedName.includes('standards') ||
     normalizedName.startsWith('standards')
   ) return 'standards-course';
-  if (normalizedName === 'mini project' || normalizedName === 'idea to product') return 'laboratory-course';
+  if (
+    normalizedName === 'mini project' ||
+    normalizedName.startsWith('mini project') ||
+    normalizedName === 'idea to product' ||
+    normalizedName.includes('idea to product') ||
+    normalizedName === 'building and structural drawing' ||
+    normalizedName === 'environmental engineering drawing' ||
+    normalizedName === 'digitalized construction lab' ||
+    normalizedName === 'hospital training' ||
+    normalizedName.startsWith('hospital training') ||
+    normalizedName === 'summer internship' ||
+    normalizedName === 'societal oriented project' ||
+    normalizedName === 'software development project laboratory'
+  ) return 'laboratory-course';
+  if (
+    normalizedName === 'project work' ||
+    normalizedName.startsWith('project work') ||
+    normalizedName.startsWith('creative and innovative project') ||
+    normalizedName.startsWith('design project')
+  ) return 'project';
   if (normalizedName === 'self learning course') return 'self-learning';
   if (normalizedName === 'audit course i' || normalizedName === 'audit course ii') return 'audit-course';
   if (normalizedName === 'heritage of tamils' || normalizedName === 'tamils and technology') return 'heritage-course';
-  if (isCourseType(data.courseType)) return data.courseType;
   return '2-0-2'; // fallback
 }
 

@@ -1,3 +1,19 @@
+export type Department =
+  | 'CSE'
+  | 'ECE'
+  | 'CIVIL'
+  | 'GEO'
+  | 'BME'
+  | 'IT'
+  | 'EEE'
+  | 'MFG'
+  | 'VLSI'
+  | 'MECH'
+  | 'PT'
+  | 'MINING'
+  | 'MSE'
+  | 'IE';
+
 export type CourseType =
   | '2-0-2'
   | '3-0-2'

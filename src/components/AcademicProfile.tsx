@@ -22,9 +22,41 @@ interface AcademicProfileFormProps {
 }
 
 const semesterOptions: SemesterNumber[] = [1, 2, 3, 4, 5, 6, 7, 8];
-const DEPARTMENT_OPTIONS = [
+
+const normalizeDept = (d?: string): string => {
+  if (!d) return 'CSE';
+  const u = d.trim().toUpperCase();
+  if (u === 'ECE') return 'ECE';
+  if (u === 'CIVIL' || u === 'CE') return 'CIVIL';
+  if (u === 'GEO' || u === 'GI' || u === 'GEOINFORMATICS') return 'GEO';
+  if (u === 'BME' || u === 'BM' || u === 'BIOMEDICAL') return 'BME';
+  if (u === 'IT' || u === 'INFORMATION_TECHNOLOGY' || u === 'INFOTECH') return 'IT';
+  if (u === 'EEE' || u === 'ELECTRICAL') return 'EEE';
+  if (u === 'MFG' || u === 'MANUFACTURING') return 'MFG';
+  if (u === 'VLSI' || u === 'ELECTRONICS_VLSI') return 'VLSI';
+  if (u === 'MECH' || u === 'MECHANICAL') return 'MECH';
+  if (u === 'PT' || u === 'PRINTING' || u === 'PPT') return 'PT';
+  if (u === 'MINING' || u === 'MINE' || u === 'MN' || u === 'MI') return 'MINING';
+  if (u === 'MSE' || u === 'MATSCI' || u === 'MS') return 'MSE';
+  if (u === 'IE' || u === 'INDUSTRIAL') return 'IE';
+  return 'CSE';
+};
+
+export const DEPARTMENT_OPTIONS = [
+  { value: 'BME', label: 'Biomedical Engineering (BME)' },
+  { value: 'CIVIL', label: 'Civil Engineering (CIVIL)' },
   { value: 'CSE', label: 'Computer Science and Engineering (CSE)' },
+  { value: 'EEE', label: 'Electrical and Electronics Engineering (EEE)' },
   { value: 'ECE', label: 'Electronics and Communication Engineering (ECE)' },
+  { value: 'VLSI', label: 'Electronics Engineering (VLSI Design and Technology)' },
+  { value: 'GEO', label: 'Geoinformatics (GEO)' },
+  { value: 'IE', label: 'Industrial Engineering (IE)' },
+  { value: 'IT', label: 'Information Technology (IT)' },
+  { value: 'MFG', label: 'Manufacturing Engineering (MFG)' },
+  { value: 'MSE', label: 'Materials Science and Engineering (MSE)' },
+  { value: 'MECH', label: 'Mechanical Engineering (MECH)' },
+  { value: 'MINING', label: 'Mining Engineering (MINING)' },
+  { value: 'PT', label: 'Printing and Packaging Technology (PT)' },
 ] as const;
 
 export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
@@ -38,7 +70,7 @@ export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
 }) => {
   const [studentName, setStudentName] = useState(profile?.studentName ?? '');
   const [rollNumber, setRollNumber] = useState(profile?.rollNumber ?? '');
-  const [department, setDepartment] = useState(profile?.department || 'CSE');
+  const [department, setDepartment] = useState(() => normalizeDept(profile?.department));
   const [semester, setSemester] = useState(initialSemester?.toString() ?? '');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -76,7 +108,7 @@ export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
   useEffect(() => {
     setStudentName(profile?.studentName ?? '');
     setRollNumber(profile?.rollNumber ?? '');
-    setDepartment(profile?.department || 'CSE');
+    setDepartment(normalizeDept(profile?.department));
     setSemester(initialSemester?.toString() ?? '');
     setError('');
   }, [profile, initialSemester]);
@@ -190,7 +222,7 @@ export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
             <div
               role="listbox"
               aria-label="Department options"
-              className="absolute left-0 right-0 z-50 mt-1.5 max-h-60 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl ring-1 ring-black/5 animate-[sticky-result-in_140ms_ease-out]"
+              className="absolute left-0 right-0 z-50 mt-1.5 max-h-60 overflow-y-auto overscroll-contain pr-1 custom-department-scrollbar rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl ring-1 ring-black/5 animate-[sticky-result-in_140ms_ease-out]"
             >
               {DEPARTMENT_OPTIONS.map((opt) => {
                 const isSelected = department === opt.value;
@@ -248,7 +280,7 @@ export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
             <div
               role="listbox"
               aria-label="Semester options"
-              className="absolute left-0 right-0 z-50 mt-1.5 max-h-60 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl ring-1 ring-black/5 animate-[sticky-result-in_140ms_ease-out]"
+              className="absolute left-0 right-0 z-50 mt-1.5 max-h-60 overflow-y-auto overscroll-contain pr-1 custom-department-scrollbar rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl ring-1 ring-black/5 animate-[sticky-result-in_140ms_ease-out]"
             >
               {semesterOptions.map((opt) => {
                 const isSelected = semester === String(opt);
@@ -463,7 +495,7 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
           </div>
         </header>
 
-        <div className="min-h-0 flex-1 overflow-y-auto p-5 space-y-4">
+        <div className="min-h-0 flex-1 overflow-y-auto custom-department-scrollbar p-5 space-y-4">
           {editing ? (
             <AcademicProfileForm
               profile={profile}
@@ -516,6 +548,30 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
                   <dd className="mt-1 text-sm font-bold text-[#172554]">
                     {profile?.department === 'ECE'
                       ? 'Electronics & Communication Engg.'
+                      : profile?.department === 'CIVIL' || profile?.department === 'CE'
+                      ? 'Civil Engineering'
+                      : profile?.department === 'GEO' || profile?.department === 'GI' || profile?.department === 'GEOINFORMATICS'
+                      ? 'Geoinformatics'
+                      : profile?.department === 'BME' || profile?.department === 'BM' || profile?.department === 'BIOMEDICAL'
+                      ? 'Biomedical Engineering'
+                      : profile?.department === 'IT' || profile?.department === 'INFORMATION_TECHNOLOGY' || profile?.department === 'INFOTECH'
+                      ? 'Information Technology'
+                      : profile?.department === 'EEE' || profile?.department === 'ELECTRICAL'
+                      ? 'Electrical & Electronics Engg.'
+                      : profile?.department === 'MFG' || profile?.department === 'MANUFACTURING'
+                      ? 'Manufacturing Engineering'
+                      : profile?.department === 'VLSI' || profile?.department === 'ELECTRONICS_VLSI'
+                      ? 'Electronics Engg. (VLSI Design & Tech)'
+                      : profile?.department === 'MECH' || profile?.department === 'MECHANICAL'
+                      ? 'Mechanical Engineering'
+                      : profile?.department === 'PT' || profile?.department === 'PRINTING' || profile?.department === 'PPT'
+                      ? 'Printing and Packaging Technology'
+                      : profile?.department === 'MINING' || profile?.department === 'MINE' || profile?.department === 'MN' || profile?.department === 'MI'
+                      ? 'Mining Engineering'
+                      : profile?.department === 'MSE' || profile?.department === 'MATSCI' || profile?.department === 'MS'
+                      ? 'Materials Science and Engineering'
+                      : profile?.department === 'IE' || profile?.department === 'INDUSTRIAL'
+                      ? 'Industrial Engineering'
                       : 'Computer Science & Engg.'}
                   </dd>
                 </div>
@@ -549,7 +605,6 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
                   </div>
                   <div>
                     <span className="block text-sm font-bold text-[#172554]">Grading</span>
-                    <span className="block text-xs text-slate-500">View grade bands and grade points</span>
                   </div>
                 </div>
               </button>
@@ -566,7 +621,6 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
                   </div>
                   <div>
                     <span className="block text-sm font-bold text-[#172554]">Feedback</span>
-                    <span className="block text-xs text-slate-500">Share feedback to help improve CALCREDIT</span>
                   </div>
                 </div>
               </button>
@@ -583,16 +637,10 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
                   </div>
                   <div>
                     <span className="block text-sm font-bold text-[#172554]">Credits</span>
-                    <span className="block text-xs text-slate-500">Design &amp; development</span>
                   </div>
                 </div>
               </button>
 
-              {guestMode && (
-                <p className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs text-amber-950" role="status">
-                  Guest profile details stay in this temporary session and are cleared when it ends.
-                </p>
-              )}
             </>
           )}
         </div>
