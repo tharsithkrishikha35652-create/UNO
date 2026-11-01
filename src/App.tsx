@@ -18,6 +18,7 @@ import {
   GRADE_SCALE,
   SPECIAL_GRADES,
   isGhostPlaceholderCourse,
+  isObsoleteCurriculumCourse,
 } from "./calculatorUtils";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { motionVariants } from "./motion";
@@ -485,7 +486,7 @@ function parseLegacySubjects(): SubjectData[] {
           typeof item === "object" &&
           typeof item.name === "string" &&
           item.name.trim() &&
-          !isGhostPlaceholderCourse(item)
+          !isGhostPlaceholderCourse(item) && !isObsoleteCurriculumCourse(item)
       )
     );
   } catch {
@@ -1014,7 +1015,7 @@ function AuthenticatedApp({
         if (cancelled) return;
         const loadedSubjects = mergeDuplicateProjectSubjects(
           workspace.subjects
-            .filter((s) => !isGhostPlaceholderCourse(s))
+            .filter((s) => !isGhostPlaceholderCourse(s) && !isObsoleteCurriculumCourse(s))
             .map(normalizeSubjectForSyllabus)
         );
         setProfile(workspace.profile);
@@ -1239,7 +1240,7 @@ function AuthenticatedApp({
 
   const currentSubject = useMemo(() => {
     const found = subjects.find(
-      (s) => s.id === currentSubjectId && !isGhostPlaceholderCourse(s)
+      (s) => s.id === currentSubjectId && !isGhostPlaceholderCourse(s) && !isObsoleteCurriculumCourse(s)
     );
     if (found) {
       if (selectedSemester === null) return found;
@@ -1248,14 +1249,14 @@ function AuthenticatedApp({
     }
     if (selectedSemester !== null) {
       const semSubject = subjects.find((s) => {
-        if (isGhostPlaceholderCourse(s)) return false;
+        if (isGhostPlaceholderCourse(s) || isObsoleteCurriculumCourse(s)) return false;
         const sem = getSubjectSemester(s, currentDepartment);
         return sem === selectedSemester;
       });
       if (semSubject) return semSubject;
     }
     return (
-      subjects.find((s) => !isGhostPlaceholderCourse(s)) || DEFAULT_SUBJECT
+      subjects.find((s) => !isGhostPlaceholderCourse(s) && !isObsoleteCurriculumCourse(s)) || DEFAULT_SUBJECT
     );
   }, [subjects, currentSubjectId, selectedSemester, currentDepartment]);
 
@@ -1975,7 +1976,7 @@ function AuthenticatedApp({
     if (selectedSemester === null) return [];
     return subjects
       .filter((subject) => {
-        if (!subject.name.trim() || findPresetForSubject(subject)) return false;
+        if (!subject.name.trim() || isObsoleteCurriculumCourse(subject) || findPresetForSubject(subject)) return false;
         const courseSemester = getSubjectSemester(subject);
         if (courseSemester !== null) {
           return courseSemester === selectedSemester;
@@ -2010,7 +2011,7 @@ function AuthenticatedApp({
   );
   const currentSemesterAvailableCourses = useMemo(() => {
     return subjects
-      .filter((s) => selectedSemester === null || getSubjectSemester(s, currentDepartment) === selectedSemester)
+      .filter((s) => !isObsoleteCurriculumCourse(s) && (selectedSemester === null || getSubjectSemester(s, currentDepartment) === selectedSemester))
       .map((s) => ({
         id: s.id,
         name: s.name,
@@ -3077,11 +3078,7 @@ function AuthenticatedApp({
                         ) : breakdown.courseType === "project-work" ||
                           breakdown.courseType === "project" ? (
                           <ProjectWorkAssessmentSection
-                            assessmentTitle={
-                              breakdown.courseType === "project"
-                                ? "Internship cum Project Work assessment — Regulation 17.7"
-                                : undefined
-                            }
+                            assessmentTitle="Project Work / Internship cum Project Work"
                             marks={
                               currentSubject.projectWorkMarks ?? {
                                 reviewI: "",

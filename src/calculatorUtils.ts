@@ -735,3 +735,36 @@ export function isGhostPlaceholderCourse(subject: { name?: string } | null | und
   const trimmed = subject.name.trim();
   return /^course\s+\d+(\s*\((?:sem|semester)\s*\d+\))?$/i.test(trimmed);
 }
+
+
+/**
+ * Detects obsolete Mathematics and Calculus courses that have been removed from the curriculum.
+ * Catches Calculus (MA23C11), Discrete Mathematics (MA23C04), and any legacy variations like
+ * 'Mathematics', 'Matrices and Calculus', etc. across user data, cached entries, and fallbacks.
+ */
+export function isObsoleteCurriculumCourse(
+  subject: { name?: string; code?: string; id?: string } | null | undefined
+): boolean {
+  if (!subject) return false;
+  const name = typeof subject.name === 'string' ? subject.name.trim().toLowerCase() : '';
+  const code = typeof subject.code === 'string' ? subject.code.trim().toUpperCase() : '';
+  const id = typeof subject.id === 'string' ? subject.id.trim().toUpperCase() : '';
+
+  if (code === 'MA23C11' || code === 'MA23C04') return true;
+  if (id === 'CALCULUS' || id.startsWith('MA23C11') || id.startsWith('MA23C04')) return true;
+
+  if (
+    name === 'calculus' ||
+    name === 'mathematics' ||
+    name === 'discrete mathematics' ||
+    name === 'matrices and calculus' ||
+    name.includes('calculus') ||
+    name.includes('discrete mathematics') ||
+    /^mathematics\b/i.test(name) ||
+    /\bmathematics$/i.test(name)
+  ) {
+    return true;
+  }
+
+  return false;
+}

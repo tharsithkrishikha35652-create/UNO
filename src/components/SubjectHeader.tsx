@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { SubjectData } from '../types';
-import { getCourseType, getCourseWeights } from '../calculatorUtils';
+import { getCourseType, getCourseWeights, isObsoleteCurriculumCourse } from '../calculatorUtils';
 import { ArrowLeft, ArrowUpDown, Check, RotateCcw, Search, X } from 'lucide-react';
 import { acknowledgeSelection } from '../haptics';
 
@@ -41,15 +41,17 @@ export const SubjectHeader: React.FC<SubjectHeaderProps> = ({
   }, [switcherOpen]);
 
   const normalized = query.trim().toLowerCase();
-  const filteredCourses = availableCourses.filter(
-    (c) =>
-      !normalized ||
-      c.name.toLowerCase().includes(normalized) ||
-      (c.code && c.code.toLowerCase().includes(normalized))
-  );
+  const filteredCourses = availableCourses
+    .filter((c) => !isObsoleteCurriculumCourse(c))
+    .filter(
+      (c) =>
+        !normalized ||
+        c.name.toLowerCase().includes(normalized) ||
+        (c.code && c.code.toLowerCase().includes(normalized))
+    );
 
   return (
-    <div className="rounded-lg bg-white dark:bg-[#202024] border border-slate-300 dark:border-slate-700 p-4 sm:p-6 mb-8 shadow-sm transition-colors">
+    <div className="overflow-hidden rounded-xl bg-white dark:bg-[#202024] border border-slate-300 dark:border-slate-700 p-4 sm:p-6 mb-8 shadow-sm transition-colors">
       {onBack && (
         <div className="mb-4 pb-3 border-b border-slate-200 dark:border-slate-700">
           <button
@@ -70,7 +72,7 @@ export const SubjectHeader: React.FC<SubjectHeaderProps> = ({
           </label>
 
           {subject.name ? (
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-md p-3 bg-slate-50 dark:bg-[#161618] border border-slate-200 dark:border-slate-700">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 overflow-hidden rounded-xl p-3 bg-slate-50 dark:bg-[#161618] border border-slate-200 dark:border-slate-700">
               <div className="flex items-center gap-2.5 flex-wrap">
                 <span className="text-sm sm:text-base font-black text-[#172554] dark:text-[#f1f1f3]">
                   {subject.name}
@@ -99,7 +101,7 @@ export const SubjectHeader: React.FC<SubjectHeaderProps> = ({
               )}
             </div>
           ) : (
-            <div className="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#161618] px-3.5 py-3 text-xs font-semibold text-slate-600 dark:text-slate-400 rounded-md">
+            <div className="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#161618] px-3.5 py-3 text-xs font-semibold text-slate-600 dark:text-slate-400 rounded-xl">
               Select a course from the tabs above.
             </div>
           )}

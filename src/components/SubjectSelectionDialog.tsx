@@ -1,3 +1,4 @@
+import { isObsoleteCurriculumCourse } from '../calculatorUtils';
 import React, { useState, useEffect } from 'react';
 import { X, Check, BookOpen } from 'lucide-react';
 import { CourseType } from '../types';
@@ -328,14 +329,6 @@ export const CSE_PRESET_COURSES: PresetCourse[] = [
     semester: 1,
   },
   {
-    id: 'CALCULUS',
-    name: 'Calculus',
-    code: 'MA23C11',
-    type: 'Theory',
-    courseType: 'theory',
-    semester: 1,
-  },
-  {
     id: 'FEEE',
     name: 'Fundamentals of Electrical and Electronics Engineering',
     code: 'EE23C02',
@@ -351,14 +344,6 @@ export const CSE_PRESET_COURSES: PresetCourse[] = [
     code: 'EN23C04',
     type: '2-0-2',
     courseType: '2-0-2',
-    semester: 2,
-  },
-  {
-    id: 'MA23C04',
-    name: 'Discrete Mathematics',
-    code: 'MA23C04',
-    type: 'Theory',
-    courseType: 'theory',
     semester: 2,
   },
   {
@@ -878,15 +863,6 @@ export const ECE_PRESET_COURSES: PresetCourse[] = [
     code: 'EN23C03',
     type: '2-0-2',
     courseType: '2-0-2',
-    semester: 1,
-    group: 'core',
-  },
-  {
-    id: 'MA23C11_ECE',
-    name: 'Calculus',
-    code: 'MA23C11',
-    type: 'Theory',
-    courseType: 'theory',
     semester: 1,
     group: 'core',
   },
@@ -1518,15 +1494,6 @@ export const CIVIL_PRESET_COURSES: PresetCourse[] = [
     group: 'core',
   },
   {
-    id: 'MA23C11_CIVIL',
-    name: 'Calculus',
-    code: 'MA23C11',
-    type: 'Theory',
-    courseType: 'theory',
-    semester: 1,
-    group: 'core',
-  },
-  {
     id: 'CY23C10_CIVIL',
     name: 'Engineering Chemistry',
     code: 'CY23C10',
@@ -2123,7 +2090,6 @@ const GEO_ELECTIVE_OPTION_BOOK: PresetCourse[] = [
 export const GEO_PRESET_COURSES: PresetCourse[] = [
   // Semester I (23 credits)
   { id: 'EN23C05_GEO', name: 'Foundation English', code: 'EN23C05', type: '2-0-2', courseType: '2-0-2', semester: 1, group: 'core' },
-  { id: 'MA23C11_GEO', name: 'Calculus', code: 'MA23C11', type: 'Theory', courseType: 'theory', semester: 1, group: 'core' },
   { id: 'PH23C11_GEO', name: 'Engineering Physics', code: 'PH23C11', type: '3-0-2', courseType: '3-0-2', semester: 1, group: 'core' },
   { id: 'ME23C01_GEO', name: 'Engineering Drawing & 3D Modelling', code: 'ME23C01', type: '2-0-4', courseType: '2-0-4', semester: 1, group: 'core' },
   { id: 'EE23C02_GEO', name: 'Fundamentals of Electrical and Electronics Engineering', code: 'EE23C02', type: 'Theory', courseType: 'theory', semester: 1, group: 'core' },
@@ -2352,7 +2318,6 @@ const BME_ELECTIVE_OPTION_BOOK: PresetCourse[] = [
 export const BME_PRESET_COURSES: PresetCourse[] = [
   // Semester I (18 credits)
   { id: 'EN23C05_BME', name: 'Foundation English', code: 'EN23C05', type: '2-0-2', courseType: '2-0-2', semester: 1, group: 'core' },
-  { id: 'MA23C11_BME', name: 'Calculus', code: 'MA23C11', type: 'Theory', courseType: 'theory', semester: 1, group: 'core' },
   { id: 'CY23C10_BME', name: 'Engineering Chemistry', code: 'CY23C10', type: '3-0-2', courseType: '3-0-2', semester: 1, group: 'core' },
   { id: 'CS23C04_BME', name: 'Programming in C', code: 'CS23C04', type: '2-0-4', courseType: '2-0-4', semester: 1, group: 'core' },
   { id: 'EE23C01_BME', name: 'Basics of Electrical Engineering', code: 'EE23C01', type: 'Theory', courseType: 'theory', semester: 1, group: 'core' },
@@ -2592,7 +2557,6 @@ const IT_ELECTIVE_OPTION_BOOK: PresetCourse[] = [
 export const IT_PRESET_COURSES: PresetCourse[] = [
   // Semester I (22 credits)
   { id: 'EN23C05_IT', name: 'Foundation English', code: 'EN23C05', type: '2-0-2', courseType: '2-0-2', semester: 1, group: 'core' },
-  { id: 'MA23C11_IT', name: 'Calculus', code: 'MA23C11', type: 'Theory', courseType: 'theory', semester: 1, group: 'core' },
   { id: 'PH23C11_IT', name: 'Engineering Physics', code: 'PH23C11', type: '3-0-2', courseType: '3-0-2', semester: 1, group: 'core' },
   { id: 'ME23C01_IT', name: 'Engineering Drawing and 3D Modeling', code: 'ME23C01', type: '2-0-4', courseType: '2-0-4', semester: 1, group: 'core' },
   { id: 'EE23C02_IT', name: 'Fundamentals of Electrical and Electronics Engineering', code: 'EE23C02', type: 'Theory', courseType: 'theory', semester: 1, group: 'core' },
@@ -2809,7 +2773,6 @@ const EEE_ELECTIVE_OPTION_BOOK: PresetCourse[] = [
 export const EEE_PRESET_COURSES: PresetCourse[] = [
   // Semester I (24 credits)
   { id: 'EN23C05_EEE', name: 'Foundation English', code: 'EN23C05', type: '2-0-2', courseType: '2-0-2', semester: 1, group: 'core' },
-  { id: 'MA23C11_EEE', name: 'Calculus', code: 'MA23C11', type: 'Theory', courseType: 'theory', semester: 1, group: 'core' },
   { id: 'PH23C11_EEE', name: 'Engineering Physics', code: 'PH23C11', type: '3-0-2', courseType: '3-0-2', semester: 1, group: 'core' },
   { id: 'ME23C01_EEE', name: 'Engineering Drawing and 3D Modeling', code: 'ME23C01', type: '2-0-4', courseType: '2-0-4', semester: 1, group: 'core' },
   { id: 'ME23C05_EEE', name: 'Basics of Mechanical Engineering', code: 'ME23C05', type: 'Theory', courseType: 'theory', semester: 1, group: 'core' },
@@ -3021,7 +2984,6 @@ const MFG_ELECTIVE_OPTION_BOOK: PresetCourse[] = [
 export const MFG_PRESET_COURSES: PresetCourse[] = [
   // Semester I (25 credits)
   { id: 'EN23C05_MFG', name: 'Foundation English', code: 'EN23C05', type: '2-0-2', courseType: '2-0-2', semester: 1, group: 'core' },
-  { id: 'MA23C11_MFG', name: 'Calculus', code: 'MA23C11', type: 'Theory', courseType: 'theory', semester: 1, group: 'core' },
   { id: 'CY23C10_MFG', name: 'Engineering Chemistry', code: 'CY23C10', type: '3-0-2', courseType: '3-0-2', semester: 1, group: 'core' },
   { id: 'ME23C01_MFG', name: 'Engineering Drawing and 3D Modelling', code: 'ME23C01', type: '2-0-4', courseType: '2-0-4', semester: 1, group: 'core' },
   { id: 'CS23C02_MFG', name: 'Computer Programming in Python', code: 'CS23C02', type: '3-0-2', courseType: '3-0-2', semester: 1, group: 'core' },
@@ -3254,7 +3216,6 @@ const VLSI_ELECTIVE_OPTION_BOOK: PresetCourse[] = [
 export const VLSI_PRESET_COURSES: PresetCourse[] = [
   // Semester I (23 credits)
   { id: 'EN23C05_VLSI', name: 'Foundation English', code: 'EN23C05', type: '2-0-2', courseType: '2-0-2', semester: 1, group: 'core' },
-  { id: 'MA23C11_VLSI', name: 'Calculus', code: 'MA23C11', type: 'Theory', courseType: 'theory', semester: 1, group: 'core' },
   { id: 'PH23C11_VLSI', name: 'Engineering Physics', code: 'PH23C11', type: '3-0-2', courseType: '3-0-2', semester: 1, group: 'core' },
   { id: 'ME23C01_VLSI', name: 'Engineering Drawing and 3D Modelling', code: 'ME23C01', type: '2-0-4', courseType: '2-0-4', semester: 1, group: 'core' },
   { id: 'CS23C04_VLSI', name: 'Programming in C', code: 'CS23C04', type: '2-0-4', courseType: '2-0-4', semester: 1, group: 'core' },
@@ -3488,7 +3449,6 @@ const MECH_ELECTIVE_OPTION_BOOK: PresetCourse[] = [
 export const MECH_PRESET_COURSES: PresetCourse[] = [
   // Semester I (23 credits)
   { id: 'EN23C05_MECH', name: 'Foundation English', code: 'EN23C05', type: '2-0-2', courseType: '2-0-2', semester: 1, group: 'core' },
-  { id: 'MA23C11_MECH', name: 'Calculus', code: 'MA23C11', type: 'Theory', courseType: 'theory', semester: 1, group: 'core' },
   { id: 'CY23C10_MECH', name: 'Engineering Chemistry', code: 'CY23C10', type: '3-0-2', courseType: '3-0-2', semester: 1, group: 'core' },
   { id: 'ME23C01_MECH', name: 'Engineering Drawing and 3D Modelling', code: 'ME23C01', type: '2-0-4', courseType: '2-0-4', semester: 1, group: 'core' },
   { id: 'ME23C03_MECH', name: 'Engineering Mechanics', code: 'ME23C03', type: 'Theory', courseType: 'theory', semester: 1, group: 'core' },
@@ -3735,7 +3695,6 @@ const PT_ELECTIVE_OPTION_BOOK: PresetCourse[] = [
 export const PT_PRESET_COURSES: PresetCourse[] = [
   // Semester I (24 credits)
   { id: 'EN23C05_PT', name: 'Foundation English', code: 'EN23C05', type: '2-0-2', courseType: '2-0-2', semester: 1, group: 'core' },
-  { id: 'MA23C11_PT', name: 'Calculus', code: 'MA23C11', type: 'Theory', courseType: 'theory', semester: 1, group: 'core' },
   { id: 'CY23C10_PT', name: 'Engineering Chemistry', code: 'CY23C10', type: '3-0-2', courseType: '3-0-2', semester: 1, group: 'core' },
   { id: 'ME23C01_PT', name: 'Engineering Drawing and 3D Modelling', code: 'ME23C01', type: '2-0-4', courseType: '2-0-4', semester: 1, group: 'core' },
   { id: 'ME23C03_PT', name: 'Engineering Mechanics', code: 'ME23C03', type: 'Theory', courseType: 'theory', semester: 1, group: 'core' },
@@ -3956,7 +3915,6 @@ const MINING_ELECTIVE_OPTION_BOOK: PresetCourse[] = [
 export const MINING_PRESET_COURSES: PresetCourse[] = [
   // Semester I (22 credits)
   { id: 'EN23C05_MINING', name: 'Foundation English', code: 'EN23C05', type: '2-0-2', courseType: '2-0-2', semester: 1, group: 'core' },
-  { id: 'MA23C11_MINING', name: 'Calculus', code: 'MA23C11', type: 'Theory', courseType: 'theory', semester: 1, group: 'core' },
   { id: 'CY23C10_MINING', name: 'Engineering Chemistry', code: 'CY23C10', type: '3-0-2', courseType: '3-0-2', semester: 1, group: 'core' },
   { id: 'ME23C05_MINING', name: 'Basics of Mechanical Engineering', code: 'ME23C05', type: 'Theory', courseType: 'theory', semester: 1, group: 'core' },
   { id: 'ME23C01_MINING', name: 'Engineering Drawing & 3D Modelling', code: 'ME23C01', type: '2-0-4', courseType: '2-0-4', semester: 1, group: 'core' },
@@ -4211,7 +4169,6 @@ const MSE_ELECTIVE_OPTION_BOOK: PresetCourse[] = [
 export const MSE_PRESET_COURSES: PresetCourse[] = [
   // Semester I (23 credits)
   { id: 'EN23C05_MSE', name: 'Foundation English', code: 'EN23C05', type: '2-0-2', courseType: '2-0-2', semester: 1, group: 'core' },
-  { id: 'MA23C11_MSE', name: 'Calculus', code: 'MA23C11', type: 'Theory', courseType: 'theory', semester: 1, group: 'core' },
   { id: 'CY23C10_MSE', name: 'Engineering Chemistry', code: 'CY23C10', type: '3-0-2', courseType: '3-0-2', semester: 1, group: 'core' },
   { id: 'ME23C01_MSE', name: 'Engineering Drawing and 3D Modelling', code: 'ME23C01', type: '2-0-4', courseType: '2-0-4', semester: 1, group: 'core' },
   { id: 'EE23C03_MSE', name: 'Basics of Electrical and Electronics Engineering', code: 'EE23C03', type: '2-0-2', courseType: '2-0-2', semester: 1, group: 'core' },
@@ -4457,7 +4414,6 @@ const IE_ELECTIVE_OPTION_BOOK: PresetCourse[] = [
 export const IE_PRESET_COURSES: PresetCourse[] = [
   // Semester I (24 credits)
   { id: 'EN23C05_IE', name: 'Foundation English', code: 'EN23C05', type: '2-0-2', courseType: '2-0-2', semester: 1, group: 'core' },
-  { id: 'MA23C11_IE', name: 'Calculus', code: 'MA23C11', type: 'Theory', courseType: 'theory', semester: 1, group: 'core' },
   { id: 'PH23C11_IE', name: 'Engineering Physics', code: 'PH23C11', type: '3-0-2', courseType: '3-0-2', semester: 1, group: 'core' },
   { id: 'ME23C01_IE', name: 'Engineering Drawing and 3D Modelling', code: 'ME23C01', type: '2-0-4', courseType: '2-0-4', semester: 1, group: 'core' },
   { id: 'CY23C10_IE', name: 'Engineering Chemistry', code: 'CY23C10', type: '3-0-2', courseType: '3-0-2', semester: 1, group: 'core' },
@@ -4522,20 +4478,22 @@ export const IE_PRESET_COURSES: PresetCourse[] = [
 
 
 export function getPresetCourses(department?: string): PresetCourse[] {
-  if (department === 'ECE') return ECE_PRESET_COURSES;
-  if (department === 'CIVIL' || department === 'CE') return CIVIL_PRESET_COURSES;
-  if (department === 'GEO' || department === 'GI' || department === 'GEOINFORMATICS') return GEO_PRESET_COURSES;
-  if (department === 'BME' || department === 'BM' || department === 'BIOMEDICAL') return BME_PRESET_COURSES;
-  if (department === 'IT' || department === 'INFORMATION_TECHNOLOGY' || department === 'INFOTECH') return IT_PRESET_COURSES;
-  if (department === 'EEE' || department === 'ELECTRICAL') return EEE_PRESET_COURSES;
-  if (department === 'MFG' || department === 'MANUFACTURING') return MFG_PRESET_COURSES;
-  if (department === 'VLSI' || department === 'ELECTRONICS_VLSI') return VLSI_PRESET_COURSES;
-  if (department === 'MECH' || department === 'MECHANICAL') return MECH_PRESET_COURSES;
-  if (department === 'PT' || department === 'PRINTING' || department === 'PPT') return PT_PRESET_COURSES;
-  if (department === 'MINING' || department === 'MINE' || department === 'MN' || department === 'MI') return MINING_PRESET_COURSES;
-  if (department === 'MSE' || department === 'MATSCI' || department === 'MS') return MSE_PRESET_COURSES;
-  if (department === 'IE' || department === 'INDUSTRIAL') return IE_PRESET_COURSES;
-  return CSE_PRESET_COURSES;
+  let list: PresetCourse[];
+  if (department === 'ECE') list = ECE_PRESET_COURSES;
+  else if (department === 'CIVIL' || department === 'CE') list = CIVIL_PRESET_COURSES;
+  else if (department === 'GEO' || department === 'GI' || department === 'GEOINFORMATICS') list = GEO_PRESET_COURSES;
+  else if (department === 'BME' || department === 'BM' || department === 'BIOMEDICAL') list = BME_PRESET_COURSES;
+  else if (department === 'IT' || department === 'INFORMATION_TECHNOLOGY' || department === 'INFOTECH') list = IT_PRESET_COURSES;
+  else if (department === 'EEE' || department === 'ELECTRICAL') list = EEE_PRESET_COURSES;
+  else if (department === 'MFG' || department === 'MANUFACTURING') list = MFG_PRESET_COURSES;
+  else if (department === 'VLSI' || department === 'ELECTRONICS_VLSI') list = VLSI_PRESET_COURSES;
+  else if (department === 'MECH' || department === 'MECHANICAL') list = MECH_PRESET_COURSES;
+  else if (department === 'PT' || department === 'PRINTING' || department === 'PPT') list = PT_PRESET_COURSES;
+  else if (department === 'MINING' || department === 'MINE' || department === 'MN' || department === 'MI') list = MINING_PRESET_COURSES;
+  else if (department === 'MSE' || department === 'MATSCI' || department === 'MS') list = MSE_PRESET_COURSES;
+  else if (department === 'IE' || department === 'INDUSTRIAL') list = IE_PRESET_COURSES;
+  else list = CSE_PRESET_COURSES;
+  return list;
 }
 
 export function getElectiveSlotsBySemester(department?: string): Record<number, string[]> {
@@ -4571,7 +4529,7 @@ export function getAllPresetCourses(): PresetCourse[] {
     ...MINING_PRESET_COURSES,
     ...MSE_PRESET_COURSES,
     ...IE_PRESET_COURSES,
-  ];
+  ].filter((c) => !isObsoleteCurriculumCourse(c));
 }
 
 

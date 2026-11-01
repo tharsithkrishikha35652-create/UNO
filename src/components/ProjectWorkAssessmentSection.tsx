@@ -24,21 +24,37 @@ const COMPONENTS: Array<{
   { key: 'vivaInternal', label: 'Viva-Voce — Internal Examiner', weight: 10, section: 'End-Semester Examination' },
 ];
 
-export const ProjectWorkAssessmentSection: React.FC<ProjectWorkAssessmentSectionProps> = ({ marks, onMarksChange, assessmentTitle = 'Project Work assessment — Table 6' }) => {
+export const ProjectWorkAssessmentSection: React.FC<ProjectWorkAssessmentSectionProps> = ({
+  marks,
+  onMarksChange,
+  assessmentTitle = 'Project Work / Internship cum Project Work',
+}) => {
   const renderGroup = (section: ProjectWorkSection) => {
     const components = COMPONENTS.filter((component) => component.section === section);
     const maxWeight = components.reduce((total, component) => total + component.weight, 0);
     return (
-      <section className="border border-slate-300 bg-white" aria-label={`${section} assessment components`}>
-        <div className="flex items-center justify-between gap-3 bg-[#172554] px-4 py-3 text-white">
+      <section
+        className="overflow-hidden rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#161618] shadow-sm"
+        aria-label={`${section} assessment components`}
+      >
+        <div className="flex items-center justify-between gap-3 bg-[#172554] px-4 py-3 text-white rounded-t-xl">
           <h3 className="text-sm font-black">{section}</h3>
-          <span className="text-xs font-bold tabular-nums font-numeric">Total weight: {maxWeight}%</span>
+          <span className="text-xs font-bold tabular-nums font-numeric text-blue-100">
+            Total weight: {maxWeight}%
+          </span>
         </div>
-        <div className="divide-y divide-slate-200">
+        <div className="divide-y divide-slate-200 dark:divide-slate-700">
           {components.map((component) => (
-            <label key={component.key} className="grid grid-cols-1 gap-2 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_5rem_12rem] sm:items-center">
-              <span className="text-sm font-semibold text-[#172554]">{component.label}</span>
-              <span className="text-xs font-bold text-slate-600 tabular-nums font-numeric">{component.weight}%</span>
+            <label
+              key={component.key}
+              className="grid grid-cols-1 gap-2 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_5rem_12rem] sm:items-center bg-white dark:bg-[#161618] hover:bg-slate-50 dark:hover:bg-[#202024] transition-colors"
+            >
+              <span className="text-sm font-semibold text-[#172554] dark:text-[#f1f1f3]">
+                {component.label}
+              </span>
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-400 tabular-nums font-numeric">
+                {component.weight}%
+              </span>
               <span className="flex items-center gap-2">
                 <span className="sr-only">{component.label} score</span>
                 <input
@@ -53,14 +69,19 @@ export const ProjectWorkAssessmentSection: React.FC<ProjectWorkAssessmentSection
                     const parsed = Number(value);
                     onMarksChange({
                       ...marks,
-                      [component.key]: value === '' ? '' : Math.max(0, Math.min(100, Number.isFinite(parsed) ? parsed : 0)),
+                      [component.key]:
+                        value === ''
+                          ? ''
+                          : Math.max(0, Math.min(100, Number.isFinite(parsed) ? parsed : 0)),
                     });
                   }}
                   placeholder="Score"
                   aria-label={`${component.label} score out of 100`}
-                  className="w-full border border-slate-300 bg-white px-3 py-2 text-sm font-bold text-[#172554] tabular-nums font-numeric focus:border-[#172554] focus:outline-none focus:ring-1 focus:ring-[#172554]"
+                  className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#202024] px-3 py-2 text-sm font-bold text-[#172554] dark:text-[#f1f1f3] tabular-nums font-numeric focus:border-[#172554] dark:focus:border-[#e08564] focus:outline-none focus:ring-1 focus:ring-[#172554] dark:focus:ring-[#e08564]"
                 />
-                <span className="shrink-0 text-xs font-semibold text-slate-600 tabular-nums font-numeric">/ 100</span>
+                <span className="shrink-0 text-xs font-semibold text-slate-600 dark:text-slate-400 tabular-nums font-numeric">
+                  / 100
+                </span>
               </span>
             </label>
           ))}
@@ -71,9 +92,11 @@ export const ProjectWorkAssessmentSection: React.FC<ProjectWorkAssessmentSection
 
   return (
     <div className="space-y-5">
-      <div className="border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-[#172554]">
-        <p className="font-black">{assessmentTitle}</p>
-        <p className="mt-1">Enter each component score out of 100. Each score is scaled by its listed weight; Reviews I–III total 60% and the thesis report and viva-voce components total 40%.</p>
+      <div className="overflow-hidden rounded-xl border border-blue-200 dark:border-blue-900/50 bg-blue-50/80 dark:bg-blue-950/30 px-4 py-3 text-sm text-[#172554] dark:text-[#f1f1f3] shadow-xs">
+        <p className="font-black text-base">{assessmentTitle}</p>
+        <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
+          Enter each component score out of 100. Each score is scaled by its listed weight; Reviews I–III total 60% and the thesis report and viva-voce components total 40%.
+        </p>
       </div>
       {renderGroup('Continuous Assessment')}
       {renderGroup('End-Semester Examination')}

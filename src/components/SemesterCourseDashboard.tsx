@@ -1,3 +1,4 @@
+import { isObsoleteCurriculumCourse } from '../calculatorUtils';
 import React from 'react';
 import { AlertCircle, BookOpen, CheckCircle2, Circle, GraduationCap, Pencil, PencilLine } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
@@ -157,7 +158,7 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
         initial={reduceMotion ? false : 'initial'}
         animate="animate"
       >
-        {courses.map(({ course, subject, progress }, idx) => {
+        {courses.filter(({ course }) => !isObsoleteCurriculumCourse(course)).map(({ course, subject, progress }, idx) => {
           const isSelected = subject?.id === selectedSubjectId;
           const isEven = idx % 2 === 0;
 
@@ -300,7 +301,7 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
           );
         })}
 
-        {otherCourses.map(({ subject, progress }, idx) => {
+        {otherCourses.filter(({ subject }) => !isObsoleteCurriculumCourse(subject)).map(({ subject, progress }, idx) => {
           const isSelected = subject.id === selectedSubjectId;
           const globalIdx = courses.length + electiveSlots.length + idx;
           const isEven = globalIdx % 2 === 0;

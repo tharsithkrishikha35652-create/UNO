@@ -35,17 +35,17 @@ import {
   getPresetCourses,
   getElectiveSlotsBySemester,
 } from '../src/components/SubjectSelectionDialog';
-import { getCourseWeights, getCourseType, calculateMarks, isGhostPlaceholderCourse } from '../src/calculatorUtils';
+import { getCourseWeights, getCourseType, calculateMarks, isGhostPlaceholderCourse, isObsoleteCurriculumCourse } from '../src/calculatorUtils';
 import { DEPARTMENT_OPTIONS } from '../src/components/AcademicProfile';
 import { isVersionOutdated } from '../src/versionUtils';
 
 describe('Department Course & Curriculum Verification', () => {
-  it('verifies CSE total credits is 171 and individual semesters match exactly', () => {
+  it('verifies CSE total credits is 163 and individual semesters match exactly', () => {
     const cseSemCredits = [1, 2, 3, 4, 5, 6, 7, 8].map((sem) =>
       CSE_GPA_COURSES.filter((c) => c.semester === sem).reduce((s, c) => s + c.credits, 0)
     );
-    expect(cseSemCredits).toEqual([21, 22, 27, 23, 26, 27, 17, 8]);
-    expect(cseSemCredits.reduce((a, b) => a + b, 0)).toBe(171);
+    expect(cseSemCredits).toEqual([17, 18, 27, 23, 26, 27, 17, 8]);
+    expect(cseSemCredits.reduce((a, b) => a + b, 0)).toBe(163);
   });
 
   it('verifies ECE total credits is 170 and individual semesters match CEG curriculum exactly', () => {
@@ -53,8 +53,8 @@ describe('Department Course & Curriculum Verification', () => {
       ECE_GPA_COURSES.filter((c) => c.semester === sem).reduce((s, c) => s + c.credits, 0)
     );
     // Sem 1: 23, Sem 2: 24, Sem 3: 22, Sem 4: 24, Sem 5: 23, Sem 6: 23, Sem 7: 23, Sem 8: 8
-    expect(eceSemCredits).toEqual([23, 24, 22, 24, 23, 23, 23, 8]);
-    expect(eceSemCredits.reduce((a, b) => a + b, 0)).toBe(170);
+    expect(eceSemCredits).toEqual([19, 24, 22, 24, 23, 23, 23, 8]);
+    expect(eceSemCredits.reduce((a, b) => a + b, 0)).toBe(166);
   });
 
   it('verifies Civil Engineering total credits is 172 and individual semesters match CEG curriculum exactly', () => {
@@ -62,8 +62,8 @@ describe('Department Course & Curriculum Verification', () => {
       CIVIL_GPA_COURSES.filter((c) => c.semester === sem).reduce((s, c) => s + c.credits, 0)
     );
     // Sem 1: 22, Sem 2: 23, Sem 3: 26, Sem 4: 26, Sem 5: 25, Sem 6: 21, Sem 7: 21, Sem 8: 8
-    expect(civilSemCredits).toEqual([22, 23, 26, 26, 25, 21, 21, 8]);
-    expect(civilSemCredits.reduce((a, b) => a + b, 0)).toBe(172);
+    expect(civilSemCredits).toEqual([18, 23, 26, 26, 25, 21, 21, 8]);
+    expect(civilSemCredits.reduce((a, b) => a + b, 0)).toBe(168);
   });
 
   it('verifies getPresetCourses and elective slots for Civil Engineering', () => {
@@ -112,9 +112,9 @@ describe('Department Course & Curriculum Verification', () => {
     const totalCredits = sem1Courses.reduce((sum, c) => sum + c.credits, 0);
     const totalWeightedPoints = sem1Courses.reduce((sum, c) => sum + c.credits * (mockGrades[c.code] ?? 10), 0);
     const gpa = totalWeightedPoints / totalCredits;
-    expect(totalCredits).toBe(22);
-    expect(totalWeightedPoints).toBe(206);
-    expect(Number(gpa.toFixed(2))).toBe(9.36);
+    expect(totalCredits).toBe(18);
+    expect(totalWeightedPoints).toBe(166);
+    expect(Number(gpa.toFixed(2))).toBe(9.22);
   });
 
 
@@ -167,8 +167,8 @@ describe('Department Course & Curriculum Verification', () => {
     const eeeSemCredits = [1, 2, 3, 4, 5, 6, 7, 8].map((sem) =>
       EEE_GPA_COURSES.filter((c) => c.semester === sem).reduce((s, c) => s + c.credits, 0)
     );
-    expect(eeeSemCredits).toEqual([24, 22, 24, 26, 25, 23, 22, 8]);
-    expect(eeeSemCredits.reduce((a, b) => a + b, 0)).toBe(174);
+    expect(eeeSemCredits).toEqual([20, 22, 24, 26, 25, 23, 22, 8]);
+    expect(eeeSemCredits.reduce((a, b) => a + b, 0)).toBe(170);
     expect(getPresetCourses('EEE')).toBe(EEE_PRESET_COURSES);
     expect(getPresetCourses('ELECTRICAL')).toBe(EEE_PRESET_COURSES);
 
@@ -189,8 +189,8 @@ describe('Department Course & Curriculum Verification', () => {
     const mfgSemCredits = [1, 2, 3, 4, 5, 6, 7, 8].map((sem) =>
       MFG_GPA_COURSES.filter((c) => c.semester === sem).reduce((s, c) => s + c.credits, 0)
     );
-    expect(mfgSemCredits).toEqual([25, 21, 24, 23, 23, 21, 23, 8]);
-    expect(mfgSemCredits.reduce((a, b) => a + b, 0)).toBe(168);
+    expect(mfgSemCredits).toEqual([21, 21, 24, 23, 23, 21, 23, 8]);
+    expect(mfgSemCredits.reduce((a, b) => a + b, 0)).toBe(164);
     expect(getPresetCourses('MFG')).toBe(MFG_PRESET_COURSES);
     expect(getPresetCourses('MANUFACTURING')).toBe(MFG_PRESET_COURSES);
 
@@ -215,8 +215,8 @@ describe('Department Course & Curriculum Verification', () => {
     const vlsiSemCredits = [1, 2, 3, 4, 5, 6, 7, 8].map((sem) =>
       VLSI_GPA_COURSES.filter((c) => c.semester === sem).reduce((s, c) => s + c.credits, 0)
     );
-    expect(vlsiSemCredits).toEqual([23, 24, 23, 24, 24, 24, 22, 8]);
-    expect(vlsiSemCredits.reduce((a, b) => a + b, 0)).toBe(172);
+    expect(vlsiSemCredits).toEqual([19, 24, 23, 24, 24, 24, 22, 8]);
+    expect(vlsiSemCredits.reduce((a, b) => a + b, 0)).toBe(168);
     expect(getPresetCourses('VLSI')).toBe(VLSI_PRESET_COURSES);
     expect(getPresetCourses('ELECTRONICS_VLSI')).toBe(VLSI_PRESET_COURSES);
 
@@ -240,8 +240,8 @@ describe('Department Course & Curriculum Verification', () => {
     const mechSemCredits = [1, 2, 3, 4, 5, 6, 7, 8].map((sem) =>
       MECH_GPA_COURSES.filter((c) => c.semester === sem).reduce((s, c) => s + c.credits, 0)
     );
-    expect(mechSemCredits).toEqual([23, 22, 25, 24, 27, 21, 26, 8]);
-    expect(mechSemCredits.reduce((a, b) => a + b, 0)).toBe(176);
+    expect(mechSemCredits).toEqual([19, 22, 25, 24, 27, 21, 26, 8]);
+    expect(mechSemCredits.reduce((a, b) => a + b, 0)).toBe(172);
     expect(getPresetCourses('MECH')).toBe(MECH_PRESET_COURSES);
     expect(getPresetCourses('MECHANICAL')).toBe(MECH_PRESET_COURSES);
 
@@ -266,8 +266,8 @@ describe('Department Course & Curriculum Verification', () => {
     const geoSemCredits = [1, 2, 3, 4, 5, 6, 7, 8].map((sem) =>
       GEO_GPA_COURSES.filter((c) => c.semester === sem).reduce((s, c) => s + c.credits, 0)
     );
-    expect(geoSemCredits).toEqual([23, 21, 24, 25, 27, 24, 19, 8]);
-    expect(geoSemCredits.reduce((a, b) => a + b, 0)).toBe(171);
+    expect(geoSemCredits).toEqual([19, 21, 24, 25, 27, 24, 19, 8]);
+    expect(geoSemCredits.reduce((a, b) => a + b, 0)).toBe(167);
     expect(getPresetCourses('GEO')).toBe(GEO_PRESET_COURSES);
     expect(getPresetCourses('GI')).toBe(GEO_PRESET_COURSES);
 
@@ -281,8 +281,8 @@ describe('Department Course & Curriculum Verification', () => {
     const bmeSemCredits = [1, 2, 3, 4, 5, 6, 7, 8].map((sem) =>
       BME_GPA_COURSES.filter((c) => c.semester === sem).reduce((s, c) => s + c.credits, 0)
     );
-    expect(bmeSemCredits).toEqual([18, 27, 21, 23, 25, 24, 23, 8]);
-    expect(bmeSemCredits.reduce((a, b) => a + b, 0)).toBe(169);
+    expect(bmeSemCredits).toEqual([14, 27, 21, 23, 25, 24, 23, 8]);
+    expect(bmeSemCredits.reduce((a, b) => a + b, 0)).toBe(165);
     expect(getPresetCourses('BME')).toBe(BME_PRESET_COURSES);
     expect(getPresetCourses('BM')).toBe(BME_PRESET_COURSES);
 
@@ -302,8 +302,8 @@ describe('Department Course & Curriculum Verification', () => {
     const itSemCredits = [1, 2, 3, 4, 5, 6, 7, 8].map((sem) =>
       IT_GPA_COURSES.filter((c) => c.semester === sem).reduce((s, c) => s + c.credits, 0)
     );
-    expect(itSemCredits).toEqual([22, 23, 21, 24, 25, 25, 22, 8]);
-    expect(itSemCredits.reduce((a, b) => a + b, 0)).toBe(170);
+    expect(itSemCredits).toEqual([18, 23, 21, 24, 25, 25, 22, 8]);
+    expect(itSemCredits.reduce((a, b) => a + b, 0)).toBe(166);
     expect(getPresetCourses('IT')).toBe(IT_PRESET_COURSES);
 
     const itSlots = getElectiveSlotsBySemester('IT');
@@ -554,10 +554,27 @@ it('verifies explicit grade-based GPA calculation for a chosen semester', () => 
     const totalCredits = sem1Courses.reduce((sum, c) => sum + c.credits, 0);
     const totalWeightedPoints = sem1Courses.reduce((sum, c) => sum + c.credits * (mockGrades[c.code] ?? 10), 0);
     const gpa = totalWeightedPoints / totalCredits;
-    expect(totalCredits).toBe(21);
-    expect(totalWeightedPoints).toBe(200);
-    expect(Number(gpa.toFixed(2))).toBe(9.52);
+    expect(totalCredits).toBe(17);
+    expect(totalWeightedPoints).toBe(160);
+    expect(Number(gpa.toFixed(2))).toBe(9.41);
   });
+  it('correctly detects obsolete math courses and preserves legitimate mathematics', () => {
+    expect(isObsoleteCurriculumCourse({ name: 'Calculus', code: 'MA23C11' })).toBe(true);
+    expect(isObsoleteCurriculumCourse({ name: 'Discrete Mathematics', code: 'MA23C04' })).toBe(true);
+    expect(isObsoleteCurriculumCourse({ name: 'Matrices and Calculus' })).toBe(true);
+    expect(isObsoleteCurriculumCourse({ id: 'CALCULUS' })).toBe(true);
+    expect(isObsoleteCurriculumCourse({ code: 'MA23C11' })).toBe(true);
+    expect(isObsoleteCurriculumCourse({ code: 'MA23C04' })).toBe(true);
+
+    // Preserved active courses
+    expect(isObsoleteCurriculumCourse({ name: 'Linear Algebra and Numerical Methods', code: 'MA23C03' })).toBe(false);
+    expect(isObsoleteCurriculumCourse({ name: 'Probability and Statistics', code: 'MA23C05' })).toBe(false);
+    expect(isObsoleteCurriculumCourse({ name: 'Ordinary Differential Equations and Transform Techniques', code: 'MA23C02' })).toBe(false);
+    expect(isObsoleteCurriculumCourse({ name: 'Finite State Automata and Discrete Structures', code: 'MA23C09' })).toBe(false);
+    expect(isObsoleteCurriculumCourse({ name: 'Numerical and Statistical Methods', code: 'MA23C07' })).toBe(false);
+    expect(isObsoleteCurriculumCourse({ name: 'Partial Differential Equations and Complex Functions', code: 'MA23C06' })).toBe(false);
+  });
+
   it('correctly detects obsolete ghost dummy placeholder courses and preserves real courses', () => {
     expect(isGhostPlaceholderCourse({ name: 'Course 1 (Sem 5)' })).toBe(true);
     expect(isGhostPlaceholderCourse({ name: 'Course 1 (Sem 1)' })).toBe(true);
@@ -575,8 +592,8 @@ it('verifies explicit grade-based GPA calculation for a chosen semester', () => 
     const ptSemCredits = [1, 2, 3, 4, 5, 6, 7, 8].map((sem) =>
       PT_GPA_COURSES.filter((c) => c.semester === sem).reduce((s, c) => s + c.credits, 0)
     );
-    expect(ptSemCredits).toEqual([24, 21, 26, 25, 25, 23, 23, 8]);
-    expect(ptSemCredits.reduce((a, b) => a + b, 0)).toBe(175);
+    expect(ptSemCredits).toEqual([20, 21, 26, 25, 25, 23, 23, 8]);
+    expect(ptSemCredits.reduce((a, b) => a + b, 0)).toBe(171);
     expect(getPresetCourses('PT')).toBe(PT_PRESET_COURSES);
     expect(getPresetCourses('PRINTING')).toBe(PT_PRESET_COURSES);
 
@@ -601,8 +618,8 @@ it('verifies explicit grade-based GPA calculation for a chosen semester', () => 
     const miningSemCredits = [1, 2, 3, 4, 5, 6, 7, 8].map((sem) =>
       MINING_GPA_COURSES.filter((c) => c.semester === sem).reduce((s, c) => s + c.credits, 0)
     );
-    expect(miningSemCredits).toEqual([22, 22, 21, 26, 26, 28, 28, 8]);
-    expect(miningSemCredits.reduce((a, b) => a + b, 0)).toBe(181);
+    expect(miningSemCredits).toEqual([18, 22, 21, 26, 26, 28, 28, 8]);
+    expect(miningSemCredits.reduce((a, b) => a + b, 0)).toBe(177);
     expect(getPresetCourses('MINING')).toBe(MINING_PRESET_COURSES);
     expect(getPresetCourses('MINE')).toBe(MINING_PRESET_COURSES);
 
@@ -625,8 +642,8 @@ it('verifies explicit grade-based GPA calculation for a chosen semester', () => 
     const mseSemCredits = [1, 2, 3, 4, 5, 6, 7, 8].map((sem) =>
       MSE_GPA_COURSES.filter((c) => c.semester === sem).reduce((s, c) => s + c.credits, 0)
     );
-    expect(mseSemCredits).toEqual([23, 22, 24, 27, 28, 19, 25, 8]);
-    expect(mseSemCredits.reduce((a, b) => a + b, 0)).toBe(176);
+    expect(mseSemCredits).toEqual([19, 22, 24, 27, 28, 19, 25, 8]);
+    expect(mseSemCredits.reduce((a, b) => a + b, 0)).toBe(172);
     expect(getPresetCourses('MSE')).toBe(MSE_PRESET_COURSES);
     expect(getPresetCourses('MATSCI')).toBe(MSE_PRESET_COURSES);
 
@@ -651,8 +668,8 @@ it('verifies explicit grade-based GPA calculation for a chosen semester', () => 
     const ieSemCredits = [1, 2, 3, 4, 5, 6, 7, 8].map((sem) =>
       IE_GPA_COURSES.filter((c) => c.semester === sem).reduce((s, c) => s + c.credits, 0)
     );
-    expect(ieSemCredits).toEqual([24, 21, 23, 23, 28, 23, 27, 8]);
-    expect(ieSemCredits.reduce((a, b) => a + b, 0)).toBe(177);
+    expect(ieSemCredits).toEqual([20, 21, 23, 23, 28, 23, 27, 8]);
+    expect(ieSemCredits.reduce((a, b) => a + b, 0)).toBe(173);
     expect(getPresetCourses('IE')).toBe(IE_PRESET_COURSES);
     expect(getPresetCourses('INDUSTRIAL')).toBe(IE_PRESET_COURSES);
 
