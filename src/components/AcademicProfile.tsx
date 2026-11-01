@@ -21,6 +21,26 @@ interface AcademicProfileFormProps {
 }
 
 const semesterOptions: SemesterNumber[] = [1, 2, 3, 4, 5, 6, 7, 8];
+
+const normalizeDept = (d?: string): string => {
+  if (!d) return 'CSE';
+  const u = d.trim().toUpperCase();
+  if (u === 'ECE') return 'ECE';
+  if (u === 'CIVIL' || u === 'CE') return 'CIVIL';
+  if (u === 'GEO' || u === 'GI' || u === 'GEOINFORMATICS') return 'GEO';
+  if (u === 'BME' || u === 'BM' || u === 'BIOMEDICAL') return 'BME';
+  if (u === 'IT' || u === 'INFORMATION_TECHNOLOGY' || u === 'INFOTECH') return 'IT';
+  if (u === 'EEE' || u === 'ELECTRICAL') return 'EEE';
+  if (u === 'MFG' || u === 'MANUFACTURING') return 'MFG';
+  if (u === 'VLSI' || u === 'ELECTRONICS_VLSI') return 'VLSI';
+  if (u === 'MECH' || u === 'MECHANICAL') return 'MECH';
+  if (u === 'PT' || u === 'PRINTING' || u === 'PPT') return 'PT';
+  if (u === 'MINING' || u === 'MINE' || u === 'MN' || u === 'MI') return 'MINING';
+  if (u === 'MSE' || u === 'MATSCI' || u === 'MS') return 'MSE';
+  if (u === 'IE' || u === 'INDUSTRIAL') return 'IE';
+  return 'CSE';
+};
+
 export const DEPARTMENT_OPTIONS = [
   { value: 'BME', label: 'Biomedical Engineering (BME)' },
   { value: 'CIVIL', label: 'Civil Engineering (CIVIL)' },
@@ -49,7 +69,7 @@ export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
 }) => {
   const [studentName, setStudentName] = useState(profile?.studentName ?? '');
   const [rollNumber, setRollNumber] = useState(profile?.rollNumber ?? '');
-  const [department, setDepartment] = useState(profile?.department || 'CSE');
+  const [department, setDepartment] = useState(() => normalizeDept(profile?.department));
   const [semester, setSemester] = useState(initialSemester?.toString() ?? '');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -87,7 +107,7 @@ export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
   useEffect(() => {
     setStudentName(profile?.studentName ?? '');
     setRollNumber(profile?.rollNumber ?? '');
-    setDepartment(profile?.department || 'CSE');
+    setDepartment(normalizeDept(profile?.department));
     setSemester(initialSemester?.toString() ?? '');
     setError('');
   }, [profile, initialSemester]);
@@ -201,7 +221,7 @@ export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
             <div
               role="listbox"
               aria-label="Department options"
-              className="absolute left-0 right-0 z-50 mt-1.5 max-h-60 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl ring-1 ring-black/5 animate-[sticky-result-in_140ms_ease-out]"
+              className="absolute left-0 right-0 z-50 mt-1.5 max-h-60 overflow-y-auto overscroll-contain pr-1 custom-department-scrollbar rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl ring-1 ring-black/5 animate-[sticky-result-in_140ms_ease-out]"
             >
               {DEPARTMENT_OPTIONS.map((opt) => {
                 const isSelected = department === opt.value;
@@ -259,7 +279,7 @@ export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
             <div
               role="listbox"
               aria-label="Semester options"
-              className="absolute left-0 right-0 z-50 mt-1.5 max-h-60 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl ring-1 ring-black/5 animate-[sticky-result-in_140ms_ease-out]"
+              className="absolute left-0 right-0 z-50 mt-1.5 max-h-60 overflow-y-auto overscroll-contain pr-1 custom-department-scrollbar rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl ring-1 ring-black/5 animate-[sticky-result-in_140ms_ease-out]"
             >
               {semesterOptions.map((opt) => {
                 const isSelected = semester === String(opt);
@@ -475,7 +495,7 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
           </div>
         </header>
 
-        <div className="min-h-0 flex-1 overflow-y-auto p-5 space-y-4">
+        <div className="min-h-0 flex-1 overflow-y-auto custom-department-scrollbar p-5 space-y-4">
           {editing ? (
             <AcademicProfileForm
               profile={profile}

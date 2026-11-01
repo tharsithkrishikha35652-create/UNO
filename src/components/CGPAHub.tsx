@@ -225,10 +225,14 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
     field: keyof SemesterResultInput,
     value: string
   ) => {
-    setSemesterInputs((previous) => ({
-      ...previous,
-      [semester]: { ...previous[semester], [field]: value },
-    }));
+    setSemesterInputs((previous) => {
+      const next = {
+        ...previous,
+        [semester]: { ...previous[semester], [field]: value },
+      };
+      cachedSemesterInputsByDept[department || 'CSE'] = next;
+      return next;
+    });
   };
 
   return (
@@ -304,6 +308,7 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
                       aria-selected={isSelected}
                       onClick={() => {
                         setSelectedSemester(semester);
+                        cachedSelectedSemester = semester;
                         setIsSemesterMenuOpen(false);
                       }}
                       className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-semibold transition-colors cursor-pointer ${

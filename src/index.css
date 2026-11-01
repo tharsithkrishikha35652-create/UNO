@@ -162,6 +162,42 @@
   }
 }
 
+/* Custom visible scrollbar for department selectors, lists, and dropdowns */
+.custom-department-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #94a3b8 #f1f5f9;
+}
+.custom-department-scrollbar::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+.custom-department-scrollbar::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 9999px;
+}
+.custom-department-scrollbar::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+  border-radius: 9999px;
+  border: 1.5px solid #f1f5f9;
+}
+.custom-department-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+[data-theme="dark"] .custom-department-scrollbar {
+  scrollbar-color: #475569 #1e293b;
+}
+[data-theme="dark"] .custom-department-scrollbar::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+[data-theme="dark"] .custom-department-scrollbar::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-color: #1e293b;
+}
+[data-theme="dark"] .custom-department-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
 :where(button, a, input, select, textarea, [tabindex]):focus-visible {
   outline: 2px solid var(--app-focus);
   outline-offset: 2px;
