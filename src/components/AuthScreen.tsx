@@ -74,86 +74,58 @@ export const GUEST_DEPARTMENT_OPTIONS = [
   {
     id: 'BME' as const,
     title: 'Biomedical Engineering',
-    badge: 'B.E. BME',
-    desc: 'Anna University Regulations 2023 · CEG Campus',
   },
   {
     id: 'CIVIL' as const,
     title: 'Civil Engineering',
-    badge: 'B.E. CIVIL',
-    desc: 'Anna University Regulations 2023 · CEG Campus',
   },
   {
     id: 'CSE' as const,
     title: 'Computer Science and Engineering',
-    badge: 'B.E. CSE',
-    desc: 'Anna University Regulations 2023 · CEG Campus',
   },
   {
     id: 'EEE' as const,
     title: 'Electrical and Electronics Engineering',
-    badge: 'B.E. EEE',
-    desc: 'Anna University Regulations 2023 · CEG Campus',
   },
   {
     id: 'ECE' as const,
     title: 'Electronics and Communication Engineering',
-    badge: 'B.E. ECE',
-    desc: 'Anna University Regulations 2023 · CEG Campus',
   },
   {
     id: 'VLSI' as const,
     title: 'Electronics Engg. (VLSI Design and Tech)',
-    badge: 'B.Tech. VLSI',
-    desc: 'Anna University Regulations 2023 · CEG Campus',
   },
   {
     id: 'GEO' as const,
     title: 'Geoinformatics',
-    badge: 'B.E. GEO',
-    desc: 'Anna University Regulations 2023 · CEG Campus',
   },
   {
     id: 'IE' as const,
     title: 'Industrial Engineering',
-    badge: 'B.E. IE',
-    desc: 'Anna University Regulations 2023 · CEG Campus',
   },
   {
     id: 'IT' as const,
     title: 'Information Technology',
-    badge: 'B.Tech. IT',
-    desc: 'Anna University Regulations 2023 · CEG / MIT Campuses',
   },
   {
     id: 'MFG' as const,
     title: 'Manufacturing Engineering',
-    badge: 'B.E. MFG',
-    desc: 'Anna University Regulations 2023 · CEG Campus',
   },
   {
     id: 'MSE' as const,
     title: 'Materials Science and Engineering',
-    badge: 'B.E. MSE',
-    desc: 'Anna University Regulations 2023 · CEG Campus',
   },
   {
     id: 'MECH' as const,
     title: 'Mechanical Engineering',
-    badge: 'B.E. MECH',
-    desc: 'Anna University Regulations 2023 · CEG Campus',
   },
   {
     id: 'MINING' as const,
     title: 'Mining Engineering',
-    badge: 'B.E. MINING',
-    desc: 'Anna University Regulations 2023 · CEG Campus',
   },
   {
     id: 'PT' as const,
     title: 'Printing and Packaging Technology',
-    badge: 'B.E. PT',
-    desc: 'Anna University Regulations 2023 · CEG Campus',
   },
 ] as const;
 
@@ -463,9 +435,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
                 <h2 id="guest-dept-title" className="text-lg font-black text-[#172554]">
                   Select your Department
                 </h2>
-                <p className="mt-1 text-xs text-slate-500">
-                  Choose your department to load the corresponding 2023 curriculum and subjects for this guest session:
-                </p>
               </div>
               <button
                 type="button"
@@ -482,7 +451,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" aria-hidden="true" />
               <input
                 type="text"
-                placeholder="Search department or degree…"
+                placeholder="Search department…"
                 value={deptSearch}
                 onChange={(e) => setDeptSearch(e.target.value)}
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-8 pr-8 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-[#172554] focus:outline-none transition-colors"
@@ -510,7 +479,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
                 const filtered = GUEST_DEPARTMENT_OPTIONS.filter((opt) =>
                   !searchLower ||
                   opt.title.toLowerCase().includes(searchLower) ||
-                  opt.badge.toLowerCase().includes(searchLower) ||
                   opt.id.toLowerCase().includes(searchLower)
                 );
                 if (filtered.length === 0) {
@@ -536,13 +504,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
                       }`}
                     >
                       <div className="pr-2 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-sm font-bold text-[#172554]">{opt.title}</span>
-                          <span className="rounded bg-blue-100/70 px-1.5 py-0.5 text-[10px] font-bold text-blue-900 shrink-0">
-                            {opt.badge}
-                          </span>
-                        </div>
-                        <p className="mt-0.5 text-xs text-slate-500 truncate">{opt.desc}</p>
+                        <span className="text-sm font-bold text-[#172554]">{opt.title}</span>
                       </div>
                       <div
                         className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-colors ${
