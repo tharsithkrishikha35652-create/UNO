@@ -281,6 +281,13 @@ npm run preview
 ```
 
 ### Android Deployment
+Before syncing, place the Firebase Console Android client configuration at
+`android/app/google-services.json`. This file is ignored by Git and must be
+provided locally for native Firebase/Google sign-in. Its Firebase API key is a
+public client identifier, not a service-account credential; restrict the key
+to the Android app and only the APIs it needs in Google Cloud Console. Firestore
+access must continue to be enforced by `firestore.rules`.
+
 To sync web assets and launch in Android Studio:
 
 ```bash

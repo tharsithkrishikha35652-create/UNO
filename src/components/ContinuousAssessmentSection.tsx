@@ -39,8 +39,6 @@ interface ContinuousAssessmentSectionProps {
   labWeight?: number;
   labStartIndex: number;
 
-  subtotal: number;
-  caMax?: number;
   estimatedMarks?: boolean;
 }
 
@@ -76,8 +74,6 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
   labPoints,
   labWeight = 7.5,
   labStartIndex,
-  subtotal,
-  caMax = 25,
   estimatedMarks = false,
 }) => {
   const hasLab = labWeight > 0;
@@ -151,38 +147,24 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
           </h3>
         </div>
 
-        {/* Subtotal without enclosing rectangular border box */}
-        <div className="flex items-baseline gap-2 self-start sm:self-auto text-white">
-          <span className="text-xs font-bold text-slate-200">
-            Total Marks Contribution:
-          </span>
-          <span className="text-lg font-black tabular-nums font-numeric">
-            {subtotal.toFixed(2)}{' '}
-            <span className="text-xs font-semibold text-slate-300 font-numeric tabular-nums">
-              / {caMax.toFixed(2)}
-            </span>
-          </span>
-        </div>
       </div>
 
       {/* Categories separated by simple vertical formal navy line */}
       <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-200 dark:divide-slate-700">
         {/* Category 1: Written Examination */}
         <div className={`${testColumnClass} p-2.5 sm:p-3 flex flex-col justify-between bg-white dark:bg-[#202024]`}>
+          <div className="p-3">
           <div>
             {/* Header */}
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-blue-50 dark:bg-blue-950/40 text-[#172554] dark:text-[#f1f1f3] border border-blue-100 dark:border-blue-900/50 rounded shrink-0">
+                <div className="text-[#3b4d66] shrink-0">
                   <FileCheck className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-[#172554] dark:text-[#f1f1f3]">
+                  <h4 className="text-sm font-bold text-[#d97757] dark:text-[#e08564]">
                     {testDisplayName ?? `CA Test ${number}`}
                   </h4>
-                  <span className="text-xs font-semibold text-[#1e3a8a] dark:text-[#e08564]">
-                    Weightage: {testWeight}%
-                  </span>
                 </div>
               </div>
             </div>
@@ -219,7 +201,7 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
 
                 {/* Right-aligned maximum marks + pencil icon inside existing input border */}
                 <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 shrink-0 select-none">
-                  <span className="text-xs sm:text-sm font-bold text-[#1e3a8a] dark:text-[#e08564] font-numeric tabular-nums">
+                  <span className="text-xs sm:text-sm font-bold text-[#d97757] dark:text-[#d97757] font-numeric tabular-nums">
                     / {currentMax}
                   </span>
                   <button
@@ -311,18 +293,19 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
           {/* Marks Contributed for Total at bottom of Category 1 */}
           <div className="mt-4 pt-1 border-t border-slate-100 dark:border-slate-800">
             <div className="flex items-baseline justify-between text-[#172554] dark:text-[#f1f1f3]">
-              <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                Individual Marks Contribution:
+              <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                Marks Contributed:
               </span>
               <div className="flex items-baseline gap-1">
                 <span className="text-lg font-black tabular-nums font-numeric text-[#172554] dark:text-[#f1f1f3]">
                   {testPoints.toFixed(2)}
                 </span>
-                <span className="text-xs font-bold text-[#1e3a8a] dark:text-[#e08564] font-numeric tabular-nums">
+                <span className="text-base font-bold text-[#d97757] dark:text-[#d97757] font-numeric tabular-nums">
                   / {testWeight}
                 </span>
               </div>
             </div>
+          </div>
           </div>
         </div>
 

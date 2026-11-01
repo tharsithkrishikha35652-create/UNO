@@ -26,7 +26,6 @@ import { ContinuousAssessmentSection } from "./components/ContinuousAssessmentSe
 import { DynamicScoreBoxes } from "./components/DynamicScoreBoxes";
 import { EndSemesterSection } from "./components/EndSemesterSection";
 import { ResultsSummaryPanel } from "./components/ResultsSummaryPanel";
-import { SubjectHeader } from "./components/SubjectHeader";
 import {
   ELECTIVE_SLOTS_BY_SEMESTER,
   PRESET_COURSES,
@@ -105,6 +104,7 @@ import {
   HelpCircle,
   Check,
   X,
+  RotateCcw,
 } from "lucide-react";
 
 const LAST_WORKING_POSITION_KEY = "calcredit_last_working_position";
@@ -2009,17 +2009,6 @@ function AuthenticatedApp({
     ],
     [semesterCourseRows, semesterElectiveRows, otherCourseRows]
   );
-  const currentSemesterAvailableCourses = useMemo(() => {
-    return subjects
-      .filter((s) => !isObsoleteCurriculumCourse(s) && (selectedSemester === null || getSubjectSemester(s, currentDepartment) === selectedSemester))
-      .map((s) => ({
-        id: s.id,
-        name: s.name,
-        code: s.code,
-        courseType: getCourseType(s),
-      }));
-  }, [subjects, selectedSemester, currentDepartment]);
-
   const currentCourseFlowIndex = courseFlow.findIndex(
     (item) => item.subject?.id === currentSubjectId
   );
@@ -2365,6 +2354,7 @@ function AuthenticatedApp({
               actionLabel={nextCourseActionLabel}
               onAction={handleNextCourse}
               onSummary={scrollToSummary}
+              onResetToBlank={handleReset}
             />
           ) : (
             <div
@@ -2374,15 +2364,23 @@ function AuthenticatedApp({
               aria-live="polite"
               aria-label="Current subject status"
             >
-              <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 px-3 py-2 sm:px-6 lg:px-8 sm:py-2.5">
+              <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2 px-3 py-2 sm:flex-nowrap sm:gap-3 sm:px-6 lg:px-8 sm:py-2.5">
                 <button
                   type="button"
                   onClick={() => setIsEditorOpen(false)}
-                  className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-black text-[#172554] hover:text-[#1e3a8a] truncate cursor-pointer text-left"
+                  className="inline-flex min-w-0 flex-[1_1_10rem] items-center border-0 !bg-transparent bg-transparent p-0 text-lg font-black text-[#172554] shadow-none hover:text-[#1e3a8a] cursor-pointer text-left sm:flex-1 sm:text-xl"
                   title="Back to course dashboard"
                 >
-                  <ArrowLeft className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
                   <span className="truncate">{currentSubject.name}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-2.5 text-[10px] font-bold text-[#172554] transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#172554] sm:px-3 sm:text-xs"
+                  title="Clear all fields to enter fresh marks"
+                >
+                  <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span>Clear form</span>
                 </button>
                 {hasEnteredSubjectMarks(currentSubject) && (
                   <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[10px] sm:text-xs font-bold text-amber-800">
@@ -2468,16 +2466,6 @@ function AuthenticatedApp({
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-[calc(7.5rem+env(safe-area-inset-bottom))] md:pb-8">
-        {guestMode && !showCredits && (
-          <div
-            className="mb-5 border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950"
-            role="status"
-          >
-            <strong className="font-black">Guest session:</strong> Your courses
-            and results exist only in memory and will be cleared when you reload
-            or close this page.
-          </div>
-        )}
         {signOutError && (
           <div
             className="mb-5 border border-rose-200 bg-rose-50 p-3 text-sm text-rose-900"
@@ -2639,16 +2627,6 @@ function AuthenticatedApp({
                               exit={reduceMotion ? undefined : "exit"}
                               className="min-w-0"
                             >
-<SubjectHeader
-                      subject={currentSubject}
-                      onResetToBlank={handleReset}
-                      semester={selectedSemester}
-                      availableCourses={currentSemesterAvailableCourses}
-                      onSelectSubject={(id) => {
-                        setCurrentSubjectId(id);
-                        setIsEditorOpen(true);
-                      }}
-                    />
                     <div className="space-y-5">
                       {/* Course Type Specification */}
                       <div>
@@ -2993,8 +2971,6 @@ function AuthenticatedApp({
                               labPoints={0}
                               labWeight={0}
                               labStartIndex={1}
-                              subtotal={breakdown.test1_p}
-                              caMax={70}
                             />
                             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                               <DynamicScoreBoxes
@@ -3038,12 +3014,12 @@ function AuthenticatedApp({
                         ) : breakdown.courseType === "mini-project" ? (
                           <ContinuousAssessmentMarksSection<MiniProjectMarks>
                             title="Mini-Project assessment — Table 8"
-                            description="Enter each component score out of 100. Review I and Review II are 25% each; Review III is split into Report (30%) and Viva-Voce (20%). This course is assessed entirely through continuous assessment."
+                            description="Enter each component score out of 100. This course is assessed entirely through continuous assessment."
                             fields={[
-                              { key: "reviewI", label: "Review I", weight: 25 },
-                              { key: "reviewII", label: "Review II", weight: 25 },
-                              { key: "reviewIIIReport", label: "Review III — Report", weight: 30 },
-                              { key: "reviewIIIViva", label: "Review III — Viva-Voce", weight: 20 },
+                              { key: "reviewI", label: "Review I" },
+                              { key: "reviewII", label: "Review II" },
+                              { key: "reviewIIIReport", label: "Review III — Report" },
+                              { key: "reviewIIIViva", label: "Review III — Viva-Voce" },
                             ]}
                             marks={currentSubject.miniProjectMarks ?? {
                               reviewI: "",
@@ -3058,12 +3034,12 @@ function AuthenticatedApp({
                         ) : breakdown.courseType === "internship-training" ? (
                           <ContinuousAssessmentMarksSection<InternshipTrainingMarks>
                             title="Internship / Industrial Training assessment — Table 7"
-                            description="Enter each component score out of 100. Report is 40%, Presentation is 30%, and Viva-Voce is 30%, including the industry representative's 10% contribution. This course is assessed entirely through continuous assessment."
+                            description="Enter each component score out of 100. This course is assessed entirely through continuous assessment."
                             fields={[
-                              { key: "report", label: "Report", weight: 40 },
-                              { key: "presentation", label: "Presentation", weight: 30 },
-                              { key: "vivaVoce", label: "Viva-Voce — Department", weight: 20 },
-                              { key: "industryViva", label: "Viva-Voce — Industry representative", weight: 10 },
+                              { key: "report", label: "Report" },
+                              { key: "presentation", label: "Presentation" },
+                              { key: "vivaVoce", label: "Viva-Voce — Department" },
+                              { key: "industryViva", label: "Viva-Voce — Industry representative" },
                             ]}
                             marks={currentSubject.internshipTrainingMarks ?? {
                               report: "",
@@ -3176,8 +3152,6 @@ function AuthenticatedApp({
                               labPoints={breakdown.lab1_p}
                               labWeight={breakdown.labWeight}
                               labStartIndex={1}
-                              subtotal={breakdown.ca1_total}
-                              caMax={breakdown.caMax}
                               estimatedMarks={currentSubjectUsesEstimates}
                             />
 
@@ -3270,8 +3244,6 @@ function AuthenticatedApp({
                                 labStartIndex={
                                   (Number(displayedSubject.lab1No) || 0) + 1
                                 }
-                                subtotal={breakdown.ca2_total}
-                                caMax={breakdown.caMax}
                                 estimatedMarks={currentSubjectUsesEstimates}
                               />
                             )}
@@ -3280,6 +3252,10 @@ function AuthenticatedApp({
                             {breakdown.eseWeight > 0 && (
                               <EndSemesterSection
                                 courseType={breakdown.courseType}
+                                onCalculate={() => void handleCalculateMarks()}
+                                calculationState={calculationState}
+                                hasCalculated={hasCalculatedCurrentSubject}
+                                guestMode={guestMode}
                                 ese={currentSubject.ese}
                                 onEseChange={(val) =>
                                   updateCurrentSubject({ ese: val })
@@ -3298,7 +3274,6 @@ function AuthenticatedApp({
                                 eseTheoryWeight={breakdown.eseTheoryWeight}
                                 eseLabWeight={breakdown.eseLabWeight}
                                 internalTotal={breakdown.internal_total}
-                                internalMax={breakdown.internalMax}
                                 estimatedLabMark={
                                   currentSubjectUsesEstimates &&
                                   breakdown.eseLabWeight > 0 &&
@@ -3311,6 +3286,7 @@ function AuthenticatedApp({
                         )}
                       </div>
 
+                      {breakdown.eseWeight <= 0 && (
                       <div className="space-y-3 border border-slate-300 bg-white p-4">
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                           <button
@@ -3362,6 +3338,7 @@ function AuthenticatedApp({
                           )}
                         </div>
                       </div>
+                      )}
 
                       {/* Show the final marks and grade only after an explicit calculation. */}
                       {hasCalculatedCurrentSubject && (

@@ -645,6 +645,16 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
               </button>
 
               {/* 10. App Version Explanatory Text */}
+              {guestMode && (
+                <div
+                  className="border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950"
+                  role="status"
+                >
+                  <strong className="font-black">Guest session:</strong> Your
+                  courses and results exist only in memory and will be cleared
+                  when you reload or close this page.
+                </div>
+              )}
               <p className="text-center text-xs text-slate-400 font-medium pt-1">
                 CalCredit <span className="font-mono font-semibold text-slate-500">v{appVersion}</span>
               </p>

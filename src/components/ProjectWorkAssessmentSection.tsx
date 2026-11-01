@@ -12,16 +12,15 @@ interface ProjectWorkAssessmentSectionProps {
 const COMPONENTS: Array<{
   key: keyof ProjectWorkMarks;
   label: string;
-  weight: number;
   section: ProjectWorkSection;
 }> = [
-  { key: 'reviewI', label: 'Review I', weight: 10, section: 'Continuous Assessment' },
-  { key: 'reviewII', label: 'Review II', weight: 20, section: 'Continuous Assessment' },
-  { key: 'reviewIII', label: 'Review III', weight: 30, section: 'Continuous Assessment' },
-  { key: 'thesisGuide', label: 'Project Thesis Report Evaluation — Guide', weight: 10, section: 'End-Semester Examination' },
-  { key: 'thesisExternal', label: 'Project Thesis Report Evaluation — External Examiner', weight: 10, section: 'End-Semester Examination' },
-  { key: 'vivaExternal', label: 'Viva-Voce — External Examiner', weight: 10, section: 'End-Semester Examination' },
-  { key: 'vivaInternal', label: 'Viva-Voce — Internal Examiner', weight: 10, section: 'End-Semester Examination' },
+  { key: 'reviewI', label: 'Review I', section: 'Continuous Assessment' },
+  { key: 'reviewII', label: 'Review II', section: 'Continuous Assessment' },
+  { key: 'reviewIII', label: 'Review III', section: 'Continuous Assessment' },
+  { key: 'thesisGuide', label: 'Project Thesis Report Evaluation — Guide', section: 'End-Semester Examination' },
+  { key: 'thesisExternal', label: 'Project Thesis Report Evaluation — External Examiner', section: 'End-Semester Examination' },
+  { key: 'vivaExternal', label: 'Viva-Voce — External Examiner', section: 'End-Semester Examination' },
+  { key: 'vivaInternal', label: 'Viva-Voce — Internal Examiner', section: 'End-Semester Examination' },
 ];
 
 export const ProjectWorkAssessmentSection: React.FC<ProjectWorkAssessmentSectionProps> = ({
@@ -31,29 +30,22 @@ export const ProjectWorkAssessmentSection: React.FC<ProjectWorkAssessmentSection
 }) => {
   const renderGroup = (section: ProjectWorkSection) => {
     const components = COMPONENTS.filter((component) => component.section === section);
-    const maxWeight = components.reduce((total, component) => total + component.weight, 0);
     return (
       <section
         className="overflow-hidden rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#161618] shadow-sm"
         aria-label={`${section} assessment components`}
       >
-        <div className="flex items-center justify-between gap-3 bg-[#172554] px-4 py-3 text-white rounded-t-xl">
+        <div className="flex items-center gap-3 bg-[#172554] px-4 py-3 text-white rounded-t-xl">
           <h3 className="text-sm font-black">{section}</h3>
-          <span className="text-xs font-bold tabular-nums font-numeric text-blue-100">
-            Total weight: {maxWeight}%
-          </span>
         </div>
         <div className="divide-y divide-slate-200 dark:divide-slate-700">
           {components.map((component) => (
             <label
               key={component.key}
-              className="grid grid-cols-1 gap-2 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_5rem_12rem] sm:items-center bg-white dark:bg-[#161618] hover:bg-slate-50 dark:hover:bg-[#202024] transition-colors"
+              className="grid grid-cols-1 gap-2 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_12rem] sm:items-center bg-white dark:bg-[#161618] hover:bg-slate-50 dark:hover:bg-[#202024] transition-colors"
             >
               <span className="text-sm font-semibold text-[#172554] dark:text-[#f1f1f3]">
                 {component.label}
-              </span>
-              <span className="text-xs font-bold text-slate-600 dark:text-slate-400 tabular-nums font-numeric">
-                {component.weight}%
               </span>
               <span className="flex items-center gap-2">
                 <span className="sr-only">{component.label} score</span>

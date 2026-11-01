@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowDown, ArrowRight } from 'lucide-react';
+import { ArrowDown, ArrowRight, RotateCcw } from 'lucide-react';
 
 interface StickyResultSummaryProps {
   subjectName: string;
@@ -8,6 +8,7 @@ interface StickyResultSummaryProps {
   gradePoint: number;
   actionLabel: string | null;
   onAction: () => void;
+  onResetToBlank: () => void;
   onSummary?: () => void;
   placement?: 'desktop' | 'mobile';
 }
@@ -19,6 +20,7 @@ export const StickyResultSummary: React.FC<StickyResultSummaryProps> = ({
   gradePoint,
   actionLabel,
   onAction,
+  onResetToBlank,
   onSummary,
 }) => (
   <section
@@ -28,9 +30,20 @@ export const StickyResultSummary: React.FC<StickyResultSummaryProps> = ({
   >
     <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-2.5 px-3 py-2 sm:gap-4 sm:px-6 lg:px-8 sm:py-2.5">
       <div className="min-w-0">
-        <p className="max-w-full truncate text-[10px] font-bold leading-tight text-slate-600 sm:text-xs" title={subjectName}>
-          {subjectName}
-        </p>
+        <div className="flex min-w-0 items-center justify-between gap-2">
+          <p className="min-w-0 flex-1 truncate text-sm font-bold leading-tight text-slate-600 sm:text-base" title={subjectName}>
+            {subjectName}
+          </p>
+          <button
+            type="button"
+            onClick={onResetToBlank}
+            className="inline-flex min-h-8 shrink-0 items-center justify-center gap-1 rounded-lg border border-slate-300 bg-white px-2 text-[10px] font-bold text-[#172554] transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#172554] sm:min-h-9 sm:gap-1.5 sm:px-2.5 sm:text-xs"
+            title="Clear all fields to enter fresh marks"
+          >
+            <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+            <span>Clear form</span>
+          </button>
+        </div>
         <dl className="mt-1 flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1 sm:gap-x-3">
           <div className="flex items-baseline gap-1">
             <dt className="text-[9px] font-semibold text-slate-500 sm:text-[10px]">Total</dt>

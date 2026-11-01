@@ -1,12 +1,16 @@
 import React from 'react';
 import { motion, useReducedMotion } from 'motion/react';
 import { motionVariants } from '../motion';
-import { GraduationCap, Target, FlaskConical, ChevronDown } from 'lucide-react';
+import { GraduationCap, Target, FlaskConical, ChevronDown, Calculator, LoaderCircle } from 'lucide-react';
 import { GRADE_SCALE } from '../calculatorUtils';
 import { CourseType } from '../types';
 
 interface EndSemesterSectionProps {
   courseType?: CourseType;
+  onCalculate: () => void;
+  calculationState: 'idle' | 'calculating' | 'saving' | 'success' | 'error';
+  hasCalculated: boolean;
+  guestMode: boolean;
   ese: number | string;
   onEseChange: (val: number | string) => void;
   eseLab?: number | string;
@@ -19,12 +23,15 @@ interface EndSemesterSectionProps {
   eseTheoryWeight?: number;
   eseLabWeight?: number;
   internalTotal: number;
-  internalMax?: number;
   estimatedLabMark?: boolean;
 }
 
 export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
   courseType,
+  onCalculate,
+  calculationState,
+  hasCalculated,
+  guestMode,
   ese,
   onEseChange,
   eseLab = '',
@@ -37,7 +44,6 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
   eseTheoryWeight = 50,
   eseLabWeight = 0,
   internalTotal,
-  internalMax = 50,
   estimatedLabMark = false,
 }) => {
   const eseWeight = eseTheoryWeight + eseLabWeight;
@@ -97,24 +103,9 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
             <h3 className="text-base sm:text-lg font-bold tracking-wide">
               End Semester Examination
             </h3>
-            {isSplit && (
-              <span className="text-[11px] font-semibold text-amber-200">
-                Split Weightage: Theory {eseTheoryWeight}% + Lab Practicals {eseLabWeight}%
-              </span>
-            )}
           </div>
         </div>
 
-        {/* Subtotal */}
-        <div className="flex items-baseline gap-2 self-start sm:self-auto text-white">
-          <span className="text-xs font-bold text-slate-200">
-            Marks contributed:
-          </span>
-          <span className="text-lg font-black tabular-nums font-numeric">
-            {esePoints.toFixed(2)}{' '}
-            <span className="text-xs font-semibold text-slate-300 tabular-nums font-numeric">/ {eseWeight.toFixed(2)}</span>
-          </span>
-        </div>
       </div>
 
       {isSplit || isPracticalOnly ? (
@@ -125,16 +116,13 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
           <div className="lg:col-span-4 p-3 sm:p-4 flex flex-col justify-between bg-white">
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <div className="p-1.5 bg-blue-50 text-[#172554] border border-blue-100 shrink-0">
+                <div className="text-[#3b4d66] shrink-0">
                   <GraduationCap className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-[#172554]">
+                  <h4 className="text-sm font-bold text-[#d97757] dark:text-[#d97757]">
                     ESE Theory Exam
                   </h4>
-                  <span className="text-[11px] font-bold text-[#1e3a8a]">
-                    Weightage: {eseTheoryWeight}%
-                  </span>
                 </div>
               </div>
 
@@ -157,7 +145,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                   onChange={handleEseChange}
                   className="h-11 w-full px-3 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm tabular-nums font-numeric"
                 />
-                <span className="absolute right-3.5 top-2.5 text-xs font-bold text-[#1e3a8a] tabular-nums font-numeric">/ 100</span>
+                <span className="absolute right-3.5 top-2.5 text-xs font-bold text-[#d97757] tabular-nums font-numeric">/ 100</span>
               </div>
 
 
@@ -166,14 +154,14 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
 
             <div className="pt-4 border-t border-slate-200 mt-4">
               <div className="flex items-baseline justify-between text-[#172554]">
-                <span className="text-xs font-bold">
+                <span className="text-sm font-bold">
                   Marks contributed:
                 </span>
                 <div className="flex items-baseline gap-1">
                   <span className="text-lg font-black tabular-nums font-numeric">
                     {eseTheoryPoints.toFixed(2)}
                   </span>
-                  <span className="text-xs font-bold text-[#1e3a8a] font-numeric tabular-nums">/ {eseTheoryWeight.toFixed(2)}</span>
+                  <span className="text-base font-bold text-[#d97757] font-numeric tabular-nums">/ {eseTheoryWeight.toFixed(2)}</span>
                 </div>
               </div>
             </div>
@@ -184,16 +172,13 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
           <div className={`${hasTheory ? 'lg:col-span-4' : 'lg:col-span-6'} p-3 sm:p-4 flex flex-col justify-between bg-white`}>
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <div className="p-1.5 bg-blue-50 text-[#172554] border border-blue-100 shrink-0">
+                <div className="text-[#3b4d66] shrink-0">
                   <FlaskConical className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-[#172554]">
+                  <h4 className="text-sm font-bold text-[#d97757] dark:text-[#d97757]">
                     {isPracticalOnly || courseType === 'self-development' ? 'ESE Practical Exam' : 'ESE Lab Exam'}
                   </h4>
-                  <span className="text-[11px] font-bold text-[#1e3a8a]">
-                    Weightage: {eseLabWeight}%
-                  </span>
                 </div>
               </div>
 
@@ -217,7 +202,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                   onChange={handleLabChange}
                   className="h-11 w-full px-3 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm tabular-nums font-numeric"
                 />
-                <span className="absolute right-3.5 top-2.5 text-xs font-bold text-[#1e3a8a] tabular-nums font-numeric">
+                <span className="absolute right-3.5 top-2.5 text-xs font-bold text-[#d97757] tabular-nums font-numeric">
                   / {numericLabMax}
                 </span>
               </div>
@@ -228,14 +213,14 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
 
             <div className="pt-4 border-t border-slate-200 mt-4">
               <div className="flex items-baseline justify-between text-[#172554]">
-                <span className="text-xs font-bold">
+                <span className="text-sm font-bold">
                   {estimatedLabMark ? 'Marks contributed (estimate):' : 'Marks contributed:'}
                 </span>
                 <div className="flex items-baseline gap-1">
                   <span className="text-lg font-black tabular-nums font-numeric">
                     {eseLabPoints.toFixed(2)}
                   </span>
-                  <span className="text-xs font-bold text-[#1e3a8a] font-numeric tabular-nums">/ {eseLabWeight.toFixed(2)}</span>
+                  <span className="text-base font-bold text-[#d97757] font-numeric tabular-nums">/ {eseLabWeight.toFixed(2)}</span>
                 </div>
               </div>
             </div>
@@ -245,7 +230,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
           <div className={`${hasTheory ? 'lg:col-span-4' : 'lg:col-span-6'} p-3 sm:p-4 bg-white flex flex-col justify-between`}>
             <details className="group">
               <summary className="flex cursor-pointer list-none items-center gap-2 py-1 focus-visible:outline-2 focus-visible:outline-[#172554]">
-                <div className="p-1.5 bg-[#172554] text-white shrink-0">
+                <div className="text-[#d97757] shrink-0">
                   <Target className="w-5 h-5" />
                 </div>
                 <div>
@@ -256,7 +241,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                     {isPracticalOnly ? `ESE Requirement` : `Combined ESE Requirement`}
                   </span>
                 </div>
-                <ChevronDown className="ml-auto h-4 w-4 shrink-0 text-[#172554] transition-transform group-open:rotate-180" aria-hidden="true" />
+                <ChevronDown className="ml-auto h-4 w-4 shrink-0 text-[#3b4d66] transition-transform group-open:rotate-180" aria-hidden="true" />
               </summary>
 
               <div className="mt-3 border border-[#172554] divide-y divide-[#172554] text-xs font-medium mb-3">
@@ -309,25 +294,6 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
               </div>
             </details>
 
-            {/* Combined ESE Footer Card */}
-            <div className="p-3 bg-slate-50 border border-[#172554] text-xs space-y-1">
-              <div className="flex justify-between text-[#172554] font-medium">
-                <span>
-                  {isPracticalOnly
-                    ? `Practical: ${eseLabPoints.toFixed(2)} / ${eseLabWeight}`
-                    : `Theory: ${eseTheoryPoints.toFixed(2)} / ${eseTheoryWeight} + Lab: ${eseLabPoints.toFixed(2)} / ${eseLabWeight}`}
-                </span>
-                <span className="font-bold tabular-nums font-numeric">{esePoints.toFixed(2)} / {eseWeight}M</span>
-              </div>
-              <div className="flex justify-between text-[#172554] font-medium pt-1 border-t border-slate-300">
-                <span>Internal CA Secured:</span>
-                <span className="font-bold tabular-nums font-numeric">{internalTotal.toFixed(2)} / {internalMax}M</span>
-              </div>
-              <div className="flex justify-between text-[#172554] font-black pt-1 border-t border-[#172554]">
-                <span>Total Course Mark:</span>
-                <span className="text-sm tabular-nums font-numeric">{(internalTotal + esePoints).toFixed(2)} / 100M</span>
-              </div>
-            </div>
           </div>
         </div>
       ) : (
@@ -337,15 +303,12 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
           <div className="md:col-span-6 p-3 sm:p-4 flex flex-col justify-between bg-white">
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <div className="p-1.5 bg-[#172554] text-white shrink-0">
+                <div className="text-[#3b4d66] shrink-0">
                   <GraduationCap className="w-5 h-5" />
                 </div>
-                <h4 className="text-sm font-bold text-[#172554]">
+                <h4 className="text-sm font-bold text-[#d97757] dark:text-[#d97757]">
                   End-Semester marks scored
                 </h4>
-                <span className="text-xs font-semibold text-[#1e3a8a] ml-auto">
-                  Weightage: {eseTheoryWeight}%
-                </span>
               </div>
 
               <label
@@ -367,7 +330,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                   onChange={handleEseChange}
                   className="h-11 w-full px-3 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm tabular-nums font-numeric"
                 />
-                <span className="absolute right-3.5 top-2.5 text-xs font-bold text-[#1e3a8a] tabular-nums font-numeric">/ 100</span>
+                <span className="absolute right-3.5 top-2.5 text-xs font-bold text-[#d97757] tabular-nums font-numeric">/ 100</span>
               </div>
 
 
@@ -376,12 +339,12 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
             {/* Marks Contributed for Total at bottom */}
             <div className="pt-1">
               <div className="flex items-baseline justify-between text-[#172554]">
-                <span className="text-xs font-bold">Marks contributed:</span>
+                <span className="text-sm font-bold">Marks contributed:</span>
                 <div className="flex items-baseline gap-1">
                   <span className="text-lg font-black tabular-nums font-numeric">
                     {esePoints.toFixed(2)}
                   </span>
-                  <span className="text-xs font-bold text-[#1e3a8a] font-numeric tabular-nums">/ {eseTheoryWeight.toFixed(2)}</span>
+                  <span className="text-base font-bold text-[#d97757] font-numeric tabular-nums">/ {eseTheoryWeight.toFixed(2)}</span>
                 </div>
               </div>
             </div>
@@ -391,11 +354,11 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
           <div className="md:col-span-6 p-3 sm:p-4 bg-white flex flex-col justify-between">
             <details className="group">
               <summary className="flex cursor-pointer list-none items-center gap-2 py-1 focus-visible:outline-2 focus-visible:outline-[#172554]">
-                <div className="p-1.5 bg-[#172554] text-white shrink-0">
+                <div className="text-[#d97757] shrink-0">
                   <Target className="w-5 h-5" />
                 </div>
                 <h4 className="text-sm font-bold text-[#172554]">Target Grade Simulator</h4>
-                <ChevronDown className="ml-auto h-4 w-4 shrink-0 text-[#172554] transition-transform group-open:rotate-180" aria-hidden="true" />
+                <ChevronDown className="ml-auto h-4 w-4 shrink-0 text-[#3b4d66] transition-transform group-open:rotate-180" aria-hidden="true" />
               </summary>
 
               <div className="mt-3 border border-[#172554] divide-y divide-[#172554] text-xs font-medium">
@@ -438,6 +401,43 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
           </div>
         </div>
       )}
+
+      <div className="border-t border-slate-200 bg-slate-50 p-3 sm:p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <button
+            type="button"
+            onClick={onCalculate}
+            disabled={calculationState === 'calculating' || calculationState === 'saving'}
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#172554] px-5 py-3 text-xs font-bold text-white transition-colors hover:bg-[#1e3a8a] disabled:cursor-wait disabled:opacity-60"
+          >
+            {calculationState === 'calculating' || calculationState === 'saving' ? (
+              <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" />
+            ) : (
+              <Calculator className="h-4 w-4" aria-hidden="true" />
+            )}
+            {calculationState === 'calculating'
+              ? 'Calculating result…'
+              : calculationState === 'saving'
+                ? 'Saving result…'
+                : hasCalculated
+                  ? 'Recalculate Mark & Grade'
+                  : 'Calculate Mark & Grade'}
+          </button>
+          {(calculationState === 'calculating' ||
+            calculationState === 'saving' ||
+            (calculationState === 'success' && hasCalculated)) && (
+            <p className="text-xs font-semibold text-slate-600" role="status" aria-live="polite">
+              {calculationState === 'calculating'
+                ? 'Calculating result…'
+                : calculationState === 'saving'
+                  ? 'Saving result to your account…'
+                  : guestMode
+                    ? 'Result calculated for this temporary session only.'
+                    : 'Result calculated and saved to your account.'}
+            </p>
+          )}
+        </div>
+      </div>
     </motion.section>
   );
 };

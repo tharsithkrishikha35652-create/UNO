@@ -91,16 +91,13 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
     onCountChange(clamped);
   };
 
-  const sum = scores.reduce<number>((acc, curr) => acc + (parseFloat(String(curr)) || 0), 0);
-  const maxPossibleSum = numericCount * maxMarkPerBox;
-
   return (
-    <div className="flex flex-col justify-between h-full bg-white dark:bg-[#202024] p-3 rounded-lg border border-slate-200 dark:border-slate-700">
+    <div className="flex flex-col justify-between h-full p-3">
       <div>
         {/* Header with Title and Count Stepper */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 mb-2 border-b border-slate-200 dark:border-slate-700">
           <div className="flex items-center gap-2">
-            <div className="text-[#172554] dark:text-[#f1f1f3]">
+            <div className="text-[#3b4d66]">
               {category === 'assignment' ? (
                 <FileText className="w-5 h-5" />
               ) : (
@@ -108,10 +105,7 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
               )}
             </div>
             <div>
-              <h4 className="text-sm font-bold text-[#172554] dark:text-[#f1f1f3]">{title}</h4>
-              <span className="text-xs font-semibold text-[#1e3a8a] dark:text-[#e08564]">
-                Weightage: {weight}%
-              </span>
+              <h4 className="text-sm font-bold text-[#d97757] dark:text-[#e08564]">{title}</h4>
             </div>
           </div>
 
@@ -204,7 +198,7 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
                         ariaLabelIncrement={`Increase ${category === 'assignment' ? 'assignment' : 'lab'} ${displayIndex} mark by 0.5`}
                         size="sm"
                       />
-                      <span className="text-[10px] sm:text-xs font-bold text-[#1e3a8a] dark:text-[#e08564] font-numeric tabular-nums shrink-0">
+                      <span className="text-[10px] sm:text-xs font-bold text-[#d97757] dark:text-[#d97757] font-numeric tabular-nums shrink-0">
                         /{maxMarkPerBox}
                       </span>
                     </div>
@@ -220,22 +214,15 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
 
       {/* Marks Contributed for Total at bottom */}
       <div className="mt-2 pt-2 space-y-1 border-t border-slate-200 dark:border-slate-700">
-        <div className="flex items-center justify-between text-xs text-[#172554] dark:text-[#f1f1f3]">
-          <span className="font-medium text-slate-600 dark:text-slate-400">Total Marks Obtained:</span>
-          <span className="font-bold font-numeric tabular-nums">
-            {sum} / {maxPossibleSum}
-          </span>
-        </div>
-
         <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-[#172554] dark:text-[#f1f1f3] pt-1">
-          <span className="min-w-0 text-xs font-bold text-slate-700 dark:text-slate-300">
-            {estimatedMarks ? 'Individual Marks Contribution (estimate):' : 'Individual Marks Contribution:'}
+          <span className="min-w-0 text-sm font-bold text-slate-700 dark:text-slate-300">
+            {estimatedMarks ? 'Marks Contributed (estimate):' : 'Marks Contributed:'}
           </span>
           <div className="flex shrink-0 items-baseline gap-1">
             <span className="text-lg font-black tabular-nums font-numeric text-[#172554] dark:text-[#f1f1f3]">
               {calculatedPoints.toFixed(2)}
             </span>
-            <span className="text-xs font-bold text-[#1e3a8a] dark:text-[#e08564] font-numeric tabular-nums">
+            <span className="text-base font-bold text-[#d97757] dark:text-[#d97757] font-numeric tabular-nums">
               / {weight}
             </span>
           </div>

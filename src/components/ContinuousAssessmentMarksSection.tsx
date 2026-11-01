@@ -3,7 +3,6 @@ import React from 'react';
 export interface ContinuousAssessmentField {
   key: string;
   label: string;
-  weight: number;
 }
 
 interface ContinuousAssessmentMarksSectionProps<TMarks extends object> {
@@ -31,9 +30,8 @@ export function ContinuousAssessmentMarksSection<TMarks extends object>({
     </div>
     <div className="divide-y divide-slate-200 rounded-xl border border-slate-300 bg-white">
       {fields.map((field) => (
-        <label key={field.key} className="grid grid-cols-1 gap-2 p-4 sm:grid-cols-[minmax(0,1fr)_4rem_10rem] sm:items-center">
+        <label key={field.key} className="grid grid-cols-1 gap-2 p-4 sm:grid-cols-[minmax(0,1fr)_10rem] sm:items-center">
           <span className="text-sm font-semibold text-[#172554]">{field.label}</span>
-          <span className="text-xs font-bold text-slate-600 tabular-nums font-numeric">{field.weight}%</span>
           <span className="flex items-center gap-2">
             <span className="sr-only">{field.label} score</span>
             <input
