@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { transitions } from '../motion';
-import { BookOpen, Check, CheckCircle2, Circle, GraduationCap, PencilLine } from 'lucide-react';
+import { AlertCircle, BookOpen, Check, CheckCircle2, Circle, GraduationCap, PencilLine } from 'lucide-react';
+import { acknowledgeSelection } from '../haptics';
 import type { SubjectData } from '../types';
 import type { PresetCourse, SemesterNumber } from './SubjectSelectionDialog';
 import type {
@@ -26,16 +27,24 @@ interface DesktopCoursesPanelProps {
 
 function CourseProgressStatus({ progress }: { progress: CourseProgress }) {
   const reduceMotion = useReducedMotion();
-  const Icon = progress === 'Calculated'
+  const isComplete = progress === 'Calculated' || progress === 'Marks completed';
+  const isMissing = progress === 'Missing information';
+  const isInProgress = progress === 'Marks entered' || progress === 'In progress';
+
+  const Icon = isComplete
     ? CheckCircle2
-    : progress === 'Marks entered'
-      ? PencilLine
-      : Circle;
-  const iconClass = progress === 'Calculated'
+    : isMissing
+      ? AlertCircle
+      : isInProgress
+        ? PencilLine
+        : Circle;
+  const iconClass = isComplete
     ? 'text-emerald-700'
-    : progress === 'Marks entered'
-      ? 'text-blue-800'
-      : 'text-slate-400';
+    : isMissing
+      ? 'text-amber-700'
+      : isInProgress
+        ? 'text-blue-800'
+        : 'text-slate-400';
 
   return (
     <AnimatePresence mode="wait" initial={false}>
@@ -223,7 +232,7 @@ export const DesktopCoursesPanel: React.FC<DesktopCoursesPanelProps> = ({
               <li key={course.id}>
                 <button
                   type="button"
-                  onClick={() => onSelectCourse(course)}
+                  onClick={() => { acknowledgeSelection(); onSelectCourse(course); }}
                   aria-pressed={subject?.id === selectedSubjectId}
                   className={`flex min-h-14 w-full items-center justify-between gap-4 px-4 py-3 text-left transition-colors focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[#172554] ${
                     subject?.id === selectedSubjectId ? 'bg-blue-50/80' : 'hover:bg-slate-50'
@@ -279,7 +288,7 @@ export const DesktopCoursesPanel: React.FC<DesktopCoursesPanelProps> = ({
                 <li key={subject.id}>
                   <button
                     type="button"
-                    onClick={() => onSelectOtherCourse(subject)}
+                    onClick={() => { acknowledgeSelection(); onSelectOtherCourse(subject); }}
                     aria-pressed={subject.id === selectedSubjectId}
                     className={`flex min-h-14 w-full items-center justify-between gap-4 px-4 py-3 text-left transition-colors focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[#172554] ${
                       subject.id === selectedSubjectId ? 'bg-blue-50/80' : 'hover:bg-slate-50'

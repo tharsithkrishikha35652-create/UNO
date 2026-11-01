@@ -77,6 +77,7 @@ export const NumberStepper: React.FC<NumberStepperProps> = ({
       <input
         id={id}
         type="number"
+        inputMode={step === 1 ? "numeric" : "decimal"}
         min={min}
         max={max}
         step={step}

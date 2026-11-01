@@ -43,6 +43,7 @@ export const ProjectWorkAssessmentSection: React.FC<ProjectWorkAssessmentSection
                 <span className="sr-only">{component.label} score</span>
                 <input
                   type="number"
+                  inputMode="decimal"
                   min={0}
                   max={100}
                   step={0.5}

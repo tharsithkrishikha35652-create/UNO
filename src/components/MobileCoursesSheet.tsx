@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { BookOpen, Check, CheckCircle2, Circle, Pencil, PencilLine, X } from 'lucide-react';
+import { AlertCircle, BookOpen, Check, CheckCircle2, Circle, Pencil, PencilLine, Search, X } from 'lucide-react';
 import type { SubjectData } from '../types';
 import type { PresetCourse, SemesterNumber } from './SubjectSelectionDialog';
 import type {
@@ -9,6 +9,7 @@ import type {
   SemesterElectiveRow,
 } from './SemesterCourseDashboard';
 import { motionVariants, transitions } from '../motion';
+import { acknowledgeInteraction, acknowledgeSelection } from '../haptics';
 
 interface MobileCoursesSheetProps {
   isOpen: boolean;
@@ -27,16 +28,24 @@ interface MobileCoursesSheetProps {
 
 function ProgressIndicator({ progress }: { progress: CourseProgress }) {
   const reduceMotion = useReducedMotion();
-  const Icon = progress === 'Calculated'
+  const isComplete = progress === 'Calculated' || progress === 'Marks completed';
+  const isMissing = progress === 'Missing information';
+  const isInProgress = progress === 'Marks entered' || progress === 'In progress';
+
+  const Icon = isComplete
     ? CheckCircle2
-    : progress === 'Marks entered'
-      ? PencilLine
-      : Circle;
-  const iconColor = progress === 'Calculated'
+    : isMissing
+      ? AlertCircle
+      : isInProgress
+        ? PencilLine
+        : Circle;
+  const iconColor = isComplete
     ? 'text-emerald-700'
-    : progress === 'Marks entered'
-      ? 'text-blue-800'
-      : 'text-slate-400';
+    : isMissing
+      ? 'text-amber-700'
+      : isInProgress
+        ? 'text-blue-800'
+        : 'text-slate-400';
 
   return (
     <AnimatePresence mode="wait" initial={false}>
@@ -152,7 +161,7 @@ const MobileCoursesSheetBody: React.FC<MobileCoursesSheetProps> = ({
             type="button"
             onClick={() => {
               if (course) {
-                onSelectCourse(course);
+                acknowledgeSelection(); onSelectCourse(course);
               } else {
                 setExpandedElectiveSlot((current) => current === slot ? null : slot);
               }

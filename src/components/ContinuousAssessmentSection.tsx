@@ -202,6 +202,7 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
                 <input
                   id={`test-scored-${number}`}
                   type="number"
+                  inputMode="decimal"
                   min={0}
                   max={currentMax}
                   step={0.5}
@@ -264,6 +265,7 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
                       <div className="flex items-center gap-2">
                         <input
                           type="number"
+                          inputMode="numeric"
                           min={1}
                           step={1}
                           value={tempMax}

@@ -148,6 +148,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                 <input
                   id="ese-theory-input"
                   type="number"
+                  inputMode="decimal"
                   min={0}
                   max={100}
                   step={0.5}
@@ -207,6 +208,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                 <input
                   id="ese-lab-input"
                   type="number"
+                  inputMode="decimal"
                   min={0}
                   max={numericLabMax}
                   step={0.5}
@@ -356,6 +358,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                 <input
                   id="ese-marks-input"
                   type="number"
+                  inputMode="decimal"
                   min={0}
                   max={100}
                   step={0.5}

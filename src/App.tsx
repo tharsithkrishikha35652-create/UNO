@@ -6,6 +6,8 @@ import React, {
   useCallback,
 } from "react";
 import { onAuthStateChanged, signOut, type User } from "firebase/auth";
+import { Capacitor } from "@capacitor/core";
+import { App as CapacitorApp } from "@capacitor/app";
 import { AcademicProfileData, Department, InternshipTrainingMarks, MiniProjectMarks, SubjectData } from "./types";
 import {
   DEFAULT_SUBJECT,
@@ -44,11 +46,15 @@ import { ProjectWorkAssessmentSection } from "./components/ProjectWorkAssessment
 import { ContinuousAssessmentMarksSection } from "./components/ContinuousAssessmentMarksSection";
 import {
   applyEstimatedScores,
+  calculateEstimatedSemesterGpa,
   GPACalculator,
   hasEstimateableComponents,
+  subjectMarksComplete,
 } from "./components/GPACalculator";
 import { MobileBottomNavigation } from "./components/MobileBottomNavigation";
 import { MobileCoursesSheet } from "./components/MobileCoursesSheet";
+import { MobileSwipeNavigator } from "./components/MobileSwipeNavigator";
+import { acknowledgeInteraction, acknowledgeSelection, acknowledgeCompletion } from "./haptics";
 import { DesktopCoursesPanel } from "./components/DesktopCoursesPanel";
 import {
   AcademicProfileFormValues,
@@ -90,6 +96,7 @@ import {
   ChevronDown,
   HelpCircle,
   Check,
+  X,
 } from "lucide-react";
 
 const LEGACY_STORAGE_KEY = "ca_ese_calculator_sem1_user_selected_v18";
@@ -378,10 +385,47 @@ function getCourseProgress(
   subject: SubjectData | undefined,
   calculatedSignatures: Record<string, string>
 ): CourseProgress {
-  if (!subject) return "Not started";
-  if (calculatedSignatures[subject.id] === JSON.stringify(subject))
-    return "Calculated";
-  return hasEnteredSubjectMarks(subject) ? "Marks entered" : "Not started";
+  if (!subject || !hasEnteredSubjectMarks(subject)) return "Not started";
+  if (calculatedSignatures[subject.id] === JSON.stringify(subject) || subjectMarksComplete(subject)) {
+    return "Marks completed";
+  }
+
+  const courseType = getCourseType(subject);
+  if (courseType === 'mini-project' && subject.miniProjectMarks) {
+    const marks = subject.miniProjectMarks;
+    const values = [marks.reviewI, marks.reviewII, marks.reviewIIIReport, marks.reviewIIIViva];
+    const filled = values.filter((v) => v !== '' && v !== null && v !== undefined).length;
+    if (filled > 0 && filled < 4) return "Missing information";
+  } else if (courseType === 'internship-training' && subject.internshipTrainingMarks) {
+    const marks = subject.internshipTrainingMarks;
+    const values = [marks.report, marks.presentation, marks.vivaVoce, marks.industryViva];
+    const filled = values.filter((v) => v !== '' && v !== null && v !== undefined).length;
+    if (filled > 0 && filled < 4) return "Missing information";
+  } else if (courseType === 'project-work' && subject.projectWorkMarks) {
+    const values = Object.values(subject.projectWorkMarks);
+    const filled = values.filter((v) => v !== '' && v !== null && v !== undefined).length;
+    if (filled > 0 && filled < values.length) return "Missing information";
+  } else {
+    const act1Count = Number(subject.act1No) || 0;
+    const act2Count = Number(subject.act2No) || 0;
+    const lab1Count = Number(subject.lab1No) || 0;
+    const lab2Count = Number(subject.lab2No) || 0;
+    const act1Entered = subject.act1Scores.filter((v) => v !== '' && v !== null && v !== undefined).length;
+    const act2Entered = subject.act2Scores.filter((v) => v !== '' && v !== null && v !== undefined).length;
+    const lab1Entered = subject.lab1Scores.filter((v) => v !== '' && v !== null && v !== undefined).length;
+    const lab2Entered = subject.lab2Scores.filter((v) => v !== '' && v !== null && v !== undefined).length;
+
+    if (
+      (act1Count > 0 && act1Entered < act1Count) ||
+      (act2Count > 0 && act2Entered < act2Count) ||
+      (lab1Count > 0 && lab1Entered < lab1Count) ||
+      (lab2Count > 0 && lab2Entered < lab2Count)
+    ) {
+      return "Missing information";
+    }
+  }
+
+  return "In progress";
 }
 
 interface AuthenticatedAppProps {
@@ -416,11 +460,35 @@ function parseLegacySubjects(): SubjectData[] {
 }
 
 function WorkspaceLoading({ message }: { message: string }) {
+  const reduceMotion = useReducedMotion();
+  const pulseClass = reduceMotion ? '' : 'animate-pulse';
+
   return (
-    <main className="min-h-screen bg-transparent flex items-center justify-center p-6">
-      <div className="flex items-center gap-3 text-sm font-semibold text-[#172554]">
-        <LoaderCircle className="w-5 h-5 animate-spin" aria-hidden="true" />
-        {message}
+    <main className="min-h-screen bg-transparent p-4 sm:p-6 md:p-8 max-w-5xl mx-auto space-y-6" aria-busy="true" aria-label={message}>
+      {/* App bar skeleton */}
+      <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
+        <div className={`h-8 w-32 rounded-lg bg-slate-200 dark:bg-slate-800 ${pulseClass}`} />
+        <div className="flex items-center gap-3">
+          <div className={`h-8 w-20 rounded-lg bg-slate-200 dark:bg-slate-800 ${pulseClass}`} />
+          <div className={`h-8 w-8 rounded-full bg-slate-200 dark:bg-slate-800 ${pulseClass}`} />
+        </div>
+      </div>
+
+      {/* Header card skeleton */}
+      <div className={`rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#202024] p-5 shadow-sm space-y-3 ${pulseClass}`}>
+        <div className="h-5 w-48 rounded bg-slate-200 dark:bg-slate-800" />
+        <div className="h-4 w-72 rounded bg-slate-100 dark:bg-slate-800/60" />
+      </div>
+
+      {/* Grid skeleton */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className={`h-44 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#202024] p-4 ${pulseClass}`} />
+        <div className={`h-44 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#202024] p-4 ${pulseClass}`} />
+      </div>
+
+      <div className="flex items-center justify-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400 pt-4">
+        <LoaderCircle className="w-4 h-4 animate-spin" aria-hidden="true" />
+        <span>{message}</span>
       </div>
     </main>
   );
@@ -695,6 +763,37 @@ function AuthenticatedApp({
   const [activeTab, setActiveTab] = useState<
     "calculator" | "grades" | "gpa" | "cgpa"
   >("calculator");
+  const [swipeColOffset, setSwipeColOffset] = useState(0);
+  const [undoToast, setUndoToast] = useState<{
+    subjectId: string;
+    previousSnapshot: SubjectData;
+    message: string;
+    timestamp: number;
+  } | null>(null);
+  const undoTimeoutRef = useRef<number | null>(null);
+
+  const triggerUndoableAction = (message: string, previousSubject: SubjectData) => {
+    if (undoTimeoutRef.current) window.clearTimeout(undoTimeoutRef.current);
+    setUndoToast({
+      subjectId: previousSubject.id,
+      previousSnapshot: { ...previousSubject },
+      message,
+      timestamp: Date.now(),
+    });
+    undoTimeoutRef.current = window.setTimeout(() => {
+      setUndoToast(null);
+    }, 6000);
+  };
+
+  const handlePerformUndo = () => {
+    if (!undoToast) return;
+    acknowledgeInteraction();
+    setSubjects((prev) =>
+      prev.map((s) => (s.id === undoToast.subjectId ? { ...undoToast.previousSnapshot } : s))
+    );
+    setUndoToast(null);
+    if (undoTimeoutRef.current) window.clearTimeout(undoTimeoutRef.current);
+  };
   const [isMobileCoursesOpen, setIsMobileCoursesOpen] = useState(false);
   const [isDesktopCoursesOpen, setIsDesktopCoursesOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -992,10 +1091,73 @@ function AuthenticatedApp({
   }, [isDialogOpen]);
 
   useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    const listener = CapacitorApp.addListener("backButton", () => {
+      if (isMobileCoursesOpen) return void setIsMobileCoursesOpen(false);
+      if (isDialogOpen) return void setIsDialogOpen(false);
+      if (isProfileOpen) return void setIsProfileOpen(false);
+      if (isEditorOpen) return void setIsEditorOpen(false);
+      if (showFeedbackHub) return void setShowFeedbackHub(false);
+      if (showCredits) return void setShowCredits(false);
+      if (activeTab !== "calculator") return void setActiveTab("calculator");
+      void CapacitorApp.exitApp();
+    });
+    return () => { void listener.then((handle) => handle.remove()); };
+  }, [activeTab, isDialogOpen, isEditorOpen, isMobileCoursesOpen, isProfileOpen, showCredits, showFeedbackHub]);
+
+  useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
   }, [currentSubjectId]);
+
+  // Keep numeric mark fields and their immediate label context above the
+  // Android keyboard. visualViewport reflects the actual available viewport
+  // on modern WebViews; when it is unavailable we retain normal browser flow.
+  useEffect(() => {
+    let focusedField: HTMLInputElement | null = null;
+    let frame: number | null = null;
+    const viewport = window.visualViewport;
+
+    const keepFocusedFieldVisible = () => {
+      if (!focusedField || document.activeElement !== focusedField) return;
+      if (frame !== null) window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        const availableHeight = viewport?.height ?? window.innerHeight;
+        const bounds = focusedField?.getBoundingClientRect();
+        if (!bounds) return;
+        const topClearance = 84;
+        const bottomClearance = 88;
+        const lowerBound = availableHeight - bottomClearance;
+        if (bounds.bottom > lowerBound) {
+          window.scrollBy({ top: bounds.bottom - lowerBound, behavior: "smooth" });
+        } else if (bounds.top < topClearance) {
+          window.scrollBy({ top: bounds.top - topClearance, behavior: "smooth" });
+        }
+      });
+    };
+
+    const onFocusIn = (event: FocusEvent) => {
+      const target = event.target;
+      focusedField = target instanceof HTMLInputElement && (target.type === "number" || target.inputMode === "decimal" || target.inputMode === "numeric")
+        ? target
+        : null;
+      keepFocusedFieldVisible();
+    };
+    const onFocusOut = () => { focusedField = null; };
+
+    document.addEventListener("focusin", onFocusIn);
+    document.addEventListener("focusout", onFocusOut);
+    viewport?.addEventListener("resize", keepFocusedFieldVisible);
+    viewport?.addEventListener("scroll", keepFocusedFieldVisible);
+    return () => {
+      if (frame !== null) window.cancelAnimationFrame(frame);
+      document.removeEventListener("focusin", onFocusIn);
+      document.removeEventListener("focusout", onFocusOut);
+      viewport?.removeEventListener("resize", keepFocusedFieldVisible);
+      viewport?.removeEventListener("scroll", keepFocusedFieldVisible);
+    };
+  }, []);
 
   const currentSubject = useMemo(() => {
     const found = subjects.find(
@@ -1350,6 +1512,7 @@ function AuthenticatedApp({
   };
 
   const handleReset = () => {
+    triggerUndoableAction(`Cleared marks for ${currentSubject.name || 'course'}`, currentSubject);
     updateCurrentSubject({
       ...DEFAULT_SUBJECT,
       id: currentSubject.id,
@@ -1753,6 +1916,17 @@ function AuthenticatedApp({
     ],
     [semesterCourseRows, semesterElectiveRows, otherCourseRows]
   );
+  const currentSemesterAvailableCourses = useMemo(() => {
+    return subjects
+      .filter((s) => selectedSemester === null || getSubjectSemester(s, currentDepartment) === selectedSemester)
+      .map((s) => ({
+        id: s.id,
+        name: s.name,
+        code: s.code,
+        courseType: getCourseType(s),
+      }));
+  }, [subjects, selectedSemester, currentDepartment]);
+
   const currentCourseFlowIndex = courseFlow.findIndex(
     (item) => item.subject?.id === currentSubjectId
   );
@@ -2135,6 +2309,7 @@ function AuthenticatedApp({
         activeTab={showFeedbackHub || showCredits ? null : activeTab}
         coursesOpen={isMobileCoursesOpen}
         onNavigate={(tab) => {
+          acknowledgeInteraction();
           setIsMobileCoursesOpen(false);
           setIsDesktopCoursesOpen(false);
           setShowFeedbackHub(false);
@@ -2147,7 +2322,37 @@ function AuthenticatedApp({
           setIsMobileCoursesOpen((open) => !open);
         }}
         coursesButtonRef={mobileCoursesButtonRef}
+        swipeOffset={swipeColOffset}
       />
+
+      {undoToast && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed inset-x-4 bottom-[calc(5.25rem+env(safe-area-inset-bottom))] z-50 mx-auto flex max-w-md items-center justify-between gap-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white/95 dark:bg-[#202024]/95 p-3.5 shadow-lg backdrop-blur-sm"
+        >
+          <span className="truncate text-xs font-semibold text-slate-700 dark:text-slate-300">
+            {undoToast.message}
+          </span>
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={handlePerformUndo}
+              className="rounded-lg bg-[#172554] dark:bg-[#d97757] px-3 py-1.5 text-xs font-bold text-white hover:opacity-90 transition-opacity focus-visible:outline-2 focus-visible:outline-[#172554]"
+            >
+              Undo
+            </button>
+            <button
+              type="button"
+              onClick={() => setUndoToast(null)}
+              aria-label="Dismiss notification"
+              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {saveError && (
         <div
@@ -2250,6 +2455,18 @@ function AuthenticatedApp({
             : activeTab;
 
           return (
+            <MobileSwipeNavigator
+              activeTab={activeTab}
+              disabled={showFeedbackHub || showCredits || isMobileCoursesOpen || isDesktopCoursesOpen}
+              onSwipeOffsetChange={setSwipeColOffset}
+              onNavigate={(tab) => {
+                setIsMobileCoursesOpen(false);
+                setIsDesktopCoursesOpen(false);
+                setShowFeedbackHub(false);
+                setShowCredits(false);
+                setActiveTab(tab);
+              }}
+            >
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
                 key={activeScreenKey}
@@ -2315,6 +2532,7 @@ function AuthenticatedApp({
                             onSelectElective={handleOpenElectivePicker}
                             onSelectOtherCourse={handleOpenOtherCourse}
                             onCalculateGpa={() => setActiveTab("gpa")}
+                            estimatedGpa={calculateEstimatedSemesterGpa(selectedSemester, subjects, currentDepartment)}
                           />
                         </div>
 
@@ -2331,6 +2549,12 @@ function AuthenticatedApp({
 <SubjectHeader
                       subject={currentSubject}
                       onResetToBlank={handleReset}
+                      semester={selectedSemester}
+                      availableCourses={currentSemesterAvailableCourses}
+                      onSelectSubject={(id) => {
+                        setCurrentSubjectId(id);
+                        setIsEditorOpen(true);
+                      }}
                     />
                     <div className="space-y-5">
                       {/* Course Type Specification */}
@@ -3179,6 +3403,7 @@ function AuthenticatedApp({
                 )}
               </motion.div>
             </AnimatePresence>
+            </MobileSwipeNavigator>
           );
         })()}
       </main>

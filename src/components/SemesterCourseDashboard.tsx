@@ -1,11 +1,11 @@
 import React from 'react';
-import { BookOpen, CheckCircle2, Circle, GraduationCap, Pencil, PencilLine } from 'lucide-react';
+import { AlertCircle, BookOpen, CheckCircle2, Circle, GraduationCap, Pencil, PencilLine } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import type { SubjectData } from '../types';
 import type { PresetCourse } from './SubjectSelectionDialog';
 import { motionVariants, transitions } from '../motion';
 
-export type CourseProgress = 'Not started' | 'Marks entered' | 'Calculated';
+export type CourseProgress = 'Not started' | 'In progress' | 'Marks completed' | 'Missing information' | 'Calculated' | 'Marks entered';
 
 export interface SemesterCourseRow {
   course: PresetCourse;
@@ -31,6 +31,12 @@ interface SemesterCourseDashboardProps {
   onSelectElective: (slot: string) => void;
   onSelectOtherCourse: (subject: SubjectData) => void;
   onCalculateGpa: () => void;
+  estimatedGpa?: {
+    gpa: number | null;
+    completedCount: number;
+    totalCount: number;
+    isProvisional: boolean;
+  };
 }
 
 function ProgressMark({ progress, isSelected }: { progress: CourseProgress; isSelected?: boolean }) {
@@ -45,15 +51,20 @@ function ProgressMark({ progress, isSelected }: { progress: CourseProgress; isSe
         exit={reduceMotion ? undefined : { opacity: 0, scale: 0.8 }}
         transition={transitions.feedback}
       >
-        {progress === 'Calculated' ? (
+        {progress === 'Calculated' || progress === 'Marks completed' ? (
           <CheckCircle2
             className={`h-4 w-4 shrink-0 ${isSelected ? 'text-emerald-300' : 'text-emerald-600'}`}
-            aria-label="Calculated"
+            aria-label="Marks completed"
           />
-        ) : progress === 'Marks entered' ? (
+        ) : progress === 'Missing information' ? (
+          <AlertCircle
+            className={`h-3.5 w-3.5 shrink-0 ${isSelected ? 'text-amber-200' : 'text-amber-600'}`}
+            aria-label="Missing information"
+          />
+        ) : progress === 'Marks entered' || progress === 'In progress' ? (
           <PencilLine
             className={`h-3.5 w-3.5 shrink-0 ${isSelected ? 'text-amber-200' : 'text-blue-800'}`}
-            aria-label="Marks entered"
+            aria-label="In progress"
           />
         ) : (
           <Circle
@@ -77,9 +88,18 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
   onSelectElective,
   onSelectOtherCourse,
   onCalculateGpa,
+  estimatedGpa,
 }) => {
   const reduceMotion = useReducedMotion();
   const courseItemMotion = reduceMotion ? {} : motionVariants.listItem;
+  const courseProgress = [
+    ...courses.map(({ progress }) => progress),
+    ...electiveSlots.map(({ progress }) => progress),
+    ...otherCourses.map(({ progress }) => progress),
+  ];
+  const calculatedCount = courseProgress.filter((p) => p === 'Calculated' || p === 'Marks completed').length;
+  const inProgressCount = courseProgress.filter((p) => p === 'Marks entered' || p === 'In progress' || p === 'Missing information').length;
+  const notStartedCount = courseProgress.filter((p) => p === 'Not started').length;
 
   return (
   <section className="mx-auto min-w-0 max-w-full" aria-labelledby="semester-courses-heading">
@@ -91,9 +111,42 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
         <p className="mt-0.5 text-xs text-slate-600">Select a course to edit its marks.</p>
       </div>
       <p className="shrink-0 text-[11px] font-semibold text-slate-600" aria-live="polite">
-        {courses.length + electiveSlots.length + otherCourses.length} course{courses.length + electiveSlots.length + otherCourses.length === 1 ? '' : 's'} in this semester
+        {courseProgress.length} course{courseProgress.length === 1 ? '' : 's'} in this semester
       </p>
     </div>
+
+    <dl className="mb-4 grid grid-cols-3 divide-x divide-slate-200 overflow-hidden rounded-xl border border-slate-200 bg-white text-center sm:max-w-md">
+      <div className="px-2 py-2.5">
+        <dt className="text-[10px] font-semibold text-slate-500">Completed</dt>
+        <dd className="mt-0.5 text-base font-black tabular-nums text-emerald-700">{calculatedCount}</dd>
+      </div>
+      <div className="px-2 py-2.5">
+        <dt className="text-[10px] font-semibold text-slate-500">In progress</dt>
+        <dd className="mt-0.5 text-base font-black tabular-nums text-[#172554]">{inProgressCount}</dd>
+      </div>
+      <div className="px-2 py-2.5">
+        <dt className="text-[10px] font-semibold text-slate-500">Awaiting marks</dt>
+        <dd className="mt-0.5 text-base font-black tabular-nums text-slate-600">{notStartedCount}</dd>
+      </div>
+    </dl>
+
+    {estimatedGpa && estimatedGpa.gpa !== null && (
+      <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-blue-200 bg-blue-50/70 dark:border-blue-900/40 dark:bg-blue-950/20 px-3.5 py-2.5 text-xs text-[#172554] dark:text-[#f1f1f3]">
+        <div className="min-w-0">
+          <span className="font-bold">
+            {estimatedGpa.isProvisional ? 'Provisional Estimated GPA' : 'Semester GPA'}
+          </span>
+          <span className="block text-[11px] text-slate-500 dark:text-slate-400">
+            {estimatedGpa.isProvisional
+              ? `Based on ${estimatedGpa.completedCount} of ${estimatedGpa.totalCount} completed courses`
+              : 'All courses calculated'}
+          </span>
+        </div>
+        <span className="text-lg font-black tabular-nums font-numeric text-[#172554] dark:text-[#f1f1f3]">
+          {estimatedGpa.gpa.toFixed(2)}
+        </span>
+      </div>
+    )}
 
     {/* Staggered alternating zig-zag list on mobile, clean two-column grid on desktop */}
     <div className="w-full">

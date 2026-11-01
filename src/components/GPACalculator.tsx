@@ -107,7 +107,7 @@ function scoresComplete(countValue: number | string, scores: (number | string)[]
   return scores.length >= count && scores.slice(0, count).every(entered);
 }
 
-function subjectMarksComplete(subject: SubjectData, allowEstimatedMarks = false): boolean {
+export function subjectMarksComplete(subject: SubjectData, allowEstimatedMarks = false): boolean {
   if (!subject.name?.trim()) return false;
 
   const courseType = getCourseType(subject);
@@ -251,6 +251,60 @@ export function isGpaReady(
       calculatedSignatures[subject.id] === JSON.stringify(subject)
     ));
   });
+}
+
+export interface EstimatedSemesterGpaResult {
+  gpa: number | null;
+  completedCount: number;
+  totalCount: number;
+  isProvisional: boolean;
+}
+
+export function calculateEstimatedSemesterGpa(
+  semester: number,
+  subjects: SubjectData[],
+  department?: string
+): EstimatedSemesterGpaResult {
+  const courseList = getGpaCourses(department);
+  const presets = getPresetCourses(department);
+  const semesterCourses = courseList.filter((course) => course.semester === semester);
+  if (semesterCourses.length === 0) {
+    return { gpa: null, completedCount: 0, totalCount: 0, isProvisional: false };
+  }
+
+  let totalWeighted = 0;
+  let totalCredits = 0;
+  let completedCount = 0;
+
+  for (const course of semesterCourses) {
+    const subject = findCourseSubject(subjects, course, presets);
+    if (!subject) continue;
+    const isComplete = subjectMarksComplete(subject);
+    if (isComplete) {
+      completedCount++;
+      const breakdown = calculateMarks(subject);
+      totalWeighted += course.credits * breakdown.grade.gradePoint;
+      totalCredits += course.credits;
+    }
+  }
+
+  if (completedCount === 0 || totalCredits === 0) {
+    return {
+      gpa: null,
+      completedCount: 0,
+      totalCount: semesterCourses.length,
+      isProvisional: true,
+    };
+  }
+
+  const rawGpa = totalWeighted / totalCredits;
+  const roundedGpa = Math.round(rawGpa * 100) / 100;
+  return {
+    gpa: roundedGpa,
+    completedCount,
+    totalCount: semesterCourses.length,
+    isProvisional: completedCount < semesterCourses.length,
+  };
 }
 
 interface GPACalculatorProps {

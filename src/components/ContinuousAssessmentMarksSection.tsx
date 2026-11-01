@@ -38,6 +38,7 @@ export function ContinuousAssessmentMarksSection<TMarks extends object>({
             <span className="sr-only">{field.label} score</span>
             <input
               type="number"
+              inputMode="decimal"
               min={0}
               max={100}
               step={0.5}
