@@ -91,7 +91,7 @@ const MobileNavigationContent: React.FC<MobileBottomNavigationProps> = ({
           }
           aria-hidden="true"
         >
-          <span className="mx-auto block h-full w-12 rounded-b-full bg-[#172554] dark:bg-[#e08564]" />
+          <span className="mx-auto block h-full w-12 rounded-b-full bg-[#d97757] dark:bg-[#e08564]" />
         </motion.div>
       )}
 
@@ -106,13 +106,18 @@ const MobileNavigationContent: React.FC<MobileBottomNavigationProps> = ({
             aria-pressed={isActive}
             aria-expanded={tab === null ? coursesOpen : undefined}
             aria-controls={tab === null && coursesOpen ? 'mobile-courses-sheet' : undefined}
-            className={`relative flex min-h-[4.25rem] flex-col items-center justify-center gap-1 border-t-2 px-1 py-2 text-[9px] font-bold transition-colors focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[#172554] dark:focus-visible:outline-[#e08564] ${
+            className={`relative flex min-h-[4.25rem] flex-col items-center justify-center gap-1 border-t-2 px-1 py-2 text-[9px] font-bold transition-colors focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[#d97757] dark:focus-visible:outline-[#e08564] ${
               isActive
                 ? 'border-transparent text-[#172554] dark:text-[#f1f1f3]'
                 : 'border-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-[#2a2a30] hover:text-[#172554] dark:hover:text-[#f1f1f3]'
             }`}
           >
-            <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
+            <Icon
+              className={`h-[18px] w-[18px] transition-colors ${
+                isActive ? 'text-[#d97757] dark:text-[#e08564]' : ''
+              }`}
+              aria-hidden="true"
+            />
             <span className="whitespace-nowrap">{label}</span>
           </button>
         );
