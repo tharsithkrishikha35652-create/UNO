@@ -58,7 +58,7 @@
 :root {
   --cc-cal: #d97757;
   --cc-credit: #1B1815;
-  --cc-dot: #E89B00;
+  --cc-dot: var(--cc-cal);
   --font-primary: "Figtree", "Figtree Variable", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-numeric: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-editorial: "Newsreader", Georgia, "Times New Roman", serif;
@@ -89,7 +89,7 @@
 [data-theme="dark"] {
   --cc-cal: #F0482E;
   --cc-credit: #F5EEDC;
-  --cc-dot: #FFD23F;
+  --cc-dot: var(--cc-cal);
   color-scheme: dark;
   accent-color: #e08564;
   --app-background: #161618;

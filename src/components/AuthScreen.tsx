@@ -247,7 +247,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
               style={{
                 '--cc-credit': '#F5EEDC',
                 '--cc-cal': '#F0482E',
-                '--cc-dot': '#FFD23F',
+                '--cc-dot': 'var(--cc-cal)',
               } as React.CSSProperties}
             />
             <h1 className="text-base font-black sm:text-lg">Academic Marks Calculator</h1>
