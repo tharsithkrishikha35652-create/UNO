@@ -605,7 +605,6 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
                   </div>
                   <div>
                     <span className="block text-sm font-bold text-[#172554]">Grading</span>
-                    <span className="block text-xs text-slate-500">View grade bands and grade points</span>
                   </div>
                 </div>
               </button>
@@ -622,7 +621,6 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
                   </div>
                   <div>
                     <span className="block text-sm font-bold text-[#172554]">Feedback</span>
-                    <span className="block text-xs text-slate-500">Share feedback to help improve CALCREDIT</span>
                   </div>
                 </div>
               </button>
@@ -639,16 +637,10 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
                   </div>
                   <div>
                     <span className="block text-sm font-bold text-[#172554]">Credits</span>
-                    <span className="block text-xs text-slate-500">Design &amp; development</span>
                   </div>
                 </div>
               </button>
 
-              {guestMode && (
-                <p className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs text-amber-950" role="status">
-                  Guest profile details stay in this temporary session and are cleared when it ends.
-                </p>
-              )}
             </>
           )}
         </div>
