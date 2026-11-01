@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Instagram, Linkedin } from 'lucide-react';
+import { ExternalLink, FileText, Instagram, Linkedin } from 'lucide-react';
 
 const creators = [
   {
@@ -342,6 +342,25 @@ export const CreditsScreen: React.FC = () => {
           ))}
         </ol>
       </section>
+
+      <div className="credits-observe mt-9 sm:mt-12 rounded-xl border border-[var(--app-divider)] bg-[var(--app-surface)] p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-xs">
+        <div className="flex items-start sm:items-center gap-2.5 min-w-0">
+          <FileText className="h-4 w-4 shrink-0 text-[var(--app-action-accent-strong)] mt-0.5 sm:mt-0" aria-hidden="true" />
+          <p className="text-[var(--app-muted-text)] leading-relaxed">
+            Formulated and calculated in accordance with the latest <strong className="font-semibold text-[var(--app-primary-text)]">Anna University Regulations 2023 (Rev. 2024)</strong> for University Departments.
+          </p>
+        </div>
+        <a
+          href="/UG_REGULATIONS_2023-Rev1.2024-Final-Signed.pdf"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="View official Anna University UG Regulations 2023 PDF (opens in a new tab)"
+          className="credits-link group inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-[var(--app-divider)] bg-[var(--app-surface)] px-3 py-1.5 font-bold text-[var(--app-action-accent-strong)] hover:border-[var(--app-action-accent)] hover:bg-[var(--app-structural-accent)]/10 transition-colors"
+        >
+          <span>Official Regulations (PDF)</span>
+          <ExternalLink className="h-3 w-3 opacity-70 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true" />
+        </a>
+      </div>
 
       <footer className="credits-observe mt-9 sm:mt-12">
         <span className="credits-rule mb-4 block h-px w-8 bg-[var(--app-action-accent-strong)]" aria-hidden="true" />
