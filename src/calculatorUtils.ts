@@ -1,4 +1,4 @@
-import { SubjectData, CalculationBreakdown, GradeInfo, SpecialGradeInfo, CourseType, ProjectWorkMarks, ProjectWorkComponentResult } from './types';
+import { SubjectData, CalculationBreakdown, GradeInfo, SpecialGradeInfo, CourseType, ProjectWorkMarks, ProjectWorkComponentResult, ContinuousAssessmentComponentResult } from './types';
 
 export const GRADE_SCALE: GradeInfo[] = [
   {
@@ -133,6 +133,8 @@ const COURSE_WEIGHTS: Record<CourseType, Omit<CourseWeights, 'courseType' | 'caM
   project: { courseTypeLabel: 'Internship cum Project Work — current 60% CA, 40% ESE', testWeight: 10, actWeight: 20, labWeight: 0, eseTheoryWeight: 40, eseLabWeight: 0 },
   // Project Work alone follows Table 6's seven review, thesis-report, and viva-voce components.
   'project-work': { courseTypeLabel: 'Project Work — Table 6 (60% CA, 40% ESE)', testWeight: 0, actWeight: 0, labWeight: 0, eseTheoryWeight: 0, eseLabWeight: 0 },
+  'mini-project': { courseTypeLabel: 'Mini-Project — Table 8 (100% Continuous Assessment)', testWeight: 0, actWeight: 0, labWeight: 0, eseTheoryWeight: 0, eseLabWeight: 0 },
+  'internship-training': { courseTypeLabel: 'Internship / Industrial Training — Table 7 (100% Continuous Assessment)', testWeight: 0, actWeight: 0, labWeight: 0, eseTheoryWeight: 0, eseLabWeight: 0 },
   // SDC flowchart: two CAs of 30 each (Test 5 + Activity 2.5 + Lab 22.5),
   // plus ESE Theory 15 and ESE Practical 25, for a total of 100.
   'self-development': { courseTypeLabel: 'Self Development Course — 60% CA, 40% ESE', testWeight: 5, actWeight: 2.5, labWeight: 22.5, eseTheoryWeight: 15, eseLabWeight: 25 },
@@ -163,22 +165,27 @@ export function getCourseType(data: SubjectData): CourseType {
     normalizedName.startsWith('standards')
   ) return 'standards-course';
   if (
-    normalizedName === 'mini project' ||
-    normalizedName.startsWith('mini project') ||
+    normalizedName === 'project work' ||
+    normalizedName.startsWith('project work') ||
+    normalizedName.includes('internship cum project work')
+  ) return 'project';
+  if (normalizedName === 'mini project' || normalizedName.startsWith('mini project')) return 'mini-project';
+  if (
+    normalizedName.includes('internship') ||
+    normalizedName.includes('summer internship') ||
+    normalizedName.includes('industrial training') ||
+    normalizedName.includes('hospital training')
+  ) return 'internship-training';
+  if (
     normalizedName === 'idea to product' ||
     normalizedName.includes('idea to product') ||
     normalizedName === 'building and structural drawing' ||
     normalizedName === 'environmental engineering drawing' ||
     normalizedName === 'digitalized construction lab' ||
-    normalizedName === 'hospital training' ||
-    normalizedName.startsWith('hospital training') ||
-    normalizedName === 'summer internship' ||
     normalizedName === 'societal oriented project' ||
     normalizedName === 'software development project laboratory'
   ) return 'laboratory-course';
   if (
-    normalizedName === 'project work' ||
-    normalizedName.startsWith('project work') ||
     normalizedName.startsWith('creative and innovative project') ||
     normalizedName.startsWith('design project')
   ) return 'project';
@@ -200,6 +207,21 @@ export function getCourseWeights(courseType: CourseType): CourseWeights {
       caMax: 60,
       internalMax: 60,
       eseWeight: 40,
+      eseTheoryWeight: 0,
+      eseLabWeight: 0,
+      totalMax: 100,
+    };
+  }
+  if (courseType === 'mini-project' || courseType === 'internship-training') {
+    return {
+      courseType,
+      courseTypeLabel: w.courseTypeLabel,
+      testWeight: 0,
+      actWeight: 0,
+      labWeight: 0,
+      caMax: 100,
+      internalMax: 100,
+      eseWeight: 0,
       eseTheoryWeight: 0,
       eseLabWeight: 0,
       totalMax: 100,
@@ -249,6 +271,9 @@ export function getCourseWeights(courseType: CourseType): CourseWeights {
 /** Short human-readable weightage line, generated from the table above. */
 export function describeWeights(courseType: CourseType): string {
   const w = getCourseWeights(courseType);
+  if (courseType === 'mini-project' || courseType === 'internship-training') {
+    return `${w.courseTypeLabel} | CA: ${w.internalMax}M · ESE: None`;
+  }
   const ca = w.labWeight > 0
     ? `CA 1 & 2: Test ${w.testWeight}M · Assignment ${w.actWeight}M · Lab ${w.labWeight}M - ${w.caMax}M each`
     : `CA 1 & 2: Test ${w.testWeight}M · Activities ${w.actWeight}M - ${w.caMax}M each`;
@@ -294,6 +319,73 @@ export function calculateMarks(data: SubjectData): CalculationBreakdown {
 
   const courseType = getCourseType(data);
   const weights = getCourseWeights(courseType);
+
+  if (courseType === 'mini-project' || courseType === 'internship-training') {
+    const componentDefinitions = courseType === 'mini-project'
+      ? [
+          { key: 'reviewI', label: 'Review I', weight: 25 },
+          { key: 'reviewII', label: 'Review II', weight: 25 },
+          { key: 'reviewIIIReport', label: 'Review III — Report', weight: 30 },
+          { key: 'reviewIIIViva', label: 'Review III — Viva-Voce', weight: 20 },
+        ]
+      : [
+          { key: 'report', label: 'Report', weight: 40 },
+          { key: 'presentation', label: 'Presentation', weight: 30 },
+          { key: 'vivaVoce', label: 'Viva-Voce — Department (20%)', weight: 20 },
+          { key: 'industryViva', label: 'Viva-Voce — Industry representative (10%)', weight: 10 },
+        ];
+    const marks = (courseType === 'mini-project'
+      ? data.miniProjectMarks
+      : data.internshipTrainingMarks) as Record<string, number | string> | undefined;
+    const components: ContinuousAssessmentComponentResult[] = componentDefinitions.map((component) => {
+      const rawScore = marks?.[component.key];
+      const parsed = parseNum(rawScore);
+      const score = Math.max(0, Math.min(100, parsed));
+      return {
+        ...component,
+        score,
+        contribution: round2(score * component.weight / 100),
+      };
+    });
+    const complete = componentDefinitions.every((component) => {
+      const value = marks?.[component.key];
+      return value !== '' && value !== null && value !== undefined && Number.isFinite(Number(value));
+    });
+    const total = round2(components.reduce((sum, component) => sum + component.contribution, 0));
+    const passed = complete && total >= 50;
+
+    return {
+      courseType,
+      courseTypeLabel: weights.courseTypeLabel,
+      testWeight: 0,
+      actWeight: 0,
+      labWeight: 0,
+      caMax: 100,
+      internalMax: 100,
+      eseWeight: 0,
+      eseTheoryWeight: 0,
+      eseLabWeight: 0,
+      ese_p: 0,
+      ese_theory_p: 0,
+      ese_lab_p: 0,
+      test1_p: 0,
+      test2_p: 0,
+      act1_sum: 0,
+      act1_p: 0,
+      act2_sum: 0,
+      act2_p: 0,
+      lab1_sum: 0,
+      lab1_p: 0,
+      lab2_sum: 0,
+      lab2_p: 0,
+      ca1_total: total,
+      ca2_total: 0,
+      internal_total: total,
+      total,
+      grade: getGradeForScore(passed ? total : 49),
+      continuousAssessmentComponents: components,
+    };
+  }
 
   if (courseType === 'project-work' || courseType === 'project') {
     const score = (value: number | string | undefined): number => {

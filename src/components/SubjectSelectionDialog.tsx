@@ -1284,8 +1284,8 @@ export const ECE_PRESET_COURSES: PresetCourse[] = [
     id: 'EC23702',
     name: 'Mini Project',
     code: 'EC23702',
-    type: 'Laboratory · 60% CA / 40% ESE',
-    courseType: 'laboratory-course',
+    type: 'Mini-Project · 100% CA (Table 8)',
+    courseType: 'mini-project',
     semester: 7,
     group: 'core',
   },
@@ -2391,7 +2391,7 @@ export const BME_PRESET_COURSES: PresetCourse[] = [
   { id: 'BM23503_BME', name: 'Microcontrollers and Embedded Systems', code: 'BM23503', type: '3-0-2', courseType: '3-0-2', semester: 5, group: 'core' },
   { id: 'IOC_SEM5_I_BME', name: 'Industry Oriented Course I', code: 'IOC_SEM5_I', type: 'IOC · Two Tests (50% Each)', courseType: 'industry-oriented-tests', semester: 5, group: 'core' },
   { id: 'BM23U02_BME', name: 'Perspectives of Sustainable Development', code: 'BM23U02', type: 'Theory', courseType: 'theory', semester: 5, group: 'core' },
-  { id: 'BM23504_BME', name: 'Summer Internship', code: 'BM23504', type: 'Laboratory · 60% CA / 40% ESE', courseType: 'laboratory-course', semester: 5, group: 'core' },
+  { id: 'BM23504_BME', name: 'Summer Internship', code: 'BM23504', type: 'Internship · 100% CA (Table 7)', courseType: 'internship-training', semester: 5, group: 'core' },
   { id: 'BM23S03_BME', name: 'Design and Development of Wearable biosensors', code: 'BM23S03', type: '1-0-2', courseType: '1-0-2', semester: 5, group: 'core' },
 
   // Semester VI (24 credits)
@@ -2405,8 +2405,8 @@ export const BME_PRESET_COURSES: PresetCourse[] = [
   { id: 'BM23701_BME', name: 'Digital Image Processing', code: 'BM23701', type: '3-0-2', courseType: '3-0-2', semester: 7, group: 'core' },
   { id: 'BM23L01_BME', name: 'Self-learning Course', code: 'BM23L01', type: 'Self-Learning Course', courseType: 'self-learning', semester: 7, group: 'core' },
   { id: 'IOC_SEM7_III_BME', name: 'Industry Oriented Course III', code: 'IOC_SEM7_III', type: 'IOC · Two Tests (50% Each)', courseType: 'industry-oriented-tests', semester: 7, group: 'core' },
-  { id: 'BM23703_BME', name: 'Hospital Training (4 weeks)', code: 'BM23703', type: 'Laboratory · 60% CA / 40% ESE', courseType: 'laboratory-course', semester: 7, group: 'core' },
-  { id: 'BM23704_BME', name: 'Mini Project', code: 'BM23704', type: 'Laboratory · 60% CA / 40% ESE', courseType: 'laboratory-course', semester: 7, group: 'core' },
+  { id: 'BM23703_BME', name: 'Hospital Training (4 weeks)', code: 'BM23703', type: 'Internship · 100% CA (Table 7)', courseType: 'internship-training', semester: 7, group: 'core' },
+  { id: 'BM23704_BME', name: 'Mini Project', code: 'BM23704', type: 'Mini-Project · 100% CA (Table 8)', courseType: 'mini-project', semester: 7, group: 'core' },
 
   // Semester VIII (8 credits)
   { id: 'BM23801_BME', name: 'Project Work / Internship cum Project Work', code: 'BM23801', type: 'PW · Regulation 17.7 (60% CA / 40% ESE)', courseType: 'project', semester: 8, group: 'core' },
@@ -3063,7 +3063,7 @@ export const MFG_PRESET_COURSES: PresetCourse[] = [
   { id: 'MF23U02_MFG', name: 'Perspectives of Sustainable Development in Manufacturing Engineering', code: 'MF23U02', type: '2-0-2', courseType: '2-0-2', semester: 5, group: 'core' },
   { id: 'MF23S02_MFG', name: 'Skill Development Course - II', code: 'MF23S02', type: 'Laboratory · 60% CA / 40% ESE', courseType: 'laboratory-course', semester: 5, group: 'core' },
   { id: 'IOC_SEM5_I_MFG', name: 'Industry Oriented Course – I', code: 'IOC_SEM5_I', type: 'IOC · Two Tests (50% Each)', courseType: 'industry-oriented-tests', semester: 5, group: 'core' },
-  { id: 'MF23503_MFG', name: 'Summer Internship', code: 'MF23503', type: 'Project', courseType: 'project', semester: 5, group: 'core' },
+  { id: 'MF23503_MFG', name: 'Summer Internship', code: 'MF23503', type: 'Internship · 100% CA (Table 7)', courseType: 'internship-training', semester: 5, group: 'core' },
 
   // Semester VI (21 credits)
   { id: 'IOC_SEM6_II_MFG', name: 'Industry Oriented Course – II', code: 'IOC_SEM6_II', type: 'IOC · Two Tests (50% Each)', courseType: 'industry-oriented-tests', semester: 6, group: 'core' },
@@ -3545,7 +3545,7 @@ export const MECH_PRESET_COURSES: PresetCourse[] = [
   { id: 'ME23701_MECH', name: 'Heat and Mass Transfer', code: 'ME23701', type: '3-0-2', courseType: '3-0-2', semester: 7, group: 'core' },
   { id: 'UC23E01_MECH', name: 'Engineering Entrepreneurship Development', code: 'UC23E01', type: '2-0-2', courseType: '2-0-2', semester: 7, group: 'core' },
   { id: 'ME23702_MECH', name: 'Simulation and Analysis Laboratory', code: 'ME23702', type: 'Laboratory · 60% CA / 40% ESE', courseType: 'laboratory-course', semester: 7, group: 'core' },
-  { id: 'ME23703_MECH', name: 'Summer Internship', code: 'ME23703', type: 'Project', courseType: 'project', semester: 7, group: 'core' },
+  { id: 'ME23703_MECH', name: 'Summer Internship', code: 'ME23703', type: 'Internship · 100% CA (Table 7)', courseType: 'internship-training', semester: 7, group: 'core' },
 
   // Semester VIII (8 credits)
   { id: 'ME23801_MECH', name: 'Project Work / Internship Cum Project Work', code: 'ME23801', type: 'PW · Regulation 17.7 (60% CA / 40% ESE)', courseType: 'project', semester: 8, group: 'core' },
@@ -3792,7 +3792,7 @@ export const PT_PRESET_COURSES: PresetCourse[] = [
   { id: 'PP23702_PT', name: 'Electronic Publishing', code: 'PP23702', type: '2-0-4', courseType: '2-0-4', semester: 7, group: 'core' },
   { id: 'PP23703_PT', name: 'Logistics and Supply Chain Management for Packaging', code: 'PP23703', type: 'Theory', courseType: 'theory', semester: 7, group: 'core' },
   { id: 'PP23U01_PT', name: 'Standards - Printing and Packaging Technology', code: 'PP23U01', type: 'Standards Course', courseType: 'standards-course', semester: 7, group: 'core' },
-  { id: 'PP23704_PT', name: 'Summer Internship', code: 'PP23704', type: 'Laboratory · 60% CA / 40% ESE', courseType: 'laboratory-course', semester: 7, group: 'core' },
+  { id: 'PP23704_PT', name: 'Summer Internship', code: 'PP23704', type: 'Internship · 100% CA (Table 7)', courseType: 'internship-training', semester: 7, group: 'core' },
   { id: 'IOC_SEM7_III_PT', name: 'Industry Oriented Course III', code: 'IOC_SEM7_III', type: 'IOC · Two Tests (50% Each)', courseType: 'industry-oriented-tests', semester: 7, group: 'core' },
   { id: 'PP23705_PT', name: 'Creative and Innovative Project', code: 'PP23705', type: 'Project', courseType: 'project', semester: 7, group: 'core' },
 
@@ -4001,7 +4001,7 @@ export const MINING_PRESET_COURSES: PresetCourse[] = [
   { id: 'MI23L01_MINING', name: 'Self-Learning Course', code: 'MI23L01', type: 'Self-Learning Course', courseType: 'self-learning', semester: 5, group: 'core' },
   { id: 'MI23S02_MINING', name: 'Skill Development Course – II', code: 'MI23S02', type: '1-0-2', courseType: '1-0-2', semester: 5, group: 'core' },
   { id: 'IOC_SEM5_I_MINING', name: 'Industry Oriented Course - I', code: 'IOC_SEM5_I', type: 'IOC · Two Tests (50% Each)', courseType: 'industry-oriented-tests', semester: 5, group: 'core' },
-  { id: 'MI23505_MINING', name: 'Industrial Training – I', code: 'MI23505', type: 'Laboratory · 60% CA / 40% ESE', courseType: 'laboratory-course', semester: 5, group: 'core' },
+  { id: 'MI23505_MINING', name: 'Industrial Training – I', code: 'MI23505', type: 'Internship · 100% CA (Table 7)', courseType: 'internship-training', semester: 5, group: 'core' },
 
   // Semester VI (28 credits)
   { id: 'MI23601_MINING', name: 'Mine Economics and Investment', code: 'MI23601', type: 'Theory', courseType: 'theory', semester: 6, group: 'core' },
@@ -4020,7 +4020,7 @@ export const MINING_PRESET_COURSES: PresetCourse[] = [
   { id: 'IOC_SEM7_III_MINING', name: 'Industry Oriented Course - III', code: 'IOC_SEM7_III', type: 'IOC · Two Tests (50% Each)', courseType: 'industry-oriented-tests', semester: 7, group: 'core' },
   { id: 'MI23706_MINING', name: 'Computer Aided Mine Planning and Design (CAMPAD) Laboratory', code: 'MI23706', type: 'Laboratory · 60% CA / 40% ESE', courseType: 'laboratory-course', semester: 7, group: 'core' },
   { id: 'MI23704_MINING', name: 'Comprehension', code: 'MI23704', type: 'Laboratory · 60% CA / 40% ESE', courseType: 'laboratory-course', semester: 7, group: 'core' },
-  { id: 'MI23705_MINING', name: 'Industrial Training – II', code: 'MI23705', type: 'Laboratory · 60% CA / 40% ESE', courseType: 'laboratory-course', semester: 7, group: 'core' },
+  { id: 'MI23705_MINING', name: 'Industrial Training – II', code: 'MI23705', type: 'Internship · 100% CA (Table 7)', courseType: 'internship-training', semester: 7, group: 'core' },
 
   // Semester VIII (8 credits)
   { id: 'MI23801_MINING', name: 'Project Work / Internship cum Project Work', code: 'MI23801', type: 'PW · Regulation 17.7 (60% CA / 40% ESE)', courseType: 'project', semester: 8, group: 'core' },

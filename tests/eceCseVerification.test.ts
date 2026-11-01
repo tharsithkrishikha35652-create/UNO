@@ -379,7 +379,7 @@ describe('Department Course & Curriculum Verification', () => {
       totalMax: 100,
     });
 
-    // Mini Project & Idea to Product: 60% CA, 40% ESE
+    // Regulation 17.6 laboratory courses: 60% CA, 40% ESE
     expect(getCourseWeights('laboratory-course')).toMatchObject({
       caMax: 60,
       internalMax: 60,
@@ -398,6 +398,19 @@ describe('Department Course & Curriculum Verification', () => {
     // IOC: 100% CA, 0% ESE
     expect(getCourseWeights('industry-oriented-tests')).toMatchObject({
       caMax: 50,
+      internalMax: 100,
+      eseWeight: 0,
+      totalMax: 100,
+    });
+
+    expect(getCourseWeights('mini-project')).toMatchObject({
+      caMax: 100,
+      internalMax: 100,
+      eseWeight: 0,
+      totalMax: 100,
+    });
+    expect(getCourseWeights('internship-training')).toMatchObject({
+      caMax: 100,
       internalMax: 100,
       eseWeight: 0,
       totalMax: 100,
@@ -439,6 +452,92 @@ describe('Department Course & Curriculum Verification', () => {
     expect(breakdown.total).toBe(100);
     expect(breakdown.grade.letter).toBe('S');
     expect(breakdown.grade.gradePoint).toBe(10);
+  });
+
+  it('calculates Mini-Project Table 8 as 100% CA and applies the 50% pass threshold', () => {
+    const fullMarks = calculateMarks({
+      id: 'mini-project-full',
+      name: 'Mini Project',
+      code: 'EC23702',
+      courseType: 'mini-project',
+      miniProjectMarks: {
+        reviewI: 100,
+        reviewII: 100,
+        reviewIIIReport: 100,
+        reviewIIIViva: 100,
+      },
+    } as any);
+
+    expect(fullMarks.continuousAssessmentComponents?.map((component) => component.weight)).toEqual([25, 25, 30, 20]);
+    expect(fullMarks.total).toBe(100);
+    expect(fullMarks.eseWeight).toBe(0);
+    expect(fullMarks.grade.letter).toBe('S');
+
+    const atPassThreshold = calculateMarks({
+      id: 'mini-project-pass',
+      name: 'Mini Project',
+      code: 'EC23702',
+      courseType: 'mini-project',
+      miniProjectMarks: {
+        reviewI: 100,
+        reviewII: 100,
+        reviewIIIReport: 0,
+        reviewIIIViva: 0,
+      },
+    } as any);
+    expect(atPassThreshold.total).toBe(50);
+    expect(atPassThreshold.grade.letter).toBe('C');
+
+    const incomplete = calculateMarks({
+      id: 'mini-project-incomplete',
+      name: 'Mini Project',
+      code: 'EC23702',
+      courseType: 'mini-project',
+      miniProjectMarks: { reviewI: 100, reviewII: 100, reviewIIIReport: 100, reviewIIIViva: '' },
+    } as any);
+    expect(incomplete.grade.letter).toBe('U');
+  });
+
+  it('calculates Internship/Industrial Training Table 7 as 100% CA with the industry viva share', () => {
+    const result = calculateMarks({
+      id: 'internship-training',
+      name: 'Summer Internship',
+      code: 'BM23504',
+      courseType: 'internship-training',
+      internshipTrainingMarks: {
+        report: 100,
+        presentation: 100,
+        vivaVoce: 100,
+        industryViva: 100,
+      },
+    } as any);
+
+    expect(result.continuousAssessmentComponents?.map((component) => component.weight)).toEqual([40, 30, 20, 10]);
+    expect(result.total).toBe(100);
+    expect(result.eseWeight).toBe(0);
+    expect(result.grade.letter).toBe('S');
+    expect(getCourseType({ id: 'training-inference', name: 'Industrial Training – I' } as any)).toBe('internship-training');
+  });
+
+  it('assigns regulation-only mini-project and internship course mappings without altering lab/project courses', () => {
+    const expectedTypes: Array<[string, string, string]> = [
+      ['ECE', 'EC23702', 'mini-project'],
+      ['BME', 'BM23704', 'mini-project'],
+      ['BME', 'BM23504', 'internship-training'],
+      ['BME', 'BM23703', 'internship-training'],
+      ['MFG', 'MF23503', 'internship-training'],
+      ['MECH', 'ME23703', 'internship-training'],
+      ['PT', 'PP23704', 'internship-training'],
+      ['MINING', 'MI23505', 'internship-training'],
+      ['MINING', 'MI23705', 'internship-training'],
+      ['ECE', 'EC23801', 'project'],
+      ['EEE', 'EE23406', 'laboratory-course'],
+    ];
+
+    for (const [department, code, courseType] of expectedTypes) {
+      const preset = getPresetCourses(department).find((course) => course.code === code);
+      expect(preset?.courseType, `${department} ${code}`).toBe(courseType);
+    }
   });
 it('verifies explicit grade-based GPA calculation for a chosen semester', () => {
     const sem1Courses = CSE_GPA_COURSES.filter((c) => c.semester === 1);

@@ -112,6 +112,16 @@ function subjectMarksComplete(subject: SubjectData, allowEstimatedMarks = false)
 
   const courseType = getCourseType(subject);
   if (courseType === 'self-learning') return entered(subject.ese);
+  if (courseType === 'mini-project') {
+    const marks = subject.miniProjectMarks;
+    if (!marks) return false;
+    return [marks.reviewI, marks.reviewII, marks.reviewIIIReport, marks.reviewIIIViva].every(entered);
+  }
+  if (courseType === 'internship-training') {
+    const marks = subject.internshipTrainingMarks;
+    if (!marks) return false;
+    return [marks.report, marks.presentation, marks.vivaVoce, marks.industryViva].every(entered);
+  }
   if (courseType === 'laboratory-course') {
     return entered(subject.labCourseWorkMark) && entered(subject.labCourseMidtermMark) && entered(subject.labCourseExamMark);
   }

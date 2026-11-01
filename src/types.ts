@@ -29,6 +29,8 @@ export type CourseType =
   | 'theory'
   | 'project'
   | 'project-work'
+  | 'mini-project'
+  | 'internship-training'
   | 'self-development'
   | 'industry-oriented-tests'
   | 'universal-human-values'
@@ -45,6 +47,8 @@ export interface SubjectData {
   semester?: number;
   courseType?: CourseType;
   projectWorkMarks?: ProjectWorkMarks;
+  miniProjectMarks?: MiniProjectMarks;
+  internshipTrainingMarks?: InternshipTrainingMarks;
   selfLearningPassMark?: number | string;
   labCourseWorkMark?: number | string;
   labCourseMidtermMark?: number | string;
@@ -88,10 +92,32 @@ export interface ProjectWorkMarks {
   vivaInternal: number | string;
 }
 
+export interface MiniProjectMarks {
+  reviewI: number | string;
+  reviewII: number | string;
+  reviewIIIReport: number | string;
+  reviewIIIViva: number | string;
+}
+
+export interface InternshipTrainingMarks {
+  report: number | string;
+  presentation: number | string;
+  vivaVoce: number | string;
+  industryViva: number | string;
+}
+
 export interface ProjectWorkComponentResult {
   key: keyof ProjectWorkMarks;
   label: string;
   section: 'Continuous Assessment' | 'End-Semester Examination';
+  weight: number;
+  score: number;
+  contribution: number;
+}
+
+export interface ContinuousAssessmentComponentResult {
+  key: string;
+  label: string;
   weight: number;
   score: number;
   contribution: number;
@@ -135,6 +161,7 @@ export interface CalculationBreakdown {
   // Academic Grade
   grade: GradeInfo;
   projectWorkComponents?: ProjectWorkComponentResult[];
+  continuousAssessmentComponents?: ContinuousAssessmentComponentResult[];
 }
 
 export interface GradeInfo {

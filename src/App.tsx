@@ -6,7 +6,7 @@ import React, {
   useCallback,
 } from "react";
 import { onAuthStateChanged, signOut, type User } from "firebase/auth";
-import { AcademicProfileData, Department, SubjectData } from "./types";
+import { AcademicProfileData, Department, InternshipTrainingMarks, MiniProjectMarks, SubjectData } from "./types";
 import {
   DEFAULT_SUBJECT,
   calculateMarks,
@@ -41,6 +41,7 @@ import {
   type SemesterElectiveRow,
 } from "./components/SemesterCourseDashboard";
 import { ProjectWorkAssessmentSection } from "./components/ProjectWorkAssessmentSection";
+import { ContinuousAssessmentMarksSection } from "./components/ContinuousAssessmentMarksSection";
 import {
   applyEstimatedScores,
   GPACalculator,
@@ -357,6 +358,12 @@ function hasEnteredSubjectMarks(subject: SubjectData): boolean {
       ...subject.lab2Scores,
     ].some((value) => value !== "" && value !== null && value !== undefined) ||
     Object.values(subject.projectWorkMarks ?? {}).some(
+      (value) => value !== "" && value !== null && value !== undefined
+    ) ||
+    Object.values(subject.miniProjectMarks ?? {}).some(
+      (value) => value !== "" && value !== null && value !== undefined
+    ) ||
+    Object.values(subject.internshipTrainingMarks ?? {}).some(
       (value) => value !== "" && value !== null && value !== undefined
     )
   );
@@ -1443,6 +1450,30 @@ function AuthenticatedApp({
       incompleteMessage =
         "Enter the final mark from the approved Self-Learning Course provider.";
     } else if (
+      calculationType === "mini-project" &&
+      (!subjectSnapshot.miniProjectMarks ||
+        [
+          subjectSnapshot.miniProjectMarks.reviewI,
+          subjectSnapshot.miniProjectMarks.reviewII,
+          subjectSnapshot.miniProjectMarks.reviewIIIReport,
+          subjectSnapshot.miniProjectMarks.reviewIIIViva,
+        ].some((mark) => !hasMark(mark)))
+    ) {
+      incompleteMessage =
+        "Enter Review I, Review II, and both Review III component marks before calculating.";
+    } else if (
+      calculationType === "internship-training" &&
+      (!subjectSnapshot.internshipTrainingMarks ||
+        [
+          subjectSnapshot.internshipTrainingMarks.report,
+          subjectSnapshot.internshipTrainingMarks.presentation,
+          subjectSnapshot.internshipTrainingMarks.vivaVoce,
+          subjectSnapshot.internshipTrainingMarks.industryViva,
+        ].some((mark) => !hasMark(mark)))
+    ) {
+      incompleteMessage =
+        "Enter the report, presentation, department viva, and industry representative viva marks before calculating.";
+    } else if (
       calculationType === "universal-human-values" &&
       (!hasMark(subjectSnapshot.test1) ||
         Number(subjectSnapshot.act1No) < 1 ||
@@ -1476,6 +1507,8 @@ function AuthenticatedApp({
         "Enter all review, project-report, and viva marks before calculating.";
     } else if (
       calculationType !== "self-learning" &&
+      calculationType !== "mini-project" &&
+      calculationType !== "internship-training" &&
       calculationType !== "universal-human-values" &&
       calculationType !== "laboratory-course" &&
       calculationType !== "project" &&
@@ -2682,6 +2715,46 @@ function AuthenticatedApp({
                               />
                             </div>
                           </div>
+                        ) : breakdown.courseType === "mini-project" ? (
+                          <ContinuousAssessmentMarksSection<MiniProjectMarks>
+                            title="Mini-Project assessment — Table 8"
+                            description="Enter each component score out of 100. Review I and Review II are 25% each; Review III is split into Report (30%) and Viva-Voce (20%). This course is assessed entirely through continuous assessment."
+                            fields={[
+                              { key: "reviewI", label: "Review I", weight: 25 },
+                              { key: "reviewII", label: "Review II", weight: 25 },
+                              { key: "reviewIIIReport", label: "Review III — Report", weight: 30 },
+                              { key: "reviewIIIViva", label: "Review III — Viva-Voce", weight: 20 },
+                            ]}
+                            marks={currentSubject.miniProjectMarks ?? {
+                              reviewI: "",
+                              reviewII: "",
+                              reviewIIIReport: "",
+                              reviewIIIViva: "",
+                            }}
+                            onMarksChange={(miniProjectMarks) =>
+                              updateCurrentSubject({ miniProjectMarks })
+                            }
+                          />
+                        ) : breakdown.courseType === "internship-training" ? (
+                          <ContinuousAssessmentMarksSection<InternshipTrainingMarks>
+                            title="Internship / Industrial Training assessment — Table 7"
+                            description="Enter each component score out of 100. Report is 40%, Presentation is 30%, and Viva-Voce is 30%, including the industry representative's 10% contribution. This course is assessed entirely through continuous assessment."
+                            fields={[
+                              { key: "report", label: "Report", weight: 40 },
+                              { key: "presentation", label: "Presentation", weight: 30 },
+                              { key: "vivaVoce", label: "Viva-Voce — Department", weight: 20 },
+                              { key: "industryViva", label: "Viva-Voce — Industry representative", weight: 10 },
+                            ]}
+                            marks={currentSubject.internshipTrainingMarks ?? {
+                              report: "",
+                              presentation: "",
+                              vivaVoce: "",
+                              industryViva: "",
+                            }}
+                            onMarksChange={(internshipTrainingMarks) =>
+                              updateCurrentSubject({ internshipTrainingMarks })
+                            }
+                          />
                         ) : breakdown.courseType === "project-work" ||
                           breakdown.courseType === "project" ? (
                           <ProjectWorkAssessmentSection

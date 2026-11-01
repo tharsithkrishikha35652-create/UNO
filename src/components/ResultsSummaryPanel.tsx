@@ -64,6 +64,8 @@ export const ResultsSummaryPanel: React.FC<ResultsSummaryPanelProps> = ({
   const isHeritageCourse = breakdown.courseType === 'heritage-course';
   const projectWorkComponents = breakdown.projectWorkComponents ?? [];
   const hasProjectWorkComponents = Boolean(breakdown.projectWorkComponents);
+  const continuousAssessmentComponents = breakdown.continuousAssessmentComponents ?? [];
+  const hasContinuousAssessmentComponents = Boolean(breakdown.continuousAssessmentComponents);
   const assessmentOneName = isIndustryOrientedTests
     ? 'Mid Term Test'
     : isStandardsCourse
@@ -112,7 +114,14 @@ export const ResultsSummaryPanel: React.FC<ResultsSummaryPanelProps> = ({
         { label: `Assignment 1 (${act1Count})`, weight: '15%', rawMarks: `${act1Sum.toFixed(2)} / ${act1Count * 10}`, contribution: `${breakdown.act1_p.toFixed(2)} / 15` },
         { label: `Assignment 2 (${act2Count})`, weight: '15%', rawMarks: `${act2Sum.toFixed(2)} / ${act2Count * 10}`, contribution: `${breakdown.act2_p.toFixed(2)} / 15` },
       ]
-    : isLaboratoryCourse
+      : hasContinuousAssessmentComponents
+        ? continuousAssessmentComponents.map((component) => ({
+            label: component.label,
+            weight: `${component.weight}%`,
+            rawMarks: `${component.score.toFixed(2)} / 100`,
+            contribution: `${component.contribution.toFixed(2)} / ${component.weight}`,
+          }))
+      : isLaboratoryCourse
       ? [
           { label: 'Work, observation and record', weight: '45%', rawMarks: `${Number(subject.labCourseWorkMark || 0).toFixed(2)} / 100`, contribution: `${breakdown.lab1_p.toFixed(2)} / 45` },
           { label: 'Midterm practical test', weight: '15%', rawMarks: `${Number(subject.labCourseMidtermMark || 0).toFixed(2)} / 100`, contribution: `${breakdown.test1_p.toFixed(2)} / 15` },
@@ -171,6 +180,24 @@ export const ResultsSummaryPanel: React.FC<ResultsSummaryPanelProps> = ({
         `Indicative outcome: ${breakdown.grade.letter}`,
       ].join('\n');
       navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+      return;
+    }
+    if (hasContinuousAssessmentComponents) {
+      const isMiniProject = breakdown.courseType === 'mini-project';
+      const title = isMiniProject ? 'Mini-Project — Regulation 17.10' : 'Internship / Industrial Training — Regulation 17.9';
+      navigator.clipboard.writeText([
+        title,
+        `Course: ${subject.name}`,
+        'Continuous Assessment (100%)',
+        ...continuousAssessmentComponents.map((component) =>
+          `- ${component.label}: ${component.score.toFixed(2)} / 100 × ${component.weight}% = ${component.contribution.toFixed(2)}`
+        ),
+        `Continuous Assessment total: ${breakdown.total.toFixed(2)} / 100`,
+        `Indicative outcome: ${breakdown.grade.letter}`,
+        'End-Semester Examination: None',
+      ].join('\n'));
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
       return;
@@ -437,6 +464,35 @@ Final grade: Grade ${breakdown.grade.letter} - ${breakdown.grade.label} | Grade 
               <td className="px-4 py-3 text-center">{Number(subject.selfLearningPassMark) === 40 ? 40 : 50}%</td>
               <td className="px-4 py-3 text-right font-bold tabular-nums font-numeric">{Number(subject.ese || 0).toFixed(2)} / 100</td>
               <td className="px-4 py-3 text-right font-black">{breakdown.grade.letter}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      ) : hasContinuousAssessmentComponents ? (
+      <div className="hidden overflow-x-auto rounded-xl border border-[#2d2d33] bg-[#1a1a1d] sm:block">
+        <table className="w-full min-w-[440px] border-collapse text-left text-sm">
+          <thead className="border-b border-[#2d2d33] bg-[#222226] text-xs font-bold text-[#f1f1f3]">
+            <tr>
+              <th className="px-4 py-3">Continuous assessment component</th>
+              <th className="px-4 py-3 text-center">Weight</th>
+              <th className="px-4 py-3 text-right">Score / 100</th>
+              <th className="px-4 py-3 text-right">Contribution</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-[#2d2d33] text-[#e4e4e7]">
+            {continuousAssessmentComponents.map((component) => (
+              <tr key={component.key} className="hover:bg-[#232328] transition-colors">
+                <td className="px-4 py-3 font-semibold">{component.label}</td>
+                <td className="px-4 py-3 text-center font-bold">{component.weight}%</td>
+                <td className="px-4 py-3 text-right tabular-nums font-numeric">{component.score.toFixed(2)} / 100</td>
+                <td className="px-4 py-3 text-right font-black tabular-nums font-numeric">{component.contribution.toFixed(2)} / {component.weight}</td>
+              </tr>
+            ))}
+            <tr className="border-t-2 border-[#d97757]/60 bg-[#271d1a] font-black text-[#f1f1f3]">
+              <td className="px-4 py-3">Continuous Assessment total</td>
+              <td className="px-4 py-3 text-center">100%</td>
+              <td className="px-4 py-3 text-right">—</td>
+              <td className="px-4 py-3 text-right tabular-nums font-numeric">{breakdown.total.toFixed(2)} / 100</td>
             </tr>
           </tbody>
         </table>
