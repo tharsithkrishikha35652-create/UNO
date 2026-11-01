@@ -13,6 +13,7 @@
     "@capacitor-firebase/authentication": "^8.5.2",
     "@capacitor/android": "^8.5.3",
     "@capacitor/core": "^8.5.3",
+    "@capacitor/splash-screen": "^8.0.2",
     "firebase": "^13.0.0",
     "framer-motion": "^12.42.0",
     "lucide-react": "^0.544.0",

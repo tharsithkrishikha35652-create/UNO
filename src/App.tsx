@@ -56,7 +56,12 @@ import {
   ProfileDrawer,
 } from "./components/AcademicProfile";
 import { StickyResultSummary } from "./components/StickyResultSummary";
+import { createPortal } from "react-dom";
 import { ThemeToggle, type AppTheme } from "./components/ThemeToggle";
+import CalCreditLogo from "./components/CalCreditLogo";
+import LaunchSequence from "./components/LaunchSequence";
+import darkScholarBg from "./assets/dark-scholar-bg.png";
+import warmScholarBg from "./assets/warm-scholar-bg.png";
 import { CGPAHub } from "./components/CGPAHub";
 import { GPA_COURSES, getGpaCourses, getAllGpaCourses } from "./gpaCourses";
 import { AuthScreen } from "./components/AuthScreen";
@@ -442,6 +447,7 @@ export default function App() {
     });
   const [signOutPending, setSignOutPending] = useState(false);
   const [signOutError, setSignOutError] = useState("");
+  const [launching, setLaunching] = useState(true);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -530,8 +536,9 @@ export default function App() {
 
   const handleExitGuest = () => setGuestMode(false);
 
+  let content: React.ReactNode;
   if (guestMode) {
-    return (
+    content = (
       <AuthenticatedApp
         key={`guest-session-${guestDepartment}`}
         user={null}
@@ -545,10 +552,8 @@ export default function App() {
         onToggleTheme={toggleTheme}
       />
     );
-  }
-
-  if (!firebaseConfigReady || !auth) {
-    return (
+  } else if (!firebaseConfigReady || !auth) {
+    content = (
       <AuthScreen
         configurationError="Firebase is not configured. Account sign-in is unavailable, but you can continue as a guest."
         forceGoogleAccountSelection={forceGoogleAccountSelection}
@@ -557,13 +562,10 @@ export default function App() {
         onToggleTheme={toggleTheme}
       />
     );
-  }
-
-  if (!authResolved)
-    return <WorkspaceLoading message="Checking your sign-in…" />;
-
-  if (authError) {
-    return (
+  } else if (!authResolved) {
+    content = <WorkspaceLoading message="Checking your sign-in…" />;
+  } else if (authError) {
+    content = (
       <main className="min-h-screen bg-transparent flex items-center justify-center p-6">
         <section
           className="max-w-lg w-full bg-white border border-rose-200 p-6 shadow-sm text-sm text-rose-900"
@@ -580,10 +582,8 @@ export default function App() {
         </section>
       </main>
     );
-  }
-
-  if (!user)
-    return (
+  } else if (!user) {
+    content = (
       <AuthScreen
         forceGoogleAccountSelection={forceGoogleAccountSelection}
         onContinueAsGuest={handleContinueAsGuest}
@@ -591,19 +591,36 @@ export default function App() {
         onToggleTheme={toggleTheme}
       />
     );
+  } else {
+    content = (
+      <AuthenticatedApp
+        key={user.uid}
+        user={user}
+        guestMode={false}
+        onSignOut={handleSignOut}
+        onExitGuest={handleExitGuest}
+        signOutPending={signOutPending}
+        signOutError={signOutError}
+        theme={theme}
+        onToggleTheme={toggleTheme}
+      />
+    );
+  }
 
   return (
-    <AuthenticatedApp
-      key={user.uid}
-      user={user}
-      guestMode={false}
-      onSignOut={handleSignOut}
-      onExitGuest={handleExitGuest}
-      signOutPending={signOutPending}
-      signOutError={signOutError}
-      theme={theme}
-      onToggleTheme={toggleTheme}
-    />
+    <>
+      {content}
+      {launching &&
+        createPortal(
+          <LaunchSequence
+            ready={authResolved}
+            onDone={() => setLaunching(false)}
+            darkBg={darkScholarBg}
+            lightBg={warmScholarBg}
+          />,
+          document.body
+        )}
+    </>
   );
 }
 
@@ -1872,23 +1889,9 @@ function AuthenticatedApp({
               aria-controls={
                 isProfileOpen ? "academic-profile-drawer" : undefined
               }
-              className="flex min-w-0 shrink items-center gap-2 !bg-transparent bg-transparent border-0 shadow-none text-left text-base font-black tracking-tight text-[#172554] transition-opacity hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#172554] sm:text-xl"
+              className="flex min-w-0 shrink-0 items-center gap-2 !bg-transparent bg-transparent border-0 shadow-none text-left transition-opacity hover:opacity-85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#172554] cursor-pointer"
             >
-              <span className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-[#172554] text-blue-100">
-                <span
-                  className="text-sm font-black tracking-[-0.12em]"
-                  aria-hidden="true"
-                >
-                  CC
-                </span>
-                <span
-                  className="absolute bottom-1.5 h-0.5 w-2 rounded-full bg-cyan-300"
-                  aria-hidden="true"
-                />
-              </span>
-              <span className="flex min-w-0 flex-col leading-tight">
-                <span className="tracking-[0.08em]">CalCredit</span>
-              </span>
+              <CalCreditLogo markSize={30} wordHeight={18} gap={7} />
             </button>
 
             <div className="hidden min-w-0 max-w-44 items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 sm:flex">

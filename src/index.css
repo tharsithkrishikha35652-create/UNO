@@ -56,6 +56,9 @@
 }
 
 :root {
+  --cc-cal: #E23B22;
+  --cc-credit: #1B1815;
+  --cc-dot: #E89B00;
   --font-primary: "Figtree", "Figtree Variable", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-numeric: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-editorial: "Newsreader", Georgia, "Times New Roman", serif;
@@ -82,7 +85,11 @@
   --app-soft-accent: #f3e5db;
 }
 
-:root[data-theme="dark"] {
+:root[data-theme="dark"],
+[data-theme="dark"] {
+  --cc-cal: #F0482E;
+  --cc-credit: #F5EEDC;
+  --cc-dot: #FFD23F;
   color-scheme: dark;
   accent-color: #e08564;
   --app-background: #161618;

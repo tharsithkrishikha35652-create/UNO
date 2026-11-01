@@ -4,6 +4,7 @@ import { Check, ChevronDown, LoaderCircle, LogOut, MessageSquare, TablePropertie
 import type { AcademicProfileData } from '../types';
 import type { SemesterNumber } from './SubjectSelectionDialog';
 import { ThemeToggle, type AppTheme } from './ThemeToggle';
+import CalCreditLogo from './CalCreditLogo';
 import { motionVariants, transitions } from '../motion';
 
 export interface AcademicProfileFormValues extends AcademicProfileData {
@@ -347,14 +348,10 @@ export const AcademicSetupScreen: React.FC<AcademicSetupScreenProps> = ({ theme,
   <main className="min-h-screen bg-transparent px-4 py-8 text-slate-900 sm:px-6 sm:py-12">
     <section className="mx-auto w-full max-w-xl rounded-2xl border border-slate-300 bg-white p-5 shadow-sm sm:p-8">
       <div className="mb-7 flex items-start justify-between gap-3 border-b border-slate-200 pb-5">
-        <div className="flex min-w-0 items-start gap-3">
-          <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#172554] text-blue-100">
-            <span className="text-base font-black tracking-[-0.12em]" aria-hidden="true">CC</span>
-            <span className="absolute bottom-1.5 h-0.5 w-2 rounded-full bg-cyan-300" aria-hidden="true" />
-          </span>
+        <div className="flex min-w-0 flex-col gap-2">
+          <CalCreditLogo markSize={36} wordHeight={22} />
           <div>
-            <p className="text-[11px] font-bold tracking-[0.08em] text-blue-800">CalCredit</p>
-            <h1 className="mt-1 text-xl font-black text-[#172554] sm:text-2xl">Academic Setup</h1>
+            <h1 className="text-xl font-black text-[#172554] sm:text-2xl">Academic Setup</h1>
             <p className="mt-1 max-w-prose text-xs text-slate-600">Add your academic details to personalize your course workspace.</p>
           </div>
         </div>
@@ -471,15 +468,18 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
       >
         <header className="flex items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
           <div className="flex items-center gap-2.5">
-            <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#172554] text-blue-100">
-              <span className="text-xs font-black tracking-[-0.12em]" aria-hidden="true">CC</span>
-              <span className="absolute bottom-1 h-0.5 w-1.5 rounded-full bg-cyan-300" aria-hidden="true" />
-            </span>
-            <div>
-              <h2 id="academic-profile-title" className="text-sm font-black text-[#172554]">
-                {editing ? 'Edit Profile' : 'CalCredit'}
+            {editing ? (
+              <>
+                <CalCreditLogo markSize={32} wordHeight={0} />
+                <h2 id="academic-profile-title" className="text-sm font-black text-[#172554]">
+                  Edit Profile
+                </h2>
+              </>
+            ) : (
+              <h2 id="academic-profile-title" className="flex items-center">
+                <CalCreditLogo markSize={32} wordHeight={20} />
               </h2>
-            </div>
+            )}
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <ThemeToggle theme={theme} onToggle={onToggleTheme} />
