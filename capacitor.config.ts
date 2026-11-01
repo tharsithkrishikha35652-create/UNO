@@ -9,6 +9,10 @@ const config: CapacitorConfig = {
       skipNativeAuth: false,
       providers: ['google.com'],
     },
+    SplashScreen: {
+      launchAutoHide: false,
+      backgroundColor: '#14110F',
+    },
   },
 };
 

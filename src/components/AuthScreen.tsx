@@ -14,6 +14,7 @@ import { AlertCircle, BookOpen, Check, Eye, EyeOff, LoaderCircle, X } from 'luci
 import { auth } from '../firebase';
 import { ThemeToggle, type AppTheme } from './ThemeToggle';
 import { motionVariants } from '../motion';
+import CalCreditLogo from './CalCreditLogo';
 
 interface AuthScreenProps {
   configurationError?: string;
@@ -167,15 +168,17 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
         animate="animate"
       >
         <div className="bg-[#172554] text-white px-5 py-5 flex items-center justify-between gap-3 sm:px-6">
-          <div className="flex min-w-0 items-center gap-3">
-            <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-white text-[#172554]">
-              <span className="text-base font-black tracking-[-0.12em]" aria-hidden="true">CC</span>
-              <span className="absolute bottom-1.5 h-0.5 w-2 rounded-full bg-cyan-500" aria-hidden="true" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[11px] font-bold tracking-[0.08em] text-blue-100">CalCredit</p>
-              <h1 className="text-base font-black sm:text-lg">Academic Marks Calculator</h1>
-            </div>
+          <div className="flex min-w-0 flex-col gap-1.5">
+            <CalCreditLogo
+              markSize={36}
+              wordHeight={22}
+              style={{
+                '--cc-credit': '#F5EEDC',
+                '--cc-cal': '#F0482E',
+                '--cc-dot': '#FFD23F',
+              } as React.CSSProperties}
+            />
+            <h1 className="text-base font-black sm:text-lg">Academic Marks Calculator</h1>
           </div>
           <ThemeToggle theme={theme} onToggle={onToggleTheme} className="border-white/30 bg-white/10 text-white hover:bg-white/20" />
         </div>
