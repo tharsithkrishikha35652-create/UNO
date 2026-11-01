@@ -73,6 +73,13 @@ import { GPA_COURSES, getGpaCourses, getAllGpaCourses } from "./gpaCourses";
 import { AuthScreen } from "./components/AuthScreen";
 import { FeedbackHub } from "./components/FeedbackHub";
 import { CreditsScreen } from "./components/CreditsScreen";
+import { ForceUpdateScreen } from "./components/ForceUpdateScreen";
+import {
+  CURRENT_APP_VERSION,
+  fetchAppVersionConfig,
+  isVersionOutdated,
+  type AppVersionConfig,
+} from "./versionUtils";
 import { auth, firebaseConfigReady } from "./firebase";
 import {
   importLegacySubjects,
@@ -516,6 +523,16 @@ export default function App() {
   const [signOutPending, setSignOutPending] = useState(false);
   const [signOutError, setSignOutError] = useState("");
   const [launching, setLaunching] = useState(true);
+  const [versionConfig, setVersionConfig] = useState<AppVersionConfig | null>(null);
+
+  const checkVersion = useCallback(async () => {
+    const cfg = await fetchAppVersionConfig();
+    setVersionConfig(cfg);
+  }, []);
+
+  useEffect(() => {
+    checkVersion();
+  }, [checkVersion]);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -603,6 +620,21 @@ export default function App() {
   };
 
   const handleExitGuest = () => setGuestMode(false);
+
+  const isOutdated = Boolean(
+    versionConfig && isVersionOutdated(CURRENT_APP_VERSION, versionConfig.minimumVersion)
+  );
+  const isMaintenance = Boolean(versionConfig?.maintenanceMode);
+
+  if (isOutdated || isMaintenance) {
+    return (
+      <ForceUpdateScreen
+        currentVersion={CURRENT_APP_VERSION}
+        config={versionConfig!}
+        onRetry={checkVersion}
+      />
+    );
+  }
 
   let content: React.ReactNode;
   if (guestMode) {
@@ -3447,6 +3479,7 @@ function AuthenticatedApp({
         onOpenCredits={handleOpenCredits}
         onLogout={handleProfileLogout}
         logoutPending={signOutPending}
+        appVersion={CURRENT_APP_VERSION}
       />
 
       {/* Subject Selection Modal Dialog Box */}

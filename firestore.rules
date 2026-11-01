@@ -94,5 +94,10 @@ service cloud.firestore {
         );
       allow delete: if false;
     }
+
+    match /app_config/{configId} {
+      allow read: if true;
+      allow write: if isFeedbackAdmin();
+    }
   }
 }

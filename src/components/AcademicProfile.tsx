@@ -6,6 +6,7 @@ import type { SemesterNumber } from './SubjectSelectionDialog';
 import { ThemeToggle, type AppTheme } from './ThemeToggle';
 import CalCreditLogo from './CalCreditLogo';
 import { motionVariants, transitions } from '../motion';
+import { CURRENT_APP_VERSION } from '../versionUtils';
 
 export interface AcademicProfileFormValues extends AcademicProfileData {
   selectedSemester: SemesterNumber;
@@ -372,6 +373,7 @@ interface ProfileDrawerProps extends Omit<AcademicProfileFormProps, 'submitLabel
   onOpenCredits: () => void;
   onLogout: () => void;
   logoutPending: boolean;
+  appVersion?: string;
 }
 
 const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
@@ -389,6 +391,7 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
   onOpenCredits,
   onLogout,
   logoutPending,
+  appVersion = CURRENT_APP_VERSION,
 }) => {
   const reduceMotion = useReducedMotion();
   const [editing, setEditing] = useState(false);
@@ -640,6 +643,11 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
                   </div>
                 </div>
               </button>
+
+              {/* 10. App Version Explanatory Text */}
+              <p className="text-center text-xs text-slate-400 font-medium pt-1">
+                CalCredit <span className="font-mono font-semibold text-slate-500">v{appVersion}</span>
+              </p>
 
             </>
           )}
