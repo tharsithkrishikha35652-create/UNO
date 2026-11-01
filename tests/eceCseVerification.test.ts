@@ -37,6 +37,7 @@ import {
 } from '../src/components/SubjectSelectionDialog';
 import { getCourseWeights, getCourseType, calculateMarks, isGhostPlaceholderCourse } from '../src/calculatorUtils';
 import { DEPARTMENT_OPTIONS } from '../src/components/AcademicProfile';
+import { isVersionOutdated } from '../src/versionUtils';
 
 describe('Department Course & Curriculum Verification', () => {
   it('verifies CSE total credits is 171 and individual semesters match exactly', () => {
@@ -677,5 +678,16 @@ it('verifies explicit grade-based GPA calculation for a chosen semester', () => 
     const sortedLabels = [...labels].sort((a, b) => a.localeCompare(b));
     expect(labels).toEqual(sortedLabels);
     expect(labels.length).toBe(14);
+  });
+
+  it('verifies version gate comparison semantics correctly block outdated versions', () => {
+    expect(isVersionOutdated('1.0.0', '1.0.0')).toBe(false);
+    expect(isVersionOutdated('1.0.0', '1.0.1')).toBe(true);
+    expect(isVersionOutdated('1.0.1', '1.0.0')).toBe(false);
+    expect(isVersionOutdated('1.0.9', '1.1.0')).toBe(true);
+    expect(isVersionOutdated('1.9.0', '1.10.0')).toBe(true);
+    expect(isVersionOutdated('1.10.0', '1.9.0')).toBe(false);
+    expect(isVersionOutdated('v1.0.0', '1.0.1')).toBe(true);
+    expect(isVersionOutdated('1.0.0', '')).toBe(false);
   });
 });
