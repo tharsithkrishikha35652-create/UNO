@@ -413,7 +413,6 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
   const totalWeightedPoints = rows.reduce((sum, row) => sum + (row.weightedPoints ?? 0), 0);
   const gpa = totalCredits ? totalWeightedPoints / totalCredits : 0;
   const completedCourses = rows.filter((row) => row.complete).length;
-  const incompleteCourses = rows.filter((row) => !row.complete);
   const totalSemesterCourses = rows.length;
   const hasCalculated = gpaReady && (
     (calculatedInputSignature === inputSignature && calculationState === 'success') ||
@@ -614,14 +613,6 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
           <p className="text-xs font-bold text-[#172554] mt-3" aria-live="polite">
             {completedCourses} of {totalSemesterCourses} courses complete
           </p>
-          {incompleteCourses.length > 0 && (
-            <div className="mt-2 rounded-lg border border-slate-300 bg-slate-50 dark:bg-[#242429] dark:border-[#3a3a42] dark:text-[#c4c4cc] px-3 py-2.5 text-xs leading-relaxed text-slate-600" role="status">
-              <span className="font-bold text-slate-800 dark:text-[#f1f1f3]">Still missing marks: </span>
-              {incompleteCourses.slice(0, 3).map((course) => course.name).join(', ')}
-              {incompleteCourses.length > 3 ? ` and ${incompleteCourses.length - 3} more` : ''}.
-              <span className="block mt-1">Complete these courses before calculating GPA. Your GPA is not calculated from incomplete marks.</span>
-            </div>
-          )}
       </div>
 
       <div className="rounded-xl bg-white border border-slate-300 shadow-xs overflow-hidden">
@@ -639,7 +630,6 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
                 <tr key={`${row.semester}-${row.code || row.name}`} className="hover:bg-slate-50">
                   <td className="px-4 py-3">
                     <p className="font-bold text-[#172554]">{row.name}</p>
-                    <p className="text-xs text-slate-500">{row.code}</p>
                   </td>
                   <td className="px-4 py-3 text-center tabular-nums font-numeric">{row.credits}</td>
                   <td className="px-4 py-3 text-center">
@@ -749,7 +739,6 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
                     <tr key={row.code} className="hover:bg-slate-50/80 transition-colors">
                       <td className="px-4 py-3.5 sm:px-5">
                         <p className="font-bold text-[#172554]">{row.name}</p>
-                        <p className="text-xs font-mono text-slate-500">{row.code}</p>
                       </td>
                       <td className="px-4 py-3.5 text-center tabular-nums font-numeric font-semibold text-slate-700">{row.credits}</td>
                       <td className="px-4 py-3.5 text-center tabular-nums font-numeric text-slate-700">
@@ -920,7 +909,6 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
                           <span className="tabular-nums font-numeric">{course.credits}</span> Credits
                         </span>
                       </div>
-                      <p className="text-xs text-slate-400 font-mono mt-0.5">{course.code || 'Elective Course'}</p>
                     </div>
 
                     {/* Grade Selector Button Group */}
