@@ -3254,6 +3254,7 @@ function AuthenticatedApp({
         onOpenCredits={handleOpenCredits}
         onLogout={handleProfileLogout}
         logoutPending={signOutPending}
+        appVersion={CURRENT_APP_VERSION}
       />
 
       {/* Subject Selection Modal Dialog Box */}
