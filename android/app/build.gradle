@@ -44,8 +44,15 @@ dependencies {
     // Import the Firebase BoM
     implementation platform('com.google.firebase:firebase-bom:33.5.1')
 
-    // Firebase Analytics
+    // Firebase Analytics & Auth
     implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-auth'
+
+    // Google Sign-In & Credential Manager
+    implementation 'com.google.android.gms:play-services-auth:21.3.0'
+    implementation 'androidx.credentials:credentials:1.3.0'
+    implementation 'androidx.credentials:credentials-play-services-auth:1.3.0'
+    implementation 'com.google.android.libraries.identity.googleid:googleid:1.1.1'
 }
 
 apply from: 'capacitor.build.gradle'

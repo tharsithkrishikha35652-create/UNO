@@ -62,7 +62,7 @@ captures/
 .cxx/
 
 # Firebase client configuration: provide locally; do not commit it.
-app/google-services.json
+# app/google-services.json
 
 # Freeline
 freeline.py
