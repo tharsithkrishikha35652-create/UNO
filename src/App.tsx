@@ -699,14 +699,14 @@ export default function App() {
     content = (
       <main className="min-h-screen bg-transparent flex items-center justify-center p-6">
         <section
-          className="max-w-lg w-full bg-white border border-rose-200 p-6 shadow-sm text-sm text-rose-900"
+          className="max-w-lg w-full bg-white border border-rose-200 p-6 shadow-sm rounded-2xl text-sm text-rose-900"
           role="alert"
         >
           {authError}
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="mt-4 block bg-[#172554] px-4 py-2.5 text-xs font-bold text-white"
+            className="mt-4 block bg-[#172554] px-4 py-2.5 text-xs font-bold text-white rounded-xl cursor-pointer hover:bg-[#1e3a8a] transition-colors"
           >
             Reload
           </button>
@@ -2086,7 +2086,7 @@ function AuthenticatedApp({
   if (dataError) {
     return (
       <main className="min-h-screen bg-transparent flex items-center justify-center p-6">
-        <section className="max-w-lg w-full bg-white border border-slate-300 p-6 shadow-sm">
+        <section className="max-w-lg w-full bg-white border border-slate-300 p-6 shadow-sm rounded-2xl">
           <div className="flex items-start gap-3 text-rose-900">
             <AlertCircle
               className="w-5 h-5 mt-0.5 shrink-0"
@@ -2100,14 +2100,14 @@ function AuthenticatedApp({
             <button
               type="button"
               onClick={() => setLoadAttempt((count) => count + 1)}
-              className="bg-[#172554] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#1e3a8a]"
+              className="bg-[#172554] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#1e3a8a] rounded-xl cursor-pointer transition-colors"
             >
               Retry
             </button>
             <button
               type="button"
               onClick={onSignOut}
-              className="border border-slate-300 px-4 py-2.5 text-xs font-bold text-[#172554] hover:bg-slate-50"
+              className="border border-slate-300 px-4 py-2.5 text-xs font-bold text-[#172554] hover:bg-slate-50 rounded-xl cursor-pointer transition-colors"
             >
               Log out
             </button>
@@ -2471,7 +2471,7 @@ function AuthenticatedApp({
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-[calc(7.5rem+env(safe-area-inset-bottom))] md:pb-8">
         {signOutError && (
           <div
-            className="mb-5 border border-rose-200 bg-rose-50 p-3 text-sm text-rose-900"
+            className="mb-5 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-900"
             role="alert"
           >
             {signOutError}
@@ -2480,7 +2480,7 @@ function AuthenticatedApp({
 
         {user && !migrationResolved && legacySubjects.length > 0 && (
           <section
-            className="mb-6 border border-amber-300 bg-amber-50 p-4 sm:p-5"
+            className="mb-6 rounded-2xl border border-amber-300 bg-amber-50 p-4 sm:p-5"
             aria-labelledby="migration-heading"
           >
             <h2 id="migration-heading" className="font-black text-[#172554]">
@@ -2507,7 +2507,7 @@ function AuthenticatedApp({
                 type="button"
                 onClick={() => void handleImportLegacy()}
                 disabled={migrationBusy}
-                className="inline-flex items-center gap-2 bg-[#172554] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#1e3a8a] disabled:opacity-60"
+                className="inline-flex items-center gap-2 rounded-lg bg-[#172554] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#1e3a8a] disabled:opacity-60 cursor-pointer transition-colors"
               >
                 {migrationBusy && (
                   <LoaderCircle
@@ -2521,7 +2521,7 @@ function AuthenticatedApp({
                 type="button"
                 onClick={() => void handleSkipLegacy()}
                 disabled={migrationBusy}
-                className="border border-slate-400 bg-white px-4 py-2.5 text-xs font-bold text-[#172554] hover:bg-slate-50 disabled:opacity-60"
+                className="rounded-lg border border-slate-400 bg-white px-4 py-2.5 text-xs font-bold text-[#172554] hover:bg-slate-50 disabled:opacity-60 cursor-pointer transition-colors"
               >
                 Keep account separate
               </button>
@@ -2589,7 +2589,7 @@ function AuthenticatedApp({
                 {activeScreenKey === "calculator" && (
                   <div>
                     {selectedSemester === null && (
-                      <section className="mx-auto my-6 max-w-xl border border-slate-300 bg-white px-4 py-5 text-center shadow-sm sm:px-6 sm:py-6">
+                      <section className="mx-auto my-6 max-w-xl rounded-2xl border border-slate-300 bg-white px-4 py-5 text-center shadow-sm sm:px-6 sm:py-6">
                         <h1 className="text-lg font-black text-[#172554]">
                           Choose your semester
                         </h1>
@@ -2639,7 +2639,7 @@ function AuthenticatedApp({
                           </div>
                         )}
 
-                        <div className="relative mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 border border-slate-300 bg-white px-3 py-2.5">
+                        <div className="relative mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-slate-300 bg-white px-3 py-2.5">
                           <div className="inline-flex items-center gap-1.5">
                             <label className="inline-flex items-center gap-2 text-xs font-semibold text-[#172554] cursor-pointer">
                               <input
@@ -2751,7 +2751,7 @@ function AuthenticatedApp({
                                     )
                                   );
                                 }}
-                                className="w-14 border border-slate-300 bg-white px-1.5 py-1 text-center text-xs font-bold text-[#172554] font-numeric tabular-nums focus:border-[#172554]"
+                                className="w-14 rounded-md border border-slate-300 bg-white px-1.5 py-1 text-center text-xs font-bold text-[#172554] font-numeric tabular-nums focus:border-[#172554]"
                               />
                               <span>%</span>
                             </label>
@@ -2766,7 +2766,7 @@ function AuthenticatedApp({
 
                         {isLaboratoryCourse ? (
                           <section
-                            className="space-y-3 border border-slate-300 bg-white p-4 sm:p-5"
+                            className="space-y-3 rounded-2xl border border-slate-300 bg-white p-4 sm:p-5"
                             aria-labelledby="lab-course-heading"
                           >
                             <h3
@@ -2805,7 +2805,7 @@ function AuthenticatedApp({
                                         ),
                                 });
                               }}
-                              className="w-full max-w-xs border border-[#172554] bg-white px-3 py-2 text-base font-bold text-[#172554] font-numeric tabular-nums"
+                              className="w-full max-w-xs rounded-lg border border-[#172554] bg-white px-3 py-2 text-base font-bold text-[#172554] font-numeric tabular-nums"
                               placeholder="Score out of 100"
                             />
                             <label
@@ -2833,7 +2833,7 @@ function AuthenticatedApp({
                                         ),
                                 });
                               }}
-                              className="w-full max-w-xs border border-[#172554] bg-white px-3 py-2 text-base font-bold text-[#172554] font-numeric tabular-nums"
+                              className="w-full max-w-xs rounded-lg border border-[#172554] bg-white px-3 py-2 text-base font-bold text-[#172554] font-numeric tabular-nums"
                               placeholder="Score out of 100"
                             />
                             <label
@@ -2861,13 +2861,13 @@ function AuthenticatedApp({
                                         ),
                                 });
                               }}
-                              className="w-full max-w-xs border border-[#172554] bg-white px-3 py-2 text-base font-bold text-[#172554] font-numeric tabular-nums"
+                              className="w-full max-w-xs rounded-lg border border-[#172554] bg-white px-3 py-2 text-base font-bold text-[#172554] font-numeric tabular-nums"
                               placeholder="Score out of 100"
                             />
                           </section>
                         ) : isSelfLearning ? (
                           <section
-                            className="border border-slate-300 bg-white p-4 sm:p-5"
+                            className="rounded-2xl border border-slate-300 bg-white p-4 sm:p-5"
                             aria-labelledby="slc-result-heading"
                           >
                             <h3
@@ -2906,7 +2906,7 @@ function AuthenticatedApp({
                                         ),
                                 });
                               }}
-                              className="mt-1 w-full max-w-xs border border-[#172554] bg-white px-3 py-2 text-base font-bold text-[#172554] font-numeric tabular-nums"
+                              className="mt-1 w-full max-w-xs rounded-lg border border-[#172554] bg-white px-3 py-2 text-base font-bold text-[#172554] font-numeric tabular-nums"
                             />
                             <label
                               className="mt-4 flex max-w-sm flex-col gap-1 text-xs font-bold text-[#172554]"
@@ -2929,7 +2929,7 @@ function AuthenticatedApp({
                                     ),
                                   })
                                 }
-                                className="border border-slate-300 bg-white px-3 py-2 text-sm font-semibold normal-case"
+                                className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold normal-case"
                               >
                                 <option value={50}>
                                   Other approved provider — 50%
@@ -3290,7 +3290,7 @@ function AuthenticatedApp({
                       </div>
 
                       {breakdown.eseWeight <= 0 && (
-                      <div className="space-y-3 border border-slate-300 bg-white p-4">
+                      <div className="space-y-3 rounded-2xl border border-slate-300 bg-white p-4 sm:p-5 shadow-sm">
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                           <button
                             type="button"
@@ -3299,7 +3299,7 @@ function AuthenticatedApp({
                               calculationState === "calculating" ||
                               calculationState === "saving"
                             }
-                            className="inline-flex items-center justify-center gap-2 px-5 py-3 text-xs font-bold bg-[#172554] text-white hover:bg-[#1e3a8a] disabled:opacity-60 transition-colors cursor-pointer"
+                            className="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-xs font-bold bg-[#172554] text-white hover:bg-[#1e3a8a] disabled:opacity-60 transition-colors cursor-pointer"
                           >
                             {calculationState === "calculating" ||
                             calculationState === "saving" ? (
@@ -3363,15 +3363,15 @@ function AuthenticatedApp({
 
                 {activeScreenKey === "grades" && (
 <div className="max-w-4xl mx-auto">
-            <div className="bg-white border border-slate-300 p-3 sm:p-5 shadow-sm">
+            <div className="bg-white border border-slate-300 p-4 sm:p-6 shadow-sm rounded-2xl">
               <h2 className="text-lg font-black text-[#172554] mb-2">
                 Grading of Courses
               </h2>
-              <p className="mb-3 border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs text-amber-950">
+              <p className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs text-amber-950">
                 These mark bands are indicative only. Official grades may
                 differ.
               </p>
-              <div className="border border-slate-200">
+              <div className="rounded-xl border border-slate-200 overflow-hidden">
                 <table className="w-full table-fixed text-left text-sm border-collapse">
                   <thead>
                     <tr className="bg-[#172554] text-white border-b-2 border-[#172554] text-xs font-extrabold">

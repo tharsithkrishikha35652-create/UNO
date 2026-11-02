@@ -32,6 +32,20 @@ function friendlyAuthError(error: unknown, provider: 'email' | 'google' = 'email
   const code = typeof error === 'object' && error !== null && 'code' in error
     ? String(error.code)
     : '';
+  const message = typeof error === 'object' && error !== null && 'message' in error
+    ? String(error.message)
+    : '';
+
+  if (code === '10' || message.includes('10') || message.toLowerCase().includes('developer_error')) {
+    return 'Google Sign-In configuration error (Code 10). Make sure your SHA-1 fingerprint and google-services.json are added to the Firebase Console.';
+  }
+  if (code === '12500' || message.includes('12500')) {
+    return 'Google Sign-In failed (Code 12500). Verify your Google Play Services and Firebase project configuration.';
+  }
+  if (provider === 'google' && Capacitor.isNativePlatform() && (message.includes('default_web_client_id') || message.includes('No ID token') || message.includes('GetCredentialException') || message.includes('google-services'))) {
+    return 'Google Sign-In setup incomplete for APK. Add your SHA-1 fingerprint and google-services.json to the Firebase Console.';
+  }
+
   switch (code) {
     case 'auth/invalid-email':
       return 'Enter a valid email address.';
@@ -68,6 +82,9 @@ function friendlyAuthError(error: unknown, provider: 'email' | 'google' = 'email
     case '12500':
       return 'Google Sign-In failed (Code 12500). Verify your Google Play Services and Firebase project configuration.';
     default:
+      if (message) {
+        return `Authentication failed: ${message}`;
+      }
       return 'Authentication failed. Please try again.';
   }
 }
@@ -247,7 +264,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
   return (
     <main className="min-h-screen bg-transparent text-slate-900 flex items-center justify-center px-4 py-10">
       <motion.section
-        className="w-full max-w-md bg-white border border-slate-300 shadow-sm"
+        className="w-full max-w-md bg-white border border-slate-300 shadow-xl rounded-2xl overflow-hidden"
         variants={reduceMotion ? undefined : motionVariants.dialog}
         initial={reduceMotion ? false : 'initial'}
         animate="animate"
@@ -287,13 +304,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
           </p>
 
           {(configurationError || error) && (
-            <div className="mt-5 flex items-start gap-2.5 border border-rose-200 bg-rose-50 p-3 text-sm text-rose-900" role="alert">
+            <div className="mt-5 flex items-start gap-2.5 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-900" role="alert">
               <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" aria-hidden="true" />
               <span>{configurationError || error}</span>
             </div>
           )}
           {notice && (
-            <p className="mt-5 border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-900" role="status">
+            <p className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-900" role="status">
               {notice}
             </p>
           )}
@@ -308,7 +325,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
                   required
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
-                  className="w-full border border-slate-300 bg-white px-3 py-2.5 text-sm focus:border-[#172554]"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm focus:border-[#172554]"
                   placeholder="you@example.com"
                 />
               </label>
@@ -325,7 +342,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
                       minLength={mode === 'signup' ? 6 : undefined}
                       value={password}
                       onChange={(event) => setPassword(event.target.value)}
-                      className="w-full border border-slate-300 bg-white px-3 py-3 pr-11 text-sm focus:border-[#172554]"
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 pr-11 text-sm focus:border-[#172554]"
                       placeholder={mode === 'signup' ? 'At least 6 characters' : 'Your password'}
                     />
                     <button
@@ -344,7 +361,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
               <button
                 type="submit"
                 disabled={busy || !auth}
-                className="w-full inline-flex items-center justify-center gap-2 bg-[#172554] px-4 py-3 text-xs font-bold text-white hover:bg-[#1e3a8a] disabled:opacity-60 disabled:cursor-wait"
+                className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#172554] px-4 py-3 text-xs font-bold text-white hover:bg-[#1e3a8a] disabled:opacity-60 disabled:cursor-wait cursor-pointer transition-colors"
               >
                 {busy ? <LoaderCircle className="w-4 h-4 animate-spin" aria-hidden="true" /> : <BookOpen className="w-4 h-4" aria-hidden="true" />}
                 {busy ? 'Please wait…' : mode === 'signup' ? 'Create account' : mode === 'reset' ? 'Send reset link' : 'Log in'}
@@ -363,7 +380,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
                 type="button"
                 onClick={() => void handleGoogleSignIn()}
                 disabled={busy || googleBusy || !auth}
-                className="mt-4 w-full inline-flex items-center justify-center gap-3 border border-slate-300 bg-white px-4 py-3 text-xs font-bold text-[#172554] hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#172554] disabled:cursor-wait disabled:opacity-60"
+                className="mt-4 w-full inline-flex items-center justify-center gap-3 rounded-xl border border-slate-300 bg-white px-4 py-3 text-xs font-bold text-[#172554] hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#172554] disabled:cursor-wait disabled:opacity-60 cursor-pointer transition-colors"
               >
                 {googleBusy ? (
                   <LoaderCircle className="w-4 h-4 animate-spin" aria-hidden="true" />
@@ -389,7 +406,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
             <button
               type="button"
               onClick={() => setShowGuestDeptModal(true)}
-              className="w-full border border-[#172554] bg-white px-4 py-3 text-xs font-bold text-[#172554] hover:bg-slate-50 cursor-pointer transition-colors"
+              className="w-full rounded-xl border border-[#172554] bg-white px-4 py-3 text-xs font-bold text-[#172554] hover:bg-slate-50 cursor-pointer transition-colors"
             >
               Continue as guest
             </button>

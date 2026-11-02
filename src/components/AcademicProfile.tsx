@@ -647,7 +647,7 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
               {/* 10. App Version Explanatory Text */}
               {guestMode && (
                 <div
-                  className="border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950"
+                  className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950"
                   role="status"
                 >
                   <strong className="font-black">Guest session:</strong> Your

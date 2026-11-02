@@ -240,9 +240,9 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
       className="mx-auto max-w-3xl space-y-5"
       aria-labelledby="cgpa-hub-heading"
     >
-      <header className="border border-slate-300 bg-white p-5 shadow-sm sm:p-7">
+      <header className="rounded-2xl border border-slate-300 bg-white p-5 shadow-sm sm:p-7">
         <div className="flex items-center gap-3">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center bg-[#172554] text-white">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#172554] text-white">
             <ChartColumnIncreasing className="h-6 w-6" aria-hidden="true" />
           </span>
           <div>
@@ -260,7 +260,7 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
       </header>
 
       <section
-        className="border border-slate-300 bg-white p-5 shadow-sm sm:p-7"
+        className="rounded-2xl border border-slate-300 bg-white p-5 shadow-sm sm:p-7"
         aria-label="CGPA inputs"
       >
         <div className="block max-w-sm">
@@ -336,7 +336,7 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
           {completedSemesters.map((semester) => (
             <div
               key={semester}
-              className="grid gap-3 border border-slate-200 bg-slate-50 p-3 sm:grid-cols-[minmax(0,1fr)_1fr_1fr] sm:items-end"
+              className="grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 sm:grid-cols-[minmax(0,1fr)_1fr_1fr] sm:items-end"
             >
               <h2 className="text-sm font-bold text-[#172554]">
                 Semester {semester}
@@ -359,7 +359,7 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
                   onChange={(event) =>
                     updateInput(semester, "gpa", event.currentTarget.value)
                   }
-                  className="min-h-11 w-full border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 font-numeric tabular-nums focus:border-[#172554] focus:outline-2 focus:outline-[#172554]"
+                  className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 font-numeric tabular-nums focus:border-[#172554] focus:outline-2 focus:outline-[#172554]"
                 />
               </label>
               <div className="block">
@@ -437,7 +437,7 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
                     updateInput(semester, "credits", event.currentTarget.value)
                   }
                   readOnly={semester === uhvSem}
-                  className={`min-h-11 w-full border border-slate-300 px-3 py-2 text-sm text-slate-900 font-numeric tabular-nums focus:border-[#172554] focus:outline-2 focus:outline-[#172554] ${
+                  className={`min-h-11 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 font-numeric tabular-nums focus:border-[#172554] focus:outline-2 focus:outline-[#172554] ${
                     semester === uhvSem ? "bg-slate-100" : "bg-white"
                   }`}
                 />
@@ -463,7 +463,7 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
                         event.currentTarget.value
                       )
                     }
-                    className="min-h-11 w-full border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 font-numeric tabular-nums focus:border-[#172554] focus:outline-2 focus:outline-[#172554] sm:max-w-xs"
+                    className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 font-numeric tabular-nums focus:border-[#172554] focus:outline-2 focus:outline-[#172554] sm:max-w-xs"
                   />
                 </label>
               )}
@@ -476,7 +476,7 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
       {cgpa !== null ? (
         <motion.section
           key="cgpa-result"
-          className="border border-emerald-200 bg-emerald-50 p-5 shadow-sm sm:p-7"
+          className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm sm:p-7"
           aria-live="polite"
           aria-label="CGPA result"
           variants={reduceMotion ? undefined : motionVariants.card}
@@ -492,7 +492,7 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
       ) : (
         <motion.p
           key="cgpa-guidance"
-          className="border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950"
+          className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950"
           role="status"
           variants={reduceMotion ? undefined : motionVariants.card}
           initial={reduceMotion ? false : "initial"}

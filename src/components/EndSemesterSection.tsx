@@ -143,7 +143,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                   value={ese === '' || ese === undefined ? '' : ese}
                   placeholder="Enter theory marks (0 - 100)"
                   onChange={handleEseChange}
-                  className="h-11 w-full px-3 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm tabular-nums font-numeric"
+                  className="h-11 w-full rounded-lg px-3 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm tabular-nums font-numeric"
                 />
                 <span className="absolute right-3.5 top-2.5 text-xs font-bold text-[#d97757] tabular-nums font-numeric">/ 100</span>
               </div>
@@ -200,7 +200,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                   value={eseLab === '' || eseLab === undefined ? '' : eseLab}
                   placeholder={`Enter ${labName.toLowerCase()} marks (0 - ${numericLabMax})`}
                   onChange={handleLabChange}
-                  className="h-11 w-full px-3 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm tabular-nums font-numeric"
+                  className="h-11 w-full rounded-lg px-3 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm tabular-nums font-numeric"
                 />
                 <span className="absolute right-3.5 top-2.5 text-xs font-bold text-[#d97757] tabular-nums font-numeric">
                   / {numericLabMax}
@@ -244,7 +244,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                 <ChevronDown className="ml-auto h-4 w-4 shrink-0 text-[#3b4d66] transition-transform group-open:rotate-180" aria-hidden="true" />
               </summary>
 
-              <div className="mt-3 border border-[#172554] divide-y divide-[#172554] text-xs font-medium mb-3">
+              <div className="mt-3 rounded-xl border border-[#172554] divide-y divide-[#172554] text-xs font-medium mb-3 overflow-hidden">
                 {GRADE_SCALE.filter((g) => g.letter !== 'U').map((g) => {
                   const neededTotalEse = Math.max(0, g.minScore - internalTotal);
                   const isAlreadySecured = internalTotal >= g.minScore;
@@ -270,7 +270,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
 
                       <div className="text-right">
                         {isAlreadySecured ? (
-                          <span className="text-[#172554] font-bold bg-slate-200 px-1.5 py-0.5 border border-[#172554] text-[10px]">
+                          <span className="text-[#172554] font-bold bg-slate-200 px-1.5 py-0.5 rounded-md border border-[#172554] text-[10px]">
                             Secured
                           </span>
                         ) : isImpossible ? (
@@ -328,7 +328,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                   value={ese === '' || ese === undefined ? '' : ese}
                   placeholder="Enter your ESE marks (0 - 100)"
                   onChange={handleEseChange}
-                  className="h-11 w-full px-3 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm tabular-nums font-numeric"
+                  className="h-11 w-full rounded-lg px-3 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm tabular-nums font-numeric"
                 />
                 <span className="absolute right-3.5 top-2.5 text-xs font-bold text-[#d97757] tabular-nums font-numeric">/ 100</span>
               </div>
@@ -361,7 +361,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                 <ChevronDown className="ml-auto h-4 w-4 shrink-0 text-[#3b4d66] transition-transform group-open:rotate-180" aria-hidden="true" />
               </summary>
 
-              <div className="mt-3 border border-[#172554] divide-y divide-[#172554] text-xs font-medium">
+              <div className="mt-3 rounded-xl border border-[#172554] divide-y divide-[#172554] text-xs font-medium overflow-hidden">
                 {GRADE_SCALE.filter((g) => g.letter !== 'U').map((g) => {
                   const neededEse = Math.max(0, Math.ceil(((g.minScore - internalTotal) / eseTheoryWeight) * 100));
                   const isAlreadySecured = internalTotal >= g.minScore;
@@ -379,7 +379,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
 
                       <div className="text-right">
                         {isAlreadySecured ? (
-                          <span className="text-[#172554] font-bold bg-slate-200 px-1.5 py-0.5 border border-[#172554] text-[11px]">
+                          <span className="text-[#172554] font-bold bg-slate-200 px-1.5 py-0.5 rounded-md border border-[#172554] text-[11px]">
                             Already Secured
                           </span>
                         ) : isImpossible ? (

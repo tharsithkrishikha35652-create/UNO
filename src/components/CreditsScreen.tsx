@@ -259,7 +259,7 @@ export const CreditsScreen: React.FC = () => {
   return (
     <section
       ref={rootRef}
-      className="mx-auto my-2 w-full max-w-5xl border border-slate-300 bg-white p-5 shadow-sm sm:p-8 lg:p-10"
+      className="mx-auto my-2 w-full max-w-5xl rounded-2xl border border-slate-300 bg-white p-5 shadow-sm sm:p-8 lg:p-10"
       aria-labelledby="credits-heading"
     >
       <header className="grid gap-7 lg:grid-cols-12 lg:gap-x-10">
