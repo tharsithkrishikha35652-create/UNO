@@ -28,10 +28,12 @@ const LIGHT: Record<string, string> = {
 const isDark = () =>
   document.documentElement.dataset.theme === 'dark' || document.documentElement.classList.contains('dark');
 
-// Internal timeline: D = build-up length, Q = speed scale. Full cut = (D + 4.5) * Q = 4.7 s.
-const D = 1.35;
-const Q = 0.8; // higher = slower
-const T = (D + 4.5) * Q;
+// Internal timeline: D = build-up length, Q = speed scale. Full cut = (D + 4.5 - TS) * Q = 3.8 s.
+const D = 1.15;
+const Q = 0.76; // higher = slower
+// The name, i-dot and shine run TS earlier, so the name arrives with the tile instead of after it.
+const TS = 0.69;
+const T = (D + 4.5 - TS) * Q;
 
 const clamp = (x: number, a = 0, b = 1) => Math.min(b, Math.max(a, x));
 const S = (t: number, a: number, b: number) => clamp((t - a) / (b - a));
@@ -86,10 +88,10 @@ export default function LaunchSequence({ onDone, ready = true, forceFull = false
     const showApp = () => {
       if (!appRoot) return;
       appRoot.style.visibility = '';
-      appRoot.style.transition = 'opacity 560ms cubic-bezier(.22,1,.36,1)';
+      appRoot.style.transition = 'opacity 440ms cubic-bezier(.22,1,.36,1)';
       void appRoot.offsetHeight;
       appRoot.style.opacity = '1';
-      timers.push(window.setTimeout(restoreNow, 640));
+      timers.push(window.setTimeout(restoreNow, 520));
     };
 
     const NS = 'http://www.w3.org/2000/svg';
@@ -177,20 +179,20 @@ export default function LaunchSequence({ onDone, ready = true, forceFull = false
       rip.setAttribute('r', String(4 + 28 * out(u3)));
       rip.style.opacity = String(u3 > 0 && u3 < 1 ? (1 - u3) * 0.8 : 0);
       chs.forEach((e, i) => {
-        const q = S(t, 2.4 + 0.05 * i, 2.9 + 0.05 * i);
+        const q = S(t, 1.95 + 0.02 * i, 2.45 + 0.02 * i);
         e.setAttribute('transform', `translate(0 ${8 * (1 - out(q))})`);
         e.style.opacity = String(out(q));
       });
       // i-dot: drops onto the "t", hops across to the "i", bounces and settles
-      const fu2 = S(t, 3, 3.3), lb = S(t, 3.3, 3.45), dq = S(t, 3.45, 4.1);
+      const fu2 = S(t, 3 - TS, 3.3 - TS), lb = S(t, 3.3 - TS, 3.45 - TS), dq = S(t, 3.45 - TS, 4.1 - TS);
       const hp = S(dq, 0, 0.6), bb = S(dq, 0.6, 1), E = out(hp);
       const dx = 20.5 * (1 - E);
       const dy = -7.5 * (1 - E) - 26 * Math.sin(Math.PI * hp)
         - (bb > 0 ? 8 * Math.abs(Math.sin(bb * Math.PI * 2)) * (1 - bb) : 0)
         - 6 * Math.sin(Math.PI * lb) - 55 * (1 - fu2 * fu2);
       dot.setAttribute('transform', `translate(${dx} ${dy})`);
-      dot.style.opacity = String(out(S(t, 3, 3.1)));
-      const sq = S(t, 4.05, 4.5);
+      dot.style.opacity = String(out(S(t, 3 - TS, 3.1 - TS)));
+      const sq = S(t, 4.05 - TS, 4.5 - TS);
       sh.setAttribute('x', String(-80 + sq * (L.VW + 160)));
       sh.style.opacity = String(sq > 0 && sq < 1 ? 1 : 0);
     };
@@ -231,21 +233,21 @@ export default function LaunchSequence({ onDone, ready = true, forceFull = false
       closing = true;
       // Focus pull: the logo drifts out while the blur clears, and the app fades in underneath.
       const svg = $('launch-svg');
-      svg.style.transition = 'opacity 380ms ease, transform 600ms cubic-bezier(.4,0,.2,1)';
+      svg.style.transition = 'opacity 300ms ease, transform 480ms cubic-bezier(.4,0,.2,1)';
       svg.style.opacity = '0';
       svg.style.transform = 'scale(1.04)';
       bg.style.filter = 'blur(0px)';
       bg.style.transform = 'scale(1)';
-      timers.push(window.setTimeout(showApp, 140));
-      timers.push(window.setTimeout(() => { wrap.style.opacity = '0'; }, 420));
-      timers.push(window.setTimeout(() => { if (!dead) onDone(); }, 860));
+      timers.push(window.setTimeout(showApp, 60));
+      timers.push(window.setTimeout(() => { wrap.style.opacity = '0'; }, 220));
+      timers.push(window.setTimeout(() => { if (!dead) onDone(); }, 540));
     };
     tryCloseRef.current = () => { if (animDone && readyRef.current) close(); };
     const finish = () => {
       if (animDone) return;
       animDone = true;
       try { localStorage.setItem(SEEN_KEY, '1'); } catch { /* storage unavailable */ }
-      timers.push(window.setTimeout(() => tryCloseRef.current(), 400));
+      timers.push(window.setTimeout(() => tryCloseRef.current(), 150));
     };
     const play = (speed: number, start: number) => {
       const t0 = performance.now();
@@ -271,8 +273,8 @@ export default function LaunchSequence({ onDone, ready = true, forceFull = false
     let seen = false;
     try { seen = !!localStorage.getItem(SEEN_KEY); } catch { /* ignore */ }
     if (reduce) { R(T); finish(); }
-    else if (seen && !forceFull) play(1.6, D * Q); // returning user: quick cut (about 1.7 s)
-    else play(1, 0);                               // first launch: full cut (3.5 s)
+    else if (seen && !forceFull) play(1.6, D * Q); // returning user: quick cut (about 1.8 s)
+    else play(1, 0);                               // first launch: full cut (3.8 s)
 
     return () => {
       dead = true;
@@ -290,7 +292,7 @@ export default function LaunchSequence({ onDone, ready = true, forceFull = false
   return (
     <div
       ref={wrapRef}
-      style={{ position: 'fixed', inset: 0, zIndex: 9999, overflow: 'hidden', touchAction: 'manipulation', transition: 'opacity 380ms ease' }}
+      style={{ position: 'fixed', inset: 0, zIndex: 9999, overflow: 'hidden', touchAction: 'manipulation', transition: 'opacity 300ms ease' }}
     >
       <div
         ref={bgRef}
@@ -300,7 +302,7 @@ export default function LaunchSequence({ onDone, ready = true, forceFull = false
           backgroundImage: `url(${darkNow ? darkBg : lightBg})`,
           backgroundSize: 'cover', backgroundPosition: 'center',
           filter: `blur(${BG_BLUR}px)`, transform: 'scale(1.06)',
-          transition: 'filter 600ms cubic-bezier(.4,0,.2,1), transform 600ms cubic-bezier(.4,0,.2,1)',
+          transition: 'filter 480ms cubic-bezier(.4,0,.2,1), transform 480ms cubic-bezier(.4,0,.2,1)',
         }}
       />
       <div ref={host} role="img" aria-label="CalCredit" style={{ position: 'absolute', inset: 0 }} />
