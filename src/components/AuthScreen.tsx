@@ -9,6 +9,7 @@ import {
   signInWithCredential,
   signInWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
 } from 'firebase/auth';
 import { AlertCircle, BookOpen, Check, Eye, EyeOff, LoaderCircle, Search, X } from 'lucide-react';
 import { auth } from '../firebase';
@@ -199,7 +200,19 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
         if (forceGoogleAccountSelection) {
           provider.setCustomParameters({ prompt: 'select_account' });
         }
-        await signInWithPopup(auth, provider);
+        try {
+          await signInWithPopup(auth, provider);
+        } catch (popupError) {
+          const popupCode =
+            typeof popupError === 'object' && popupError !== null && 'code' in popupError
+              ? String(popupError.code)
+              : '';
+          if (popupCode === 'auth/popup-blocked') {
+            await signInWithRedirect(auth, provider);
+            return;
+          }
+          throw popupError;
+        }
       }
     } catch (authError) {
       const code = typeof authError === 'object' && authError !== null && 'code' in authError

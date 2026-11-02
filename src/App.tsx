@@ -5,7 +5,7 @@ import React, {
   useRef,
   useCallback,
 } from "react";
-import { onAuthStateChanged, signOut, type User } from "firebase/auth";
+import { getRedirectResult, onAuthStateChanged, signOut, type User } from "firebase/auth";
 import { Capacitor } from "@capacitor/core";
 import { App as CapacitorApp } from "@capacitor/app";
 import { AcademicProfileData, Department, InternshipTrainingMarks, MiniProjectMarks, SubjectData } from "./types";
@@ -581,6 +581,9 @@ export default function App() {
       setAuthResolved(true);
       return;
     }
+    getRedirectResult(auth).catch((error) => {
+      console.warn("Unable to process redirect sign-in result:", error);
+    });
     return onAuthStateChanged(
       auth,
       (nextUser) => {
