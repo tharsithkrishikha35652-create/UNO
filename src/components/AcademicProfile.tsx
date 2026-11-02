@@ -346,7 +346,7 @@ interface AcademicSetupScreenProps extends Omit<AcademicProfileFormProps, 'submi
 }
 
 export const AcademicSetupScreen: React.FC<AcademicSetupScreenProps> = ({ theme, onToggleTheme, ...props }) => (
-  <main className="min-h-screen bg-transparent px-4 py-8 text-slate-900 sm:px-6 sm:py-12">
+  <main className="min-h-screen bg-transparent px-4 py-8 pt-[calc(2rem+var(--safe-area-top))] pb-[calc(2rem+var(--safe-area-bottom))] text-slate-900 sm:px-6 sm:py-12">
     <section className="mx-auto w-full max-w-xl rounded-2xl border border-slate-300 bg-white p-5 shadow-sm sm:p-8">
       <div className="mb-7 flex items-start justify-between gap-3 border-b border-slate-200 pb-5">
         <div className="flex min-w-0 flex-col gap-2">
@@ -463,42 +463,42 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="academic-profile-title"
-        className="absolute inset-y-0 left-0 flex h-full max-h-dvh w-[82vw] max-w-sm sm:max-w-md flex-col rounded-r-2xl border-r border-slate-300 bg-white shadow-2xl"
+        className="absolute inset-y-0 left-0 flex h-full max-h-dvh w-[86vw] max-w-[21rem] sm:max-w-sm flex-col rounded-r-2xl border-r border-slate-300 dark:border-slate-800 bg-white dark:bg-[#161618] shadow-2xl overflow-hidden"
         initial={reduceMotion ? { x: 0 } : { x: '-100%' }}
         animate={{ x: 0 }}
         exit={reduceMotion ? undefined : { x: '-100%' }}
         transition={reduceMotion ? { duration: 0 } : transitions.overlay}
       >
-        <header className="flex items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
+        <header className="shrink-0 flex items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-[#161618] px-3.5 sm:px-4 py-2 pt-[calc(0.5rem+var(--safe-area-top))]">
           <div className="flex items-center gap-2.5">
             {editing ? (
               <>
-                <CalCreditLogo markSize={32} wordHeight={0} />
-                <h2 id="academic-profile-title" className="text-sm font-black text-[#172554]">
+                <CalCreditLogo markSize={26} wordHeight={0} />
+                <h2 id="academic-profile-title" className="text-sm font-black text-[#172554] dark:text-slate-100">
                   Edit Profile
                 </h2>
               </>
             ) : (
               <h2 id="academic-profile-title" className="flex items-center">
-                <CalCreditLogo markSize={32} wordHeight={20} />
+                <CalCreditLogo markSize={26} wordHeight={16} gap={6} />
               </h2>
             )}
           </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <ThemeToggle theme={theme} onToggle={onToggleTheme} />
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+            <ThemeToggle theme={theme} onToggle={onToggleTheme} className="h-8.5 w-8.5 sm:h-9 sm:w-9 rounded-lg" />
             <button
               ref={closeButtonRef}
               type="button"
               onClick={onClose}
               aria-label="Close profile"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-300 text-[#172554] hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-[#172554]"
+              className="flex h-8.5 w-8.5 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#1e1e20] text-[#172554] dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-[#252528] focus-visible:outline-2 focus-visible:outline-[#172554] cursor-pointer transition-colors"
             >
-              <X className="h-5 w-5" aria-hidden="true" />
+              <X className="h-4.5 w-4.5 sm:h-5 sm:w-5" aria-hidden="true" />
             </button>
           </div>
         </header>
 
-        <div className="min-h-0 flex-1 overflow-y-auto custom-department-scrollbar p-5 space-y-4">
+        <div className="min-h-0 flex-1 overflow-y-auto custom-department-scrollbar p-4 sm:p-5 space-y-4 pb-[calc(1.5rem+var(--safe-area-bottom))]">
           {editing ? (
             <AcademicProfileForm
               profile={profile}

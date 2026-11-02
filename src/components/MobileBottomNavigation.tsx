@@ -71,7 +71,7 @@ const MobileNavigationContent: React.FC<MobileBottomNavigationProps> = ({
   return (
     <nav
       aria-label="Mobile navigation"
-      className="fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 grid grid-cols-4 overflow-hidden rounded-2xl border border-slate-300 dark:border-slate-700 bg-white/95 dark:bg-[#202024]/95 shadow-sm backdrop-blur-sm md:hidden"
+      className="fixed inset-x-3 bottom-[calc(0.75rem+var(--safe-area-bottom))] z-40 grid grid-cols-4 overflow-hidden rounded-2xl border border-slate-300 dark:border-slate-700 bg-white/95 dark:bg-[#202024]/95 shadow-sm backdrop-blur-sm md:hidden"
     >
       {effectiveCol >= 0 && (
         <motion.div

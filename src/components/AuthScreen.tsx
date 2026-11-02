@@ -5,6 +5,7 @@ import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
+  getRedirectResult,
   sendPasswordResetEmail,
   signInWithCredential,
   signInWithEmailAndPassword,
@@ -174,6 +175,18 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [showGuestDeptModal]);
 
+  useEffect(() => {
+    if (!auth) return;
+    getRedirectResult(auth).catch((redirectError) => {
+      const code = typeof redirectError === 'object' && redirectError !== null && 'code' in redirectError
+        ? String(redirectError.code)
+        : '';
+      if (code && code !== 'auth/null-user') {
+        setError(friendlyAuthError(redirectError, 'google'));
+      }
+    });
+  }, []);
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!auth || configurationError) return;
@@ -216,6 +229,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
         const provider = new GoogleAuthProvider();
         if (forceGoogleAccountSelection) {
           provider.setCustomParameters({ prompt: 'select_account' });
+        }
+        const isMobileWeb = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        if (isMobileWeb) {
+          await signInWithRedirect(auth, provider);
+          return;
         }
         try {
           await signInWithPopup(auth, provider);
@@ -262,7 +280,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
   };
 
   return (
-    <main className="min-h-screen bg-transparent text-slate-900 flex items-center justify-center px-4 py-10">
+    <main className="min-h-screen bg-transparent text-slate-900 flex items-center justify-center px-4 py-10 pt-[calc(2.5rem+var(--safe-area-top))] pb-[calc(2.5rem+var(--safe-area-bottom))]">
       <motion.section
         className="w-full max-w-md bg-white border border-slate-300 shadow-xl rounded-2xl overflow-hidden"
         variants={reduceMotion ? undefined : motionVariants.dialog}

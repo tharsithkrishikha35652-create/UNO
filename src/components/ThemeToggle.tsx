@@ -9,9 +9,12 @@ interface ThemeToggleProps {
   className?: string;
 }
 
-export const ThemeToggle: React.FC<ThemeToggleProps> = ({ theme, onToggle, className = '' }) => {
+export const ThemeToggle: React.FC<ThemeToggleProps> = ({ theme, onToggle, className }) => {
   const action = theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme';
   const Icon = theme === 'dark' ? Sun : Moon;
+
+  const defaultClasses = 'h-10 w-10 rounded-full';
+  const customClasses = className ? className : defaultClasses;
 
   return (
     <button
@@ -19,7 +22,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({ theme, onToggle, class
       onClick={onToggle}
       aria-label={action}
       title={action}
-      className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-300 bg-white text-[#172554] hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#172554] ${className}`}
+      className={`inline-flex shrink-0 items-center justify-center border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#1e1e20] text-[#172554] dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-[#252528] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#172554] transition-colors cursor-pointer ${customClasses}`}
     >
       <Icon className="h-4 w-4" aria-hidden="true" />
     </button>

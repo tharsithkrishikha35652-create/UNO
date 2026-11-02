@@ -2135,8 +2135,8 @@ function AuthenticatedApp({
     <div className="min-h-screen bg-transparent text-slate-900 flex flex-col">
       {/* Top Bar */}
       <div className="sticky top-0 z-30">
-        <header className="bg-white border-b border-slate-200 shadow-sm pt-[env(safe-area-inset-top)]">
-          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 min-h-14 py-1.5 sm:h-14 sm:py-0 flex items-center justify-between gap-2 sm:gap-4">
+        <header className="bg-white dark:bg-[#161618] border-b border-slate-200 dark:border-slate-800 shadow-xs pt-[var(--safe-area-top)] transition-colors">
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 min-h-12 sm:min-h-14 py-1 sm:py-0 flex items-center justify-between gap-2 sm:gap-4">
             {/* Brand wordmark */}
             <button
               ref={profileButtonRef}
