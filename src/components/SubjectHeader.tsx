@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { SubjectData } from '../types';
-import { getCourseType, getCourseWeights, isObsoleteCurriculumCourse } from '../calculatorUtils';
+import { getCourseType, getCourseWeights } from '../calculatorUtils';
 import { ArrowLeft, ArrowUpDown, Check, RotateCcw, Search, X } from 'lucide-react';
 import { acknowledgeSelection } from '../haptics';
 
@@ -41,9 +41,7 @@ export const SubjectHeader: React.FC<SubjectHeaderProps> = ({
   }, [switcherOpen]);
 
   const normalized = query.trim().toLowerCase();
-  const filteredCourses = availableCourses
-    .filter((c) => !isObsoleteCurriculumCourse(c))
-    .filter(
+  const filteredCourses = availableCourses.filter(
       (c) =>
         !normalized ||
         c.name.toLowerCase().includes(normalized) ||

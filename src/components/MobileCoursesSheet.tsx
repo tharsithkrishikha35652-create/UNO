@@ -13,7 +13,6 @@ import {
 } from 'lucide-react';
 import type { SubjectData } from '../types';
 import type { PresetCourse, SemesterNumber } from './SubjectSelectionDialog';
-import { isObsoleteCurriculumCourse } from '../calculatorUtils';
 import type {
   CourseProgress,
   SemesterCourseRow,
@@ -158,8 +157,8 @@ const MobileCoursesSheetBody: React.FC<MobileCoursesSheetProps> = ({
   const normalizedQuery = courseQuery.trim().toLowerCase();
   const matchesCourseQuery = (course?: { name?: string; code?: string }, label = '') =>
     !normalizedQuery || `${course?.name ?? ''} ${course?.code ?? ''} ${label}`.toLowerCase().includes(normalizedQuery);
-  const visibleCourses = courses.filter(({ course }) => !isObsoleteCurriculumCourse(course) && matchesCourseQuery(course));
-  const visibleOtherCourses = otherCourses.filter(({ subject }) => !isObsoleteCurriculumCourse(subject) && matchesCourseQuery(subject));
+  const visibleCourses = courses.filter(({ course }) => matchesCourseQuery(course));
+  const visibleOtherCourses = otherCourses.filter(({ subject }) => matchesCourseQuery(subject));
 
   const professionalElectiveSlots = electiveSlots.filter(
     (entry) => !entry.slot.toLowerCase().includes('open')

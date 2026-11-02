@@ -15,7 +15,7 @@ import type { AcademicProfileData, SubjectData } from './types';
 import { db } from './firebase';
 import { GPA_COURSES, getAllGpaCourses } from './gpaCourses';
 import { PRESET_COURSES, getAllPresetCourses } from './components/SubjectSelectionDialog';
-import { isGhostPlaceholderCourse, isObsoleteCurriculumCourse } from './calculatorUtils';
+import { isGhostPlaceholderCourse } from './calculatorUtils';
 
 export const FEEDBACK_CATEGORIES = ['General', 'Bug report', 'Suggestion', 'Other'] as const;
 export type FeedbackCategory = (typeof FEEDBACK_CATEGORIES)[number];
@@ -191,7 +191,7 @@ export async function loadUserWorkspace(uid: string): Promise<UserWorkspaceData>
   // Automatically purge obsolete dummy placeholder courses (e.g. "Course 1 (Sem 5)")
   const ghostDocs = subjectSnapshot.docs.filter((docSnap) => {
     const data = docSnap.data() as SubjectData;
-    return isGhostPlaceholderCourse(data) || isObsoleteCurriculumCourse(data);
+    return isGhostPlaceholderCourse(data);
   });
   if (ghostDocs.length > 0) {
     const batch = writeBatch(firestore);
@@ -208,7 +208,7 @@ export async function loadUserWorkspace(uid: string): Promise<UserWorkspaceData>
       const { credits: _credits, updatedAt: _updatedAt, ...subjectData } = data;
       return { ...subjectData, id: snapshot.id, sortIndex: data.sortIndex as number | undefined } as SubjectData & { sortIndex?: number };
     })
-    .filter((subject) => !isGhostPlaceholderCourse(subject) && !isObsoleteCurriculumCourse(subject))
+    .filter((subject) => !isGhostPlaceholderCourse(subject))
     .sort((a, b) => (a.sortIndex ?? 0) - (b.sortIndex ?? 0))
     .map(({ sortIndex: _sortIndex, ...subject }) => subject as SubjectData);
   const persistedSubjectSnapshots = new Map(

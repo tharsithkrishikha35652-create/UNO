@@ -15,6 +15,14 @@
   ],
   "semgrep.scan.onlyGitDirty": false,
   "java.configuration.updateBuildConfiguration": "interactive",
+  "java.configuration.runtimes": [
+    {
+      "name": "JavaSE-21",
+      "path": "C:\\Program Files\\Eclipse Adoptium\\jdk-21.0.13.9-hotspot",
+      "default": true
+    }
+  ],
+  "java.import.gradle.java.home": "C:\\Program Files\\Eclipse Adoptium\\jdk-21.0.13.9-hotspot",
   "emulator.emulatorPathWindows": "C:\\Users\\Tharsith R\\AppData\\Local\\Android\\Sdk\\emulator",
   "emulator.hasEditorTitleIcon": true
 }

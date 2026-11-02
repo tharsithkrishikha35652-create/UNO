@@ -1,4 +1,3 @@
-import { isObsoleteCurriculumCourse } from './calculatorUtils';
 export interface GpaCourse {
   code: string;
   name: string;
@@ -9,6 +8,7 @@ export interface GpaCourse {
 
 export const CSE_GPA_COURSES: readonly GpaCourse[] = [
   { code: 'EN23C03', name: 'Foundation English', credits: 3, semester: 1 },
+  { code: 'MA23C11', name: 'Calculus', credits: 4, semester: 1 },
   { code: 'PH23C11', name: 'Engineering Physics', credits: 4, semester: 1 },
   {
     code: 'EE23C02',
@@ -21,6 +21,7 @@ export const CSE_GPA_COURSES: readonly GpaCourse[] = [
   { code: 'UC23H01', name: 'Heritage of Tamils', credits: 1, semester: 1 },
 
   { code: 'EN23C04', name: 'Professional Communication', credits: 3, semester: 2 },
+  { code: 'MA23C04', name: 'Discrete Mathematics', credits: 4, semester: 2 },
   { code: 'CY23C10', name: 'Engineering Chemistry', credits: 4, semester: 2 },
   { code: 'ME23C01', name: 'Engineering Drawing and 3D Modeling', credits: 4, semester: 2 },
   { code: 'ME23C04', name: 'Makerspace', credits: 3, semester: 2 },
@@ -76,6 +77,7 @@ export const CSE_GPA_COURSES: readonly GpaCourse[] = [
 export const ECE_GPA_COURSES: readonly GpaCourse[] = [
   // Semester 1 (23 credits)
   { code: 'EN23C03', name: 'Foundation English', credits: 3, semester: 1 },
+  { code: 'MA23C11', name: 'Calculus', credits: 4, semester: 1 },
   { code: 'PH23C11', name: 'Engineering Physics', credits: 4, semester: 1 },
   { code: 'ME23C01', name: 'Engineering Drawing and 3D Modelling', credits: 4, semester: 1 },
   { code: 'CS23C04', name: 'Programming in C', credits: 4, semester: 1 },
@@ -145,8 +147,9 @@ export const ECE_GPA_COURSES: readonly GpaCourse[] = [
 ] as const;
 
 export const CIVIL_GPA_COURSES: readonly GpaCourse[] = [
-  // Semester 1 (22 credits)
+  // Semester 1 (26 credits)
   { code: 'EN23C05', name: 'Foundation English', credits: 3, semester: 1 },
+  { code: 'MA23C11', name: 'Calculus', credits: 4, semester: 1 },
   { code: 'CY23C10', name: 'Engineering Chemistry', credits: 4, semester: 1 },
   {
     code: 'EE23C02',
@@ -228,8 +231,9 @@ export const CIVIL_GPA_COURSES: readonly GpaCourse[] = [
 ] as const;
 
 export const GEO_GPA_COURSES: readonly GpaCourse[] = [
-  // Semester 1 (23 credits)
+  // Semester 1 (27 credits)
   { code: 'EN23C05', name: 'Foundation English', credits: 3, semester: 1 },
+  { code: 'MA23C11', name: 'Calculus', credits: 4, semester: 1 },
   { code: 'PH23C11', name: 'Engineering Physics', credits: 4, semester: 1 },
   { code: 'ME23C01', name: 'Engineering Drawing & 3D Modelling', credits: 4, semester: 1 },
   {
@@ -315,8 +319,9 @@ export const GEO_GPA_COURSES: readonly GpaCourse[] = [
 ] as const;
 
 export const BME_GPA_COURSES: readonly GpaCourse[] = [
-  // Semester 1 (18 credits)
+  // Semester 1 (22 credits)
   { code: 'EN23C05', name: 'Foundation English', credits: 3, semester: 1 },
+  { code: 'MA23C11', name: 'Calculus', credits: 4, semester: 1 },
   { code: 'CY23C10', name: 'Engineering Chemistry', credits: 4, semester: 1 },
   { code: 'CS23C04', name: 'Programming in C', credits: 4, semester: 1 },
   { code: 'EE23C01', name: 'Basics of Electrical Engineering', credits: 2, semester: 1 },
@@ -401,8 +406,9 @@ export const BME_GPA_COURSES: readonly GpaCourse[] = [
 ] as const;
 
 export const IT_GPA_COURSES: readonly GpaCourse[] = [
-  // Semester 1 (22 credits)
+  // Semester 1 (26 credits)
   { code: 'EN23C05', name: 'Foundation English', credits: 3, semester: 1 },
+  { code: 'MA23C11', name: 'Calculus', credits: 4, semester: 1 },
   { code: 'PH23C11', name: 'Engineering Physics', credits: 4, semester: 1 },
   { code: 'ME23C01', name: 'Engineering Drawing and 3D Modeling', credits: 4, semester: 1 },
   {
@@ -484,8 +490,9 @@ export const IT_GPA_COURSES: readonly GpaCourse[] = [
 ] as const;
 
 export const EEE_GPA_COURSES: readonly GpaCourse[] = [
-  // Semester 1 (24 credits)
+  // Semester 1 (28 credits)
   { code: 'EN23C05', name: 'Foundation English', credits: 3, semester: 1 },
+  { code: 'MA23C11', name: 'Calculus', credits: 4, semester: 1 },
   { code: 'PH23C11', name: 'Engineering Physics', credits: 4, semester: 1 },
   { code: 'ME23C01', name: 'Engineering Drawing and 3D Modeling', credits: 4, semester: 1 },
   { code: 'ME23C05', name: 'Basics of Mechanical Engineering', credits: 2, semester: 1 },
@@ -557,8 +564,9 @@ export const EEE_GPA_COURSES: readonly GpaCourse[] = [
 ] as const;
 
 export const MFG_GPA_COURSES: readonly GpaCourse[] = [
-  // Semester 1 (25 credits)
+  // Semester 1 (29 credits)
   { code: 'EN23C05', name: 'Foundation English', credits: 3, semester: 1 },
+  { code: 'MA23C11', name: 'Calculus', credits: 4, semester: 1 },
   { code: 'CY23C10', name: 'Engineering Chemistry', credits: 4, semester: 1 },
   { code: 'ME23C01', name: 'Engineering Drawing and 3D Modelling', credits: 4, semester: 1 },
   { code: 'CS23C02', name: 'Computer Programming in Python', credits: 4, semester: 1 },
@@ -629,8 +637,9 @@ export const MFG_GPA_COURSES: readonly GpaCourse[] = [
 ] as const;
 
 export const VLSI_GPA_COURSES: readonly GpaCourse[] = [
-  // Semester 1 (23 credits)
+  // Semester 1 (27 credits)
   { code: 'EN23C05', name: 'Foundation English', credits: 3, semester: 1 },
+  { code: 'MA23C11', name: 'Calculus', credits: 4, semester: 1 },
   { code: 'PH23C11', name: 'Engineering Physics', credits: 4, semester: 1 },
   { code: 'ME23C01', name: 'Engineering Drawing and 3D Modelling', credits: 4, semester: 1 },
   { code: 'CS23C04', name: 'Programming in C', credits: 4, semester: 1 },
@@ -702,8 +711,9 @@ export const VLSI_GPA_COURSES: readonly GpaCourse[] = [
 ] as const;
 
 export const MECH_GPA_COURSES: readonly GpaCourse[] = [
-  // Semester 1 (23 credits)
+  // Semester 1 (27 credits)
   { code: 'EN23C05', name: 'Foundation English', credits: 3, semester: 1 },
+  { code: 'MA23C11', name: 'Calculus', credits: 4, semester: 1 },
   { code: 'CY23C10', name: 'Engineering Chemistry', credits: 4, semester: 1 },
   { code: 'ME23C01', name: 'Engineering Drawing and 3D Modelling', credits: 4, semester: 1 },
   { code: 'ME23C03', name: 'Engineering Mechanics', credits: 4, semester: 1 },
@@ -728,12 +738,12 @@ export const MECH_GPA_COURSES: readonly GpaCourse[] = [
   { code: 'CE23C01', name: 'Mechanics of Materials', credits: 4, semester: 3 },
   { code: 'ME23S01', name: 'Skill Development Course I', credits: 2, semester: 3 },
 
-  // Semester 4 (24 credits)
+  // Semester 4 (25 credits)
   { code: 'ME23401', name: 'Metal Cutting and Machine Tools', credits: 4, semester: 4 },
   { code: 'ME23402', name: 'Thermal Engineering - I', credits: 4, semester: 4 },
   { code: 'CE23C02', name: 'Fluid Mechanics and Machinery', credits: 4, semester: 4 },
   { code: 'ME23C15', name: 'Design of Machine Elements', credits: 3, semester: 4 },
-  { code: 'ME23403', name: 'Fluid Power Automation', credits: 3, semester: 4 },
+  { code: 'ME23403', name: 'Fluid Power Automation', credits: 4, semester: 4 },
   { code: 'ME23404', name: 'Product Design and Development', credits: 3, semester: 4 },
   { code: 'ME23S02', name: 'Skill Development Course II', credits: 2, semester: 4 },
   { code: 'IOC_SEM4_I', name: 'Industry Oriented Course-1/ Industrial lecture', credits: 1, semester: 4 },
@@ -777,8 +787,9 @@ export const MECH_GPA_COURSES: readonly GpaCourse[] = [
 ] as const;
 
 export const PT_GPA_COURSES: readonly GpaCourse[] = [
-  // Semester 1 (24 credits)
+  // Semester 1 (28 credits)
   { code: 'EN23C05', name: 'Foundation English', credits: 3, semester: 1 },
+  { code: 'MA23C11', name: 'Calculus', credits: 4, semester: 1 },
   { code: 'CY23C10', name: 'Engineering Chemistry', credits: 4, semester: 1 },
   { code: 'ME23C01', name: 'Engineering Drawing and 3D Modelling', credits: 4, semester: 1 },
   { code: 'ME23C03', name: 'Engineering Mechanics', credits: 4, semester: 1 },
@@ -854,8 +865,9 @@ export const PT_GPA_COURSES: readonly GpaCourse[] = [
 ] as const;
 
 export const MINING_GPA_COURSES: readonly GpaCourse[] = [
-  // Semester 1 (22 credits)
+  // Semester 1 (26 credits)
   { code: 'EN23C05', name: 'Foundation English', credits: 3, semester: 1 },
+  { code: 'MA23C11', name: 'Calculus', credits: 4, semester: 1 },
   { code: 'CY23C10', name: 'Engineering Chemistry', credits: 4, semester: 1 },
   { code: 'ME23C05', name: 'Basics of Mechanical Engineering', credits: 2, semester: 1 },
   { code: 'ME23C01', name: 'Engineering Drawing & 3D Modelling', credits: 4, semester: 1 },
@@ -934,8 +946,9 @@ export const MINING_GPA_COURSES: readonly GpaCourse[] = [
 ] as const;
 
 export const MSE_GPA_COURSES: readonly GpaCourse[] = [
-  // Semester 1 (23 credits)
+  // Semester 1 (27 credits)
   { code: 'EN23C05', name: 'Foundation English', credits: 3, semester: 1 },
+  { code: 'MA23C11', name: 'Calculus', credits: 4, semester: 1 },
   { code: 'CY23C10', name: 'Engineering Chemistry', credits: 4, semester: 1 },
   { code: 'ME23C01', name: 'Engineering Drawing and 3D Modelling', credits: 4, semester: 1 },
   { code: 'EE23C03', name: 'Basics of Electrical and Electronics Engineering', credits: 3, semester: 1 },
@@ -1008,8 +1021,9 @@ export const MSE_GPA_COURSES: readonly GpaCourse[] = [
 ] as const;
 
 export const IE_GPA_COURSES: readonly GpaCourse[] = [
-  // Semester 1 (24 credits)
+  // Semester 1 (28 credits)
   { code: 'EN23C05', name: 'Foundation English', credits: 3, semester: 1 },
+  { code: 'MA23C11', name: 'Calculus', credits: 4, semester: 1 },
   { code: 'PH23C11', name: 'Engineering Physics', credits: 4, semester: 1 },
   { code: 'ME23C01', name: 'Engineering Drawing and 3D Modelling', credits: 4, semester: 1 },
   { code: 'CY23C10', name: 'Engineering Chemistry', credits: 4, semester: 1 },
@@ -1115,7 +1129,7 @@ export function getAllGpaCourses(): readonly GpaCourse[] {
     ...MINING_GPA_COURSES,
     ...MSE_GPA_COURSES,
     ...IE_GPA_COURSES,
-  ].filter((c) => !isObsoleteCurriculumCourse(c));
+  ];
 }
 
 // Preserve backwards-compatibility for existing code/tests expecting GPA_COURSES

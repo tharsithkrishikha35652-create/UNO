@@ -9,7 +9,6 @@ import {
   calculateMarks,
   getCourseType,
   getCourseWeights,
-  isObsoleteCurriculumCourse,
 } from '../calculatorUtils';
 import { AnimatedNumber } from './AnimatedNumber';
 import { motionVariants } from '../motion';
@@ -54,7 +53,6 @@ const matchesPresetSubject = (subject: SubjectData, course: (typeof PRESET_COURS
 
 const findCourseSubject = (subjects: SubjectData[], course: GpaCourse, presets: PresetCourse[] = PRESET_COURSES as PresetCourse[]) =>
   [...subjects].reverse().find((subject) => {
-    if (isObsoleteCurriculumCourse(subject)) return false;
     if (course.electiveSlot) {
       return presets.some((preset) =>
         preset.semester === course.semester &&
@@ -72,7 +70,6 @@ const getGpaCourseSemester = (
   gpaList: readonly GpaCourse[] = getAllGpaCourses(),
   presets: PresetCourse[] = getAllPresetCourses()
 ): number | null => {
-  if (isObsoleteCurriculumCourse(subject)) return null;
   const match = gpaList.find(
     (course) =>
       (Boolean(course.code) && subject.code === course.code) ||
@@ -240,7 +237,7 @@ export function isGpaReady(
 ): boolean {
   const courseList = getGpaCourses(department);
   const presets = getPresetCourses(department);
-  const semesterCourses = courseList.filter((course) => course.semester === selectedSemester && !isObsoleteCurriculumCourse(course));
+  const semesterCourses = courseList.filter((course) => course.semester === selectedSemester);
   const selectedSemester8Projects = subjects.filter((subject) =>
     getGpaCourseSemester(subject, courseList, presets) === selectedSemester &&
     ['project', 'project-work'].includes(getCourseType(subject))
@@ -270,7 +267,7 @@ export function calculateEstimatedSemesterGpa(
 ): EstimatedSemesterGpaResult {
   const courseList = getGpaCourses(department);
   const presets = getPresetCourses(department);
-  const semesterCourses = courseList.filter((course) => course.semester === semester && !isObsoleteCurriculumCourse(course));
+  const semesterCourses = courseList.filter((course) => course.semester === semester);
   if (semesterCourses.length === 0) {
     return { gpa: null, completedCount: 0, totalCount: 0, isProvisional: false };
   }
@@ -372,7 +369,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
   }, [showExplicitGradeModal]);
   const deptGpaCourses = getGpaCourses(department);
   const deptPresets = getPresetCourses(department);
-  const semesterCourses = deptGpaCourses.filter((course) => course.semester === selectedSemester && !isObsoleteCurriculumCourse(course));
+  const semesterCourses = deptGpaCourses.filter((course) => course.semester === selectedSemester);
   const gpaReady = isGpaReady(subjects, includeEstimates, selectedSemester, calculatedSignatures, department);
   const inputSignature = JSON.stringify({
     semester: selectedSemester,

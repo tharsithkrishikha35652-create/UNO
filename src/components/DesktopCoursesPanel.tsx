@@ -3,7 +3,6 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { transitions } from '../motion';
 import { AlertCircle, BookOpen, Check, CheckCircle2, Circle, GraduationCap, PencilLine } from 'lucide-react';
 import { acknowledgeSelection } from '../haptics';
-import { isObsoleteCurriculumCourse } from '../calculatorUtils';
 import type { SubjectData } from '../types';
 import type { PresetCourse, SemesterNumber } from './SubjectSelectionDialog';
 import type {
@@ -229,7 +228,7 @@ export const DesktopCoursesPanel: React.FC<DesktopCoursesPanelProps> = ({
             Core Courses
           </h2>
           <ul className="divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white overflow-hidden">
-            {courses.filter(({ course }) => !isObsoleteCurriculumCourse(course)).map(({ course, subject, progress }) => (
+            {courses.map(({ course, subject, progress }) => (
               <li key={course.id}>
                 <button
                   type="button"
@@ -285,7 +284,7 @@ export const DesktopCoursesPanel: React.FC<DesktopCoursesPanelProps> = ({
               Other Courses
             </h2>
             <ul className="divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white overflow-hidden">
-              {otherCourses.filter(({ subject }) => !isObsoleteCurriculumCourse(subject)).map(({ subject, progress }) => (
+              {otherCourses.map(({ subject, progress }) => (
                 <li key={subject.id}>
                   <button
                     type="button"

@@ -1,15 +1,17 @@
-# Gitleaks configuration for CalCredit / Project Uno
 # Extends default gitleaks ruleset while ignoring build artifacts and dependencies
 
 [extend]
 useDefault = true
 
 [allowlist]
-description = "Ignore build output, dependencies, temporary files, and local dev env"
+description = "Ignore generated files and Firebase client configuration, which contain public client identifiers rather than service credentials."
 paths = [
   '''dist[\\/]''',
   '''node_modules[\\/]''',
   '''\.git[\\/]''',
   '''\.vite[\\/]''',
-  '''\.env\.local$''',
+  '''(^|[\\/])\.env(?:\.[^\\/]+)?$''',
+  '''(^|[\\/])google-services\.json$''',
+  '''(^|[\\/])android[\\/]app[\\/]build[\\/]''',
+  '''(^|[\\/])android[\\/]app[\\/]src[\\/]main[\\/]assets[\\/]'''
 ]

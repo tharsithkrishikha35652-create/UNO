@@ -18,7 +18,6 @@ import {
   GRADE_SCALE,
   SPECIAL_GRADES,
   isGhostPlaceholderCourse,
-  isObsoleteCurriculumCourse,
 } from "./calculatorUtils";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { motionVariants } from "./motion";
@@ -486,7 +485,7 @@ function parseLegacySubjects(): SubjectData[] {
           typeof item === "object" &&
           typeof item.name === "string" &&
           item.name.trim() &&
-          !isGhostPlaceholderCourse(item) && !isObsoleteCurriculumCourse(item)
+          !isGhostPlaceholderCourse(item)
       )
     );
   } catch {
@@ -1018,7 +1017,7 @@ function AuthenticatedApp({
         if (cancelled) return;
         const loadedSubjects = mergeDuplicateProjectSubjects(
           workspace.subjects
-            .filter((s) => !isGhostPlaceholderCourse(s) && !isObsoleteCurriculumCourse(s))
+            .filter((s) => !isGhostPlaceholderCourse(s))
             .map(normalizeSubjectForSyllabus)
         );
         setProfile(workspace.profile);
@@ -1243,7 +1242,7 @@ function AuthenticatedApp({
 
   const currentSubject = useMemo(() => {
     const found = subjects.find(
-      (s) => s.id === currentSubjectId && !isGhostPlaceholderCourse(s) && !isObsoleteCurriculumCourse(s)
+      (s) => s.id === currentSubjectId && !isGhostPlaceholderCourse(s)
     );
     if (found) {
       if (selectedSemester === null) return found;
@@ -1252,14 +1251,14 @@ function AuthenticatedApp({
     }
     if (selectedSemester !== null) {
       const semSubject = subjects.find((s) => {
-        if (isGhostPlaceholderCourse(s) || isObsoleteCurriculumCourse(s)) return false;
+        if (isGhostPlaceholderCourse(s)) return false;
         const sem = getSubjectSemester(s, currentDepartment);
         return sem === selectedSemester;
       });
       if (semSubject) return semSubject;
     }
     return (
-      subjects.find((s) => !isGhostPlaceholderCourse(s) && !isObsoleteCurriculumCourse(s)) || DEFAULT_SUBJECT
+      subjects.find((s) => !isGhostPlaceholderCourse(s)) || DEFAULT_SUBJECT
     );
   }, [subjects, currentSubjectId, selectedSemester, currentDepartment]);
 
@@ -1979,7 +1978,7 @@ function AuthenticatedApp({
     if (selectedSemester === null) return [];
     return subjects
       .filter((subject) => {
-        if (!subject.name.trim() || isObsoleteCurriculumCourse(subject) || findPresetForSubject(subject)) return false;
+        if (!subject.name.trim() || findPresetForSubject(subject)) return false;
         const courseSemester = getSubjectSemester(subject);
         if (courseSemester !== null) {
           return courseSemester === selectedSemester;
