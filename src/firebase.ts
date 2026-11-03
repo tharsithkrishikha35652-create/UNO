@@ -79,7 +79,13 @@ export const firebaseValidationError: string | null = validation.isValid
   ? null
   : validation.errors.join('; ');
 
+import { logSecurityEvent } from './securityLogger';
+
 if (!validation.isValid) {
+  logSecurityEvent('CONFIG_VALIDATION_FAILURE', 'error', {
+    errorsCount: validation.errors.length,
+    issues: validation.errors,
+  });
   console.error(
     `[SECURITY/CONFIG ERROR] Firebase environment validation failed with ${validation.errors.length} issue(s):\n` +
       validation.errors.map((e) => `  - ${e}`).join('\n')

@@ -81,6 +81,7 @@ import {
   type AppVersionConfig,
 } from "./versionUtils";
 import { auth, firebaseConfigReady, firebaseValidationError } from "./firebase";
+import { logSecurityEvent } from "./securityLogger";
 import {
   importLegacySubjects,
   loadUserWorkspace,
@@ -638,6 +639,7 @@ export default function App() {
         await FirebaseAuthentication.signOut().catch(() => {});
       }
       await signOut(auth);
+      logSecurityEvent('AUTH_LOGOUT', 'info');
     } catch (error) {
       console.error("Unable to sign out:", error);
       setForceGoogleAccountSelection(false);

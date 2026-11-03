@@ -1,5 +1,6 @@
 import React, { useEffect, useState, type FormEvent } from 'react';
 import { getIdTokenResult, type User } from 'firebase/auth';
+import { logSecurityEvent } from '../securityLogger';
 import {
   AlertCircle,
   CheckCircle2,
@@ -110,7 +111,14 @@ export const FeedbackHub: React.FC<FeedbackHubProps> = ({ user, guestMode }) => 
           (user.email === 'projectunocc@gmail.com' &&
             claims.email_verified === true &&
             firebaseClaims?.sign_in_provider === 'google.com');
-        if (!cancelled) setIsAdmin(allowed);
+        if (!cancelled) {
+          setIsAdmin(allowed);
+          logSecurityEvent('ADMIN_ACCESS_CHECK', allowed ? 'info' : 'warn', {
+            granted: allowed,
+            hasAdminClaim: claims.admin === true,
+            emailVerified: claims.email_verified === true,
+          });
+        }
       })
       .catch((error: unknown) => {
         console.error('Unable to verify feedback admin access:', error);

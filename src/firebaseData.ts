@@ -13,6 +13,7 @@ import {
 } from 'firebase/firestore';
 import type { AcademicProfileData, SubjectData } from './types';
 import { db } from './firebase';
+import { logSecurityEvent } from './securityLogger';
 import { GPA_COURSES, getAllGpaCourses } from './gpaCourses';
 import { PRESET_COURSES, getAllPresetCourses } from './components/SubjectSelectionDialog';
 import { isGhostPlaceholderCourse } from './calculatorUtils';
@@ -100,7 +101,10 @@ export async function submitFeedback(
       ? Number(previous.count) || 0
       : 0;
 
-    if (previousCount >= DAILY_FEEDBACK_LIMIT) throw new FeedbackDailyLimitError();
+    if (previousCount >= DAILY_FEEDBACK_LIMIT) {
+      logSecurityEvent('FEEDBACK_RATE_LIMIT_EXCEEDED', 'warn', { uid: sender.uid });
+      throw new FeedbackDailyLimitError();
+    }
 
     const nextCount = previousCount + 1;
     transaction.set(counterRef, {

@@ -32,3 +32,4 @@ firebase-debug.log
 # Backup and patch files
 *.bak
 *.patch
+scratch/

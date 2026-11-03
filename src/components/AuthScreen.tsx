@@ -14,6 +14,7 @@ import {
 } from 'firebase/auth';
 import { AlertCircle, BookOpen, Check, Eye, EyeOff, LoaderCircle, Search, X } from 'lucide-react';
 import { auth } from '../firebase';
+import { logSecurityEvent, maskEmail } from '../securityLogger';
 import { ThemeToggle, type AppTheme } from './ThemeToggle';
 import { motionVariants } from '../motion';
 import CalCreditLogo from './CalCreditLogo';
@@ -196,33 +197,48 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
     try {
       if (mode === 'signup') {
         if (password.length < 8) {
+          logSecurityEvent('INPUT_VALIDATION_FAILURE', 'warn', { context: 'signup_password_too_short' });
           setError('Password must be at least 8 characters long.');
           setBusy(false);
           return;
         }
         if (!/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) {
+          logSecurityEvent('INPUT_VALIDATION_FAILURE', 'warn', { context: 'signup_password_complexity' });
           setError('Password must include at least one letter and one number.');
           setBusy(false);
           return;
         }
         await createUserWithEmailAndPassword(auth, email.trim(), password);
+        logSecurityEvent('AUTH_SIGNUP_SUCCESS', 'info', { email: maskEmail(email) });
       } else if (mode === 'login') {
         await signInWithEmailAndPassword(auth, email.trim(), password);
+        logSecurityEvent('AUTH_LOGIN_SUCCESS', 'info', { email: maskEmail(email) });
       } else {
         try {
           await sendPasswordResetEmail(auth, email.trim());
+          logSecurityEvent('AUTH_PASSWORD_RESET_REQUESTED', 'info', { email: maskEmail(email) });
         } catch (resetError) {
           const code = typeof resetError === 'object' && resetError !== null && 'code' in resetError
             ? String(resetError.code)
             : '';
           // Return identical response for non-existent users to prevent user enumeration
           if (code !== 'auth/user-not-found') {
+            logSecurityEvent('AUTH_PASSWORD_RESET_FAILURE', 'warn', { code, email: maskEmail(email) });
             throw resetError;
           }
+          logSecurityEvent('AUTH_PASSWORD_RESET_REQUESTED', 'info', { email: maskEmail(email), enumerated: false });
         }
         setNotice('If an account exists for this email, a password reset link has been sent. Check your inbox.');
       }
     } catch (authError) {
+      const code = typeof authError === 'object' && authError !== null && 'code' in authError
+        ? String(authError.code)
+        : '';
+      if (mode === 'login') {
+        logSecurityEvent('AUTH_LOGIN_FAILURE', 'warn', { code, email: maskEmail(email) });
+      } else if (mode === 'signup') {
+        logSecurityEvent('AUTH_SIGNUP_FAILURE', 'warn', { code, email: maskEmail(email) });
+      }
       setError(friendlyAuthError(authError));
     } finally {
       setBusy(false);
@@ -245,6 +261,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
         }
         const credential = GoogleAuthProvider.credential(idToken);
         await signInWithCredential(auth, credential);
+        logSecurityEvent('AUTH_LOGIN_SUCCESS', 'info', { provider: 'google', platform: 'native' });
       } else {
         const provider = new GoogleAuthProvider();
         if (forceGoogleAccountSelection) {
@@ -257,6 +274,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
         }
         try {
           await signInWithPopup(auth, provider);
+          logSecurityEvent('AUTH_LOGIN_SUCCESS', 'info', { provider: 'google', platform: 'web_popup' });
         } catch (popupError) {
           const popupCode =
             typeof popupError === 'object' && popupError !== null && 'code' in popupError
