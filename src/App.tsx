@@ -79,7 +79,7 @@ import {
   isVersionOutdated,
   type AppVersionConfig,
 } from "./versionUtils";
-import { auth, firebaseConfigReady } from "./firebase";
+import { auth, firebaseConfigReady, firebaseValidationError } from "./firebase";
 import {
   importLegacySubjects,
   loadUserWorkspace,
@@ -692,7 +692,11 @@ export default function App() {
   } else if (!firebaseConfigReady || !auth) {
     content = (
       <AuthScreen
-        configurationError="Firebase is not configured. Account sign-in is unavailable, but you can continue as a guest."
+        configurationError={
+          firebaseValidationError
+            ? `Configuration error: ${firebaseValidationError}. Sign-in is unavailable, but you can continue as a guest.`
+            : "Firebase is not configured. Account sign-in is unavailable, but you can continue as a guest."
+        }
         forceGoogleAccountSelection={forceGoogleAccountSelection}
         onContinueAsGuest={handleContinueAsGuest}
         theme={theme}

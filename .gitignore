@@ -1,17 +1,34 @@
+# Dependencies
 node_modules
+node_modules/.tmp
+
+# Build outputs
 dist
-*.local
-.DS_Store
 .vite
 tsconfig.tsbuildinfo
-node_modules/.tmp
-.env.local
-.env.*.local  
-.env
-.env.*
-!.env.example
-!**/.env.example
-firestore-debug.log
-firebase-debug.log
 release-apk/
 *.apk
+
+# Local and OS files
+*.local
+.DS_Store
+Thumbs.db
+
+# Environment variables & secrets
+.env
+.env.*
+*.env
+*.env.*
+.env.temp
+*.env.temp
+!.env.example
+!**/.env.example
+
+# Debug and runtime logs
+firestore-debug.log
+firebase-debug.log
+*.log
+
+# Backup and patch files
+*.bak
+*.patch
