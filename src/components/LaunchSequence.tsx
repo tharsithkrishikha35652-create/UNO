@@ -140,6 +140,12 @@ export default function LaunchSequence({ onDone, ready = true, forceFull = false
     });
     const SW = mk('fx2', 'circle', { fill: 'none', stroke: C('#F5EEDC') });
     const SW2 = mk('fx2', 'circle', { fill: 'none', stroke: C('#F0482E'), 'stroke-width': 3 });
+    // "Anna University" tag: sits under the name, inside the same group so it shares its position, reveal and theme colours.
+    const au = mk('wg', 'text', {
+      y: 30, 'font-family': 'system-ui,sans-serif', 'font-size': 12, 'font-weight': 600,
+      'letter-spacing': 3.8, fill: C('#F5EEDC'),
+    });
+    au.textContent = 'ANNA UNIVERSITY';
 
     // ---- layout (portrait phones vs landscape) ----
     const L = { P: false, VW: 680, VH: 260, CX: 340, CY: 130, K: 1, FX: 156, FY: 130, WX: 248, WY: 158, WS: 1.3, RS: 1 };
@@ -153,6 +159,9 @@ export default function LaunchSequence({ onDone, ready = true, forceFull = false
       const w = `translate(${L.WX} ${L.WY}) scale(${L.WS})`;
       $('wg').setAttribute('transform', w); $('wgm').setAttribute('transform', w);
       [gw, SW, SW2].forEach((e) => { e.setAttribute('cx', String(L.CX)); e.setAttribute('cy', String(L.CY)); });
+      // Centred under the stacked name on phones; left-aligned with the name beside the tile on wide screens.
+      au.setAttribute('x', P ? '131.5' : '1');
+      au.setAttribute('text-anchor', P ? 'middle' : 'start');
     };
 
     // ---- frame renderers ----
@@ -183,6 +192,10 @@ export default function LaunchSequence({ onDone, ready = true, forceFull = false
         e.setAttribute('transform', `translate(0 ${8 * (1 - out(q))})`);
         e.style.opacity = String(out(q));
       });
+      // Tag arrives as the name finishes and is in place before the i-dot settles, so the dot still gets the last beat.
+      const qa = out(S(t, 2.45, 2.95));
+      au.style.opacity = String(0.72 * qa);
+      au.setAttribute('transform', `translate(0 ${8 * (1 - qa)})`);
       // i-dot: drops onto the "t", hops across to the "i", bounces and settles
       const fu2 = S(t, 3 - TS, 3.3 - TS), lb = S(t, 3.3 - TS, 3.45 - TS), dq = S(t, 3.45 - TS, 4.1 - TS);
       const hp = S(dq, 0, 0.6), bb = S(dq, 0.6, 1), E = out(hp);
@@ -305,7 +318,7 @@ export default function LaunchSequence({ onDone, ready = true, forceFull = false
           transition: 'filter 480ms cubic-bezier(.4,0,.2,1), transform 480ms cubic-bezier(.4,0,.2,1)',
         }}
       />
-      <div ref={host} role="img" aria-label="CalCredit" style={{ position: 'absolute', inset: 0 }} />
+      <div ref={host} role="img" aria-label="CalCredit, Anna University" style={{ position: 'absolute', inset: 0 }} />
     </div>
   );
 }

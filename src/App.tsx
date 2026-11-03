@@ -572,6 +572,12 @@ export default function App() {
   }, [theme]);
 
   const toggleTheme = useCallback(() => {
+    document.documentElement.classList.add("theme-switching");
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        document.documentElement.classList.remove("theme-switching");
+      });
+    });
     setTheme((current) => (current === "light" ? "dark" : "light"));
   }, []);
 
