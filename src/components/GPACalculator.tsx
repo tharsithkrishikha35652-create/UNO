@@ -571,7 +571,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
             onClick={() => setShowExplicitGradeModal(true)}
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#172554] px-4 py-2.5 text-xs font-bold text-white shadow-xs transition-colors hover:bg-[#1e3a8a] cursor-pointer"
           >
-            <Sparkles className="w-4 h-4 text-cyan-300" />
+            <Sparkles className="w-4 h-4 text-white" />
             Enter Grades of Choice
           </button>
         </div>
