@@ -104,6 +104,7 @@ import {
   Check,
   X,
   RotateCcw,
+  UserRound,
 } from "lucide-react";
 
 const LAST_WORKING_POSITION_KEY = "calcredit_last_working_position";
@@ -2143,20 +2144,28 @@ function AuthenticatedApp({
         <header className="bg-white dark:bg-[#161618] border-b border-slate-200 dark:border-slate-800 shadow-xs pt-[var(--safe-area-top)] transition-colors">
           <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 min-h-12 sm:min-h-14 py-1 sm:py-0 flex items-center justify-between gap-2 sm:gap-4">
             {/* Brand wordmark */}
-            <button
-              ref={profileButtonRef}
-              type="button"
-              onClick={() => setIsProfileOpen(true)}
-              aria-label="Open student profile"
-              aria-haspopup="dialog"
-              aria-expanded={isProfileOpen}
-              aria-controls={
-                isProfileOpen ? "academic-profile-drawer" : undefined
-              }
-              className="flex min-w-0 shrink-0 items-center gap-2 !bg-transparent bg-transparent border-0 shadow-none text-left transition-opacity hover:opacity-85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#172554] cursor-pointer"
-            >
-              <CalCreditLogo markSize={30} wordHeight={18} gap={7} />
-            </button>
+            <div className="flex min-w-0 shrink-0 items-center gap-2.5">
+              <button
+                ref={profileButtonRef}
+                type="button"
+                onClick={() => setIsProfileOpen(true)}
+                aria-label="Open student profile"
+                title="Open student profile"
+                aria-haspopup="dialog"
+                aria-expanded={isProfileOpen}
+                aria-controls={
+                  isProfileOpen ? "academic-profile-drawer" : undefined
+                }
+                className="group flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[#43566f]/25 bg-[#43566f]/10 shadow-sm transition-[border-color,background-color,box-shadow,transform] hover:border-[#43566f]/50 hover:bg-[#43566f]/15 hover:shadow-md active:scale-[0.96] dark:border-[#8da2bd]/35 dark:bg-[#43566f]/20 dark:hover:border-[#a9bbd0]/60 dark:hover:bg-[#43566f]/30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#43566f] cursor-pointer"
+              >
+                <UserRound
+                  className="h-5 w-5 shrink-0 text-[#43566f] transition-colors group-hover:text-[#34465d] dark:text-[#a9bbd0] dark:group-hover:text-white"
+                  strokeWidth={3}
+                  aria-hidden="true"
+                />
+              </button>
+              <CalCreditLogo markSize={0} wordHeight={20} gap={0} />
+            </div>
 
             <div className="hidden min-w-0 max-w-44 items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 sm:flex">
               <div className="min-w-0">
