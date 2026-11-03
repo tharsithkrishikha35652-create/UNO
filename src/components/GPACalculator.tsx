@@ -566,14 +566,6 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
               </h2>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => setShowExplicitGradeModal(true)}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#172554] px-4 py-2.5 text-xs font-bold text-white shadow-xs transition-colors hover:bg-[#1e3a8a] cursor-pointer"
-          >
-            <Sparkles className="w-4 h-4 text-white" />
-            Enter Grades of Choice
-          </button>
         </div>
 
         {explicitCalculationResult && (
@@ -659,7 +651,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
             type="button"
             onClick={handleCalculateGpa}
             disabled={!gpaReady || isBusy || hasCalculated}
-            className="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-xs font-bold bg-[#172554] text-white hover:bg-[#1e3a8a] disabled:bg-slate-300 disabled:text-slate-600 disabled:cursor-not-allowed transition-colors cursor-pointer shadow-xs"
+            className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl px-4 text-xs font-bold bg-[#172554] text-white hover:bg-[#1e3a8a] disabled:bg-slate-300 disabled:text-white disabled:cursor-not-allowed transition-colors cursor-pointer shadow-xs sm:w-56"
           >
             <GraduationCap className="w-4 h-4" aria-hidden="true" />
             {calculationState === 'calculating'
@@ -822,6 +814,18 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
           </div>
         </section>
       )}
+
+      <div className="flex justify-end px-4 sm:px-0">
+        <button
+          type="button"
+          onClick={() => setShowExplicitGradeModal(true)}
+          className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#172554] px-4 text-xs font-bold text-white shadow-xs transition-colors hover:bg-[#1e3a8a] cursor-pointer sm:w-56"
+        >
+          <Sparkles className="w-4 h-4 text-white" />
+          Enter Grades of Choice
+        </button>
+      </div>
+
       {/* Explicit / Custom Grade Entry Modal */}
       <AnimatePresence>
       {showExplicitGradeModal && (

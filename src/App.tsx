@@ -62,6 +62,8 @@ import {
   ProfileDrawer,
 } from "./components/AcademicProfile";
 import { StickyResultSummary } from "./components/StickyResultSummary";
+import { TourErrorBoundary, TOUR_STORAGE_KEY } from "./components/TourErrorBoundary";
+const FirstTimeTour = React.lazy(() => import("./components/FirstTimeTour"));
 import { createPortal } from "react-dom";
 import { ThemeToggle, type AppTheme } from "./components/ThemeToggle";
 import CalCreditLogo from "./components/CalCreditLogo";
@@ -882,6 +884,52 @@ function AuthenticatedApp({
   const [isMobileCoursesOpen, setIsMobileCoursesOpen] = useState(false);
   const [isDesktopCoursesOpen, setIsDesktopCoursesOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isTourActive, setIsTourActive] = useState(false);
+
+  const handleCloseTour = useCallback(() => {
+    try {
+      localStorage.setItem(TOUR_STORAGE_KEY, "true");
+    } catch {}
+    setIsProfileOpen(false);
+    setShowFeedbackHub(false);
+    setIsMobileCoursesOpen(false);
+    setIsDesktopCoursesOpen(false);
+    setActiveTab("calculator");
+    setIsTourActive(false);
+  }, []);
+
+  useEffect(() => {
+    if (isTourActive) return;
+    try {
+      const tourSeen = Boolean(localStorage.getItem(TOUR_STORAGE_KEY));
+      if (tourSeen) return;
+    } catch {
+      return;
+    }
+
+    const launchTourWhenIdle = () => {
+      setIsTourActive(true);
+    };
+
+    if (typeof window === "undefined") return;
+
+    const win = window as unknown as {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+      cancelIdleCallback?: (handle: number) => void;
+    };
+
+    if (typeof win.requestIdleCallback === "function") {
+      const idleHandle = win.requestIdleCallback(launchTourWhenIdle, { timeout: 2500 });
+      return () => {
+        if (typeof win.cancelIdleCallback === "function") {
+          win.cancelIdleCallback(idleHandle);
+        }
+      };
+    }
+
+    const timer = setTimeout(launchTourWhenIdle, 1500);
+    return () => clearTimeout(timer);
+  }, [isTourActive]);
   const [showFeedbackHub, setShowFeedbackHub] = useState(false);
   const [showCredits, setShowCredits] = useState(false);
   const [includeEstimates, setIncludeEstimates] = useState(false);
@@ -1191,6 +1239,7 @@ function AuthenticatedApp({
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
     const listener = CapacitorApp.addListener("backButton", () => {
+      if (isTourActive) return void handleCloseTour();
       if (isMobileCoursesOpen) return void setIsMobileCoursesOpen(false);
       if (isDialogOpen) return void setIsDialogOpen(false);
       if (isProfileOpen) return void setIsProfileOpen(false);
@@ -1201,7 +1250,7 @@ function AuthenticatedApp({
       void CapacitorApp.exitApp();
     });
     return () => { void listener.then((handle) => handle.remove()); };
-  }, [activeTab, isDialogOpen, isEditorOpen, isMobileCoursesOpen, isProfileOpen, showCredits, showFeedbackHub]);
+  }, [activeTab, isDialogOpen, isEditorOpen, isMobileCoursesOpen, isProfileOpen, isTourActive, showCredits, showFeedbackHub, handleCloseTour]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
@@ -2157,6 +2206,8 @@ function AuthenticatedApp({
             <div className="flex min-w-0 shrink-0 items-center gap-2.5">
               <button
                 ref={profileButtonRef}
+                id="tour-profile-button"
+                data-tour="profile-button"
                 type="button"
                 onClick={() => setIsProfileOpen(true)}
                 aria-label="Open student profile"
@@ -2198,6 +2249,8 @@ function AuthenticatedApp({
             {/* Navigation Links */}
             <nav className="hidden md:flex items-center gap-4 text-xs font-bold text-[#172554]">
               <button
+                id="tour-desktop-tab-calculator"
+                data-tour="tab-calculator"
                 type="button"
                 onClick={() => {
                   setIsDesktopCoursesOpen(false);
@@ -2216,6 +2269,8 @@ function AuthenticatedApp({
                 <span className="hidden lg:inline">Assessment Calculator</span>
               </button>
               <button
+                id="tour-desktop-tab-courses"
+                data-tour="tab-courses"
                 type="button"
                 onClick={() => {
                   setIsMobileCoursesOpen(false);
@@ -2235,6 +2290,8 @@ function AuthenticatedApp({
                 <span className="hidden lg:inline">Courses</span>
               </button>
               <button
+                id="tour-desktop-tab-gpa"
+                data-tour="tab-gpa"
                 type="button"
                 onClick={() => {
                   setIsDesktopCoursesOpen(false);
@@ -2253,6 +2310,8 @@ function AuthenticatedApp({
                 <span className="hidden lg:inline">GPA Calculator</span>
               </button>
               <button
+                id="tour-desktop-tab-cgpa"
+                data-tour="tab-cgpa"
                 type="button"
                 onClick={() => {
                   setIsDesktopCoursesOpen(false);
@@ -2276,6 +2335,8 @@ function AuthenticatedApp({
               <span className="hidden md:inline">Semester</span>
               <div ref={semesterMenuRef} className="relative">
                 <button
+                  id="tour-semester-selector"
+                  data-tour="semester-selector"
                   type="button"
                   aria-label="Choose semester"
                   aria-haspopup="listbox"
@@ -2565,7 +2626,7 @@ function AuthenticatedApp({
           return (
             <MobileSwipeNavigator
               activeTab={activeTab}
-              disabled={showFeedbackHub || showCredits || isMobileCoursesOpen || isDesktopCoursesOpen}
+              disabled={showFeedbackHub || showCredits || isMobileCoursesOpen || isDesktopCoursesOpen || isTourActive}
               onSwipeOffsetChange={setSwipeColOffset}
               onNavigate={(tab) => {
                 setIsMobileCoursesOpen(false);
@@ -3538,6 +3599,7 @@ function AuthenticatedApp({
         onOpenGrades={handleOpenGrades}
         onOpenFeedback={handleOpenFeedbackHub}
         onOpenCredits={handleOpenCredits}
+        onReplayTour={() => setIsTourActive(true)}
         onLogout={handleProfileLogout}
         logoutPending={signOutPending}
         appVersion={CURRENT_APP_VERSION}
@@ -3552,6 +3614,37 @@ function AuthenticatedApp({
         initialElectiveSlot={dialogElectiveSlot}
         department={currentDepartment}
       />
+
+      {/* First Time User Tutorial Tour */}
+      {isTourActive && (
+        <TourErrorBoundary onClose={handleCloseTour}>
+          <React.Suspense fallback={null}>
+            <FirstTimeTour
+              isOpen={isTourActive}
+              onClose={handleCloseTour}
+              theme={theme}
+              openProfile={() => setIsProfileOpen(true)}
+              closeProfile={() => setIsProfileOpen(false)}
+              openFeedbackHub={handleOpenFeedbackHub}
+              closeFeedbackHub={() => setShowFeedbackHub(false)}
+              goToTab={(tab) => {
+                if (tab === "courses") {
+                  setIsMobileCoursesOpen(true);
+                  setIsDesktopCoursesOpen(true);
+                  setShowFeedbackHub(false);
+                  setShowCredits(false);
+                } else {
+                  setIsMobileCoursesOpen(false);
+                  setIsDesktopCoursesOpen(false);
+                  setShowFeedbackHub(false);
+                  setShowCredits(false);
+                  setActiveTab(tab);
+                }
+              }}
+            />
+          </React.Suspense>
+        </TourErrorBoundary>
+      )}
     </div>
   );
 }

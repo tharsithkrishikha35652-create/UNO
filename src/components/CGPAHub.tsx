@@ -473,7 +473,7 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
       </section>
 
       <AnimatePresence initial={false} mode="wait">
-      {cgpa !== null ? (
+      {cgpa !== null && (
         <motion.section
           key="cgpa-result"
           className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm sm:p-7"
@@ -489,19 +489,6 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
           </p>
           <AnimatedNumber value={cgpa} className="mt-1 text-4xl font-black text-[#172554] font-numeric tabular-nums" />
         </motion.section>
-      ) : (
-        <motion.p
-          key="cgpa-guidance"
-          className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950"
-          role="status"
-          variants={reduceMotion ? undefined : motionVariants.card}
-          initial={reduceMotion ? false : "initial"}
-          animate="animate"
-          exit="exit"
-        >
-          Enter a GPA from 0 to 10 and positive counted credits for each of the{" "}
-          {selectedSemester} semesters to calculate CGPA.
-        </motion.p>
       )}
       </AnimatePresence>
     </section>

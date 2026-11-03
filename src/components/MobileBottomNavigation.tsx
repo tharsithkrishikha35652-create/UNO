@@ -100,6 +100,8 @@ const MobileNavigationContent: React.FC<MobileBottomNavigationProps> = ({
         return (
           <button
             key={label}
+            id={`tour-tab-${tab || 'courses'}`}
+            data-tour={`tab-${tab || 'courses'}`}
             ref={tab === null ? coursesButtonRef : undefined}
             type="button"
             onClick={tab === null ? onToggleCourses : () => onNavigate(tab)}

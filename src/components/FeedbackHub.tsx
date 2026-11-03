@@ -195,7 +195,7 @@ export const FeedbackHub: React.FC<FeedbackHubProps> = ({ user, guestMode }) => 
 
   return (
     <section className="mx-auto my-6 w-full max-w-3xl rounded-2xl border border-slate-300 bg-white shadow-sm overflow-hidden" aria-labelledby="feedback-hub-heading">
-      <header className="border-b border-slate-200 px-5 py-5 sm:px-7">
+      <header id="tour-feedback-header" data-tour="feedback-header" className="border-b border-slate-200 px-5 py-5 sm:px-7">
         <div className="flex items-start gap-3">
           <span className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${palette.accent} text-white`}>
             <MessageSquare className="h-4 w-4" aria-hidden="true" />

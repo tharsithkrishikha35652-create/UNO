@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, type FormEvent } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { Check, ChevronDown, LoaderCircle, LogOut, MessageSquare, TableProperties, UsersRound, X } from 'lucide-react';
+import { Check, ChevronDown, LoaderCircle, LogOut, MessageSquare, Sparkles, TableProperties, UsersRound, X } from 'lucide-react';
 import type { AcademicProfileData } from '../types';
 import type { SemesterNumber } from './SubjectSelectionDialog';
 import { ThemeToggle, type AppTheme } from './ThemeToggle';
@@ -371,6 +371,7 @@ interface ProfileDrawerProps extends Omit<AcademicProfileFormProps, 'submitLabel
   onOpenGrades: () => void;
   onOpenFeedback: () => void;
   onOpenCredits: () => void;
+  onReplayTour?: () => void;
   onLogout: () => void;
   logoutPending: boolean;
   appVersion?: string;
@@ -389,6 +390,7 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
   onOpenGrades,
   onOpenFeedback,
   onOpenCredits,
+  onReplayTour,
   onLogout,
   logoutPending,
   appVersion = CURRENT_APP_VERSION,
@@ -488,7 +490,6 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
             )}
           </div>
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
-            <ThemeToggle theme={theme} onToggle={onToggleTheme} className="h-8.5 w-8.5 sm:h-9 sm:w-9 rounded-lg" />
             <button
               ref={closeButtonRef}
               type="button"
@@ -522,11 +523,8 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
           ) : (
             <>
               {/* 1. Your Profile banner */}
-              <div className="rounded-xl bg-[#172554] px-4 py-3 text-white flex items-center justify-between shadow-sm">
+              <div className="rounded-xl bg-[#172554] px-4 py-3 text-white flex items-center shadow-sm">
                 <span className="text-xs font-black">Your Profile</span>
-                <span className="rounded-md bg-blue-900/60 border border-blue-400/30 px-2 py-0.5 text-[10px] font-bold text-cyan-300 uppercase">
-                  {profile?.department || 'CSE'}
-                </span>
               </div>
 
               {/* 2-6. Profile Details Card: Student Name -> Roll Number -> Email -> Department -> Current Semester */}
@@ -549,7 +547,7 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
                     {guestMode ? 'Temporary guest session' : email || 'Email unavailable'}
                   </dd>
                 </div>
-                <div className="py-3">
+                <div id="tour-profile-department" className="py-3">
                   <dt className="text-[10px] font-bold text-slate-500">Department</dt>
                   <dd className="mt-1 text-sm font-bold text-[#172554]">
                     {profile?.department === 'ECE'
@@ -646,6 +644,27 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
                   </div>
                 </div>
               </button>
+
+              {/* Replay tour */}
+              {onReplayTour && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onReplayTour();
+                  }}
+                  className="flex min-h-12 w-full items-center justify-between rounded-xl border border-slate-300 bg-white p-3.5 text-left hover:bg-slate-50 transition-colors focus-visible:outline-2 focus-visible:outline-[#172554] cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-50 text-[#F0482E]">
+                      <Sparkles className="h-4 w-4" aria-hidden="true" />
+                    </div>
+                    <div>
+                      <span className="block text-sm font-bold text-[#172554]">Replay tour</span>
+                    </div>
+                  </div>
+                </button>
+              )}
 
               {/* 10. App Version Explanatory Text */}
               {guestMode && (

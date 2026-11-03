@@ -30,7 +30,7 @@ interface AuthScreenProps {
 
 type AuthMode = 'login' | 'signup' | 'reset';
 
-function friendlyAuthError(error: unknown, provider: 'email' | 'google' = 'email'): string {
+function friendlyAuthError(error: unknown, provider: 'email' | 'google' = 'email', mode?: AuthMode): string {
   const code = typeof error === 'object' && error !== null && 'code' in error
     ? String(error.code)
     : '';
@@ -52,7 +52,9 @@ function friendlyAuthError(error: unknown, provider: 'email' | 'google' = 'email
     case 'auth/invalid-email':
       return 'Enter a valid email address.';
     case 'auth/user-not-found':
+      return mode === 'reset' ? 'No account found with this email address.' : 'The email or password is incorrect.';
     case 'auth/invalid-credential':
+    case 'auth/wrong-password':
       return 'The email or password is incorrect.';
     case 'auth/email-already-in-use':
       return 'An account already exists for this email. Try logging in.';
@@ -66,6 +68,11 @@ function friendlyAuthError(error: unknown, provider: 'email' | 'google' = 'email
       return 'An account already exists with this email using a different sign-in method. Log in with that method first.';
     case 'auth/popup-blocked':
       return 'Your browser blocked the Google sign-in window. Allow pop-ups for this site and try again.';
+    case 'auth/api-key-not-valid':
+    case 'auth/invalid-api-key':
+      return 'The Firebase API key is invalid or restricted. Please verify your API key in Firebase Console and .env.';
+    case 'auth/app-not-authorized':
+      return 'This app is not authorized to use Firebase Authentication with the provided API key.';
     case 'auth/unauthorized-domain': {
       const currentHost = typeof window !== 'undefined' ? window.location.hostname : '';
       const currentPort = typeof window !== 'undefined' && window.location.port ? `:${window.location.port}` : '';
@@ -239,7 +246,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
       } else if (mode === 'signup') {
         logSecurityEvent('AUTH_SIGNUP_FAILURE', 'warn', { code, email: maskEmail(email) });
       }
-      setError(friendlyAuthError(authError));
+      setError(friendlyAuthError(authError, 'email', mode));
     } finally {
       setBusy(false);
     }
@@ -259,7 +266,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
         if (!idToken) {
           throw new Error('No ID token received from native Google Sign-In.');
         }
-        const credential = GoogleAuthProvider.credential(idToken);
+        const credential = GoogleAuthProvider.credential(idToken, result.credential?.accessToken);
         await signInWithCredential(auth, credential);
         logSecurityEvent('AUTH_LOGIN_SUCCESS', 'info', { provider: 'google', platform: 'native' });
       } else {
