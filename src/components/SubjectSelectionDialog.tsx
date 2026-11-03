@@ -4669,18 +4669,18 @@ export const SubjectSelectionDialog: React.FC<SubjectSelectionDialogProps> = ({
         }
       }}
     >
-      <div className="overlay-panel relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white shadow-2xl flex flex-col max-h-[85vh] overflow-hidden">
+      <div className="overlay-panel relative w-full max-w-lg rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#202024] shadow-2xl flex flex-col max-h-[85vh] overflow-hidden">
         {/* Modern Dialog Header */}
-        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 px-5 py-4">
           <div className="flex items-center gap-2.5">
-            <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#172554] text-blue-100">
-              <BookOpen className="h-4 w-4 text-cyan-300" aria-hidden="true" />
+            <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#172554] dark:bg-[#2a2a30] text-blue-100">
+              <BookOpen className="h-4 w-4 text-cyan-300 dark:text-[#e08564]" aria-hidden="true" />
             </span>
             <div>
-              <h2 id="dialog-title" className="text-sm font-bold text-[#172554]">
+              <h2 id="dialog-title" className="text-sm font-bold text-[#172554] dark:text-[#f1f1f3]">
                 {selectedElectiveSlot ? `Select ${selectedElectiveSlot}` : 'Select course'}
               </h2>
-              <p className="text-[11px] font-medium text-slate-500">
+              <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
                 Semester {selectedSemester} · Choose an elective option
               </p>
             </div>
@@ -4689,7 +4689,7 @@ export const SubjectSelectionDialog: React.FC<SubjectSelectionDialogProps> = ({
             type="button"
             onClick={onClose}
             autoFocus
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-300 text-[#172554] hover:bg-slate-50 transition-colors focus-visible:outline-2 focus-visible:outline-[#172554] cursor-pointer"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-300 dark:border-slate-700 text-[#172554] dark:text-[#f1f1f3] hover:bg-slate-50 dark:hover:bg-[#2a2a30] transition-colors focus-visible:outline-2 focus-visible:outline-[#172554] dark:focus-visible:outline-[#e08564] cursor-pointer"
             aria-label="Close dialog"
           >
             <X className="h-4 w-4" aria-hidden="true" />
@@ -4698,9 +4698,9 @@ export const SubjectSelectionDialog: React.FC<SubjectSelectionDialogProps> = ({
 
         {/* Elective slot switcher (shown only when multiple slots exist in this semester) */}
         {electiveSlots.length > 1 && (
-          <div className="border-b border-slate-100 bg-slate-50/70 px-5 py-2.5">
+          <div className="border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-[#161618] px-5 py-2.5">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mr-1">
+              <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide mr-1">
                 Slot:
               </span>
               {electiveSlots.map((slot) => {
@@ -4718,8 +4718,8 @@ export const SubjectSelectionDialog: React.FC<SubjectSelectionDialogProps> = ({
                     }}
                     className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all cursor-pointer border ${
                       isSlotSelected
-                        ? 'border-[#172554] bg-[#172554] text-white shadow-xs'
-                        : 'border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50'
+                        ? 'border-[#172554] dark:border-[#e08564] bg-[#172554] dark:bg-[#e08564] text-white dark:text-[#161618] shadow-xs'
+                        : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-[#202024] text-slate-700 dark:text-slate-200 hover:border-slate-400 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-[#2a2a30]'
                     }`}
                   >
                     {slot}
@@ -4734,7 +4734,7 @@ export const SubjectSelectionDialog: React.FC<SubjectSelectionDialogProps> = ({
         <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-2">
           {filteredCourses.length === 0 ? (
             <div className="py-10 text-center">
-              <p className="text-xs font-semibold text-slate-500">
+              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                 No elective courses found for {selectedElectiveSlot || `Semester ${selectedSemester}`}.
               </p>
             </div>
@@ -4747,23 +4747,23 @@ export const SubjectSelectionDialog: React.FC<SubjectSelectionDialogProps> = ({
                   type="button"
                   onClick={() => setSelectedCourse(course)}
                   aria-pressed={isSelected}
-                  className={`flex min-h-13 w-full items-center justify-between gap-3 rounded-xl border p-3.5 text-left transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-[#172554] ${
+                  className={`flex min-h-13 w-full items-center justify-between gap-3 rounded-xl border p-3.5 text-left transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-[#172554] dark:focus-visible:outline-[#e08564] ${
                     isSelected
-                      ? 'border-[#172554] bg-blue-50/80 shadow-xs'
-                      : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+                      ? 'border-[#172554] dark:border-[#e08564] bg-blue-50/80 dark:bg-[#2a2420] shadow-xs'
+                      : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-[#161618] hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-[#202024]'
                   }`}
                 >
                   <div className="min-w-0 flex-1">
-                    <span className="block text-xs sm:text-sm font-bold text-[#172554] leading-snug break-words">
+                    <span className="block text-xs sm:text-sm font-bold text-[#172554] dark:text-[#f1f1f3] leading-snug break-words">
                       {course.name}
                     </span>
                     <div className="mt-1 flex items-center gap-1.5 flex-wrap">
                       {course.code && (
-                        <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-600 border border-slate-200 font-mono">
+                        <span className="rounded bg-slate-100 dark:bg-[#29292e] px-1.5 py-0.5 text-[10px] font-bold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-mono">
                           {course.code}
                         </span>
                       )}
-                      <span className="rounded bg-blue-100/70 px-1.5 py-0.5 text-[10px] font-bold text-blue-900 border border-blue-200/50 font-numeric tabular-nums">
+                      <span className="rounded bg-blue-100/70 dark:bg-[#29292e] px-1.5 py-0.5 text-[10px] font-bold text-blue-900 dark:text-slate-300 border border-blue-200/50 dark:border-slate-700 font-numeric tabular-nums">
                         {course.type}
                       </span>
                     </div>
@@ -4772,8 +4772,8 @@ export const SubjectSelectionDialog: React.FC<SubjectSelectionDialogProps> = ({
                   <div
                     className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition-colors ${
                       isSelected
-                        ? 'border-[#172554] bg-[#172554] text-white'
-                        : 'border-slate-300 bg-white'
+                        ? 'border-[#172554] dark:border-[#e08564] bg-[#172554] dark:bg-[#e08564] text-white dark:text-[#161618]'
+                        : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-[#202024]'
                     }`}
                   >
                     {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
@@ -4785,11 +4785,11 @@ export const SubjectSelectionDialog: React.FC<SubjectSelectionDialogProps> = ({
         </div>
 
         {/* Modern Dialog Footer */}
-        <div className="flex items-center justify-end gap-2.5 border-t border-slate-200 bg-slate-50/80 px-5 py-3">
+        <div className="flex items-center justify-end gap-2.5 border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-[#161618] px-5 py-3">
           <button
             type="button"
             onClick={onClose}
-            className="min-h-10 rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-[#172554] hover:bg-slate-100 transition-colors cursor-pointer"
+            className="min-h-10 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#202024] px-4 py-2 text-xs font-bold text-[#172554] dark:text-[#f1f1f3] hover:bg-slate-100 dark:hover:bg-[#2a2a30] transition-colors cursor-pointer"
           >
             Cancel
           </button>
@@ -4797,7 +4797,7 @@ export const SubjectSelectionDialog: React.FC<SubjectSelectionDialogProps> = ({
             type="button"
             onClick={handleConfirm}
             disabled={!filteredCourses.some((course) => course.id === selectedCourse.id)}
-            className="min-h-10 rounded-xl bg-[#172554] px-5 py-2 text-xs font-bold text-white hover:bg-[#1e3a8a] transition-colors disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer shadow-xs"
+            className="min-h-10 rounded-xl bg-[#172554] dark:bg-[#e08564] px-5 py-2 text-xs font-bold text-white dark:text-[#161618] hover:bg-[#1e3a8a] dark:hover:bg-[#e89475] transition-colors disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer shadow-xs"
           >
             Select course
           </button>
