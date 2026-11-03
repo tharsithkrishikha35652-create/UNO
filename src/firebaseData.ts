@@ -75,6 +75,16 @@ export async function submitFeedback(
   message: string,
   category: FeedbackCategory
 ): Promise<number> {
+  const cleanMessage = typeof message === 'string' ? message.trim() : '';
+  if (!cleanMessage || cleanMessage.length > 2000) {
+    throw new Error('Feedback message must be between 1 and 2000 characters.');
+  }
+  if (!FEEDBACK_CATEGORIES.includes(category)) {
+    throw new Error('Invalid feedback category.');
+  }
+  if (!sender?.uid || typeof sender.uid !== 'string' || !sender?.email || typeof sender.email !== 'string') {
+    throw new Error('Authenticated user with valid email is required.');
+  }
   const firestore = requireFirestore();
   const dayStart = getIndiaDayStart();
   const counterRef = doc(firestore, 'feedbackCounters', sender.uid);
@@ -173,7 +183,8 @@ function requireFirestore() {
 }
 
 function userDocument(uid: string, collectionName: string, id: string) {
-  return doc(requireFirestore(), 'users', uid, collectionName, id);
+  const safeId = typeof id === 'string' && id.trim() ? id.trim().replace(/[\/\\?#]/g, '_') : 'default';
+  return doc(requireFirestore(), 'users', uid, collectionName, safeId);
 }
 
 export async function loadUserWorkspace(uid: string): Promise<UserWorkspaceData> {
