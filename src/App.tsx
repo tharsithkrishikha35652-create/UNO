@@ -1610,6 +1610,30 @@ function AuthenticatedApp({
     setShowFeedbackHub(true);
   };
 
+  const handleOpenTargetSimulatorForTour = useCallback(() => {
+    setIsProfileOpen(false);
+    setShowFeedbackHub(false);
+    setShowCredits(false);
+    setIsMobileCoursesOpen(false);
+    setIsDesktopCoursesOpen(false);
+    setActiveTab("calculator");
+    const currentSem = selectedSemester ?? 1;
+    if (!selectedSemester) {
+      setSelectedSemester(1);
+    }
+    if (!isEditorOpen || !hasSubjectSelected) {
+      const semCourses = deptPresets.filter((course) => course.semester === currentSem && course.group !== "elective");
+      const targetCourse =
+        semCourses.find(
+          (course) =>
+            course.courseType === "theory" || !["project", "project-work", "mini-project"].includes(course.courseType)
+        ) || semCourses[0];
+      if (targetCourse) {
+        handleOpenPresetCourse(targetCourse);
+      }
+    }
+  }, [selectedSemester, isEditorOpen, hasSubjectSelected, deptPresets, handleOpenPresetCourse]);
+
   const handleOpenGrades = () => {
     setIsProfileOpen(false);
     setIsMobileCoursesOpen(false);
@@ -3627,6 +3651,7 @@ function AuthenticatedApp({
               closeProfile={() => setIsProfileOpen(false)}
               openFeedbackHub={handleOpenFeedbackHub}
               closeFeedbackHub={() => setShowFeedbackHub(false)}
+              openTargetSimulator={handleOpenTargetSimulatorForTour}
               goToTab={(tab) => {
                 if (tab === "courses") {
                   setIsMobileCoursesOpen(true);

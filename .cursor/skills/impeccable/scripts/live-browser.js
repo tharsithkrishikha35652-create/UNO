@@ -12219,6 +12219,7 @@ void main() {
         ignores = { disabledRules: [], disabledValues: [], skipScan: false };
       }
     }
+    const targetOrigin = (window.location.origin && window.location.origin !== 'null') ? window.location.origin : '*';
     window.postMessage({
       source: 'impeccable-command',
       action: 'scan',
@@ -12228,7 +12229,7 @@ void main() {
         disabledValues: ignores.disabledValues || [],
         skipScan: ignores.skipScan === true,
       },
-    }, '*');
+    }, targetOrigin);
   }
 
   function toggleDetect() {
@@ -12246,7 +12247,8 @@ void main() {
         detectPendingScan = true;
       }
     } else {
-      window.postMessage({ source: 'impeccable-command', action: 'remove' }, '*');
+      const targetOrigin = (window.location.origin && window.location.origin !== 'null') ? window.location.origin : '*';
+      window.postMessage({ source: 'impeccable-command', action: 'remove' }, targetOrigin);
       activeDetectScanId = null;
       pendingDetectScanId = null;
       detectCount = 0;
@@ -12399,7 +12401,8 @@ void main() {
     document.removeEventListener('focusout', stopFocusOutIntoChrome, true);
     window.removeEventListener('message', onDetectMessage);
     // Remove detection overlays
-    window.postMessage({ source: 'impeccable-command', action: 'remove' }, '*');
+    const targetOrigin = (window.location.origin && window.location.origin !== 'null') ? window.location.origin : '*';
+    window.postMessage({ source: 'impeccable-command', action: 'remove' }, targetOrigin);
     setLiveState('IDLE');
     document.getElementById(PICK_CURSOR_STYLE_ID)?.remove();
     removeVariantStateStylesheet();

@@ -16,7 +16,7 @@ describe('Security Hardening Test Suite', () => {
 
   describe('Phase 1: Environment Security & Startup Validation', () => {
     it('validates and detects missing or malformed Firebase environment variables', () => {
-      const result = validateFirebaseEnvironment();
+      const result = validateFirebaseEnvironment({});
       // In test runner environment without .env injected, it must fail loudly
       expect(result.isValid).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
@@ -126,8 +126,8 @@ describe('Security Hardening Test Suite', () => {
       const sensitivePayload = {
         email: 'user@example.com',
         password: 'SuperSecretPassword123!',
-        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
-        apiKey: 'AIzaSyFakeKeyForTestingPurposes12345678',
+        token: 'sample-session-token-for-testing',
+        apiKey: 'sample-api-key-for-testing',
         credential: 'raw_credential_data',
         metadata: {
           clientSecret: 'shhh',

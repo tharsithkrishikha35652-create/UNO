@@ -817,6 +817,8 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
 
       <div className="flex justify-end px-4 sm:px-0">
         <button
+          id="tour-grades-of-choice-button"
+          data-tour="grades-of-choice-button"
           type="button"
           onClick={() => setShowExplicitGradeModal(true)}
           className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#172554] px-4 text-xs font-bold text-white shadow-xs transition-colors hover:bg-[#1e3a8a] cursor-pointer sm:w-56"

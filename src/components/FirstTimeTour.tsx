@@ -21,6 +21,7 @@ export interface FirstTimeTourProps {
   closeProfile?: () => void;
   openFeedbackHub?: () => void;
   closeFeedbackHub?: () => void;
+  openTargetSimulator?: () => void;
   goToTab?: (tab: 'calculator' | 'courses' | 'gpa' | 'cgpa') => void;
 }
 
@@ -31,8 +32,10 @@ export type TourStep =
   | 'feedback_hub'
   | 'semester_selector'
   | 'marks_entry'
+  | 'target_simulator'
   | 'features_types'
   | 'features_prediction'
+  | 'grades_of_choice'
   | 'bottom_bar'
   | 'finish';
 
@@ -54,6 +57,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
   closeProfile = () => {},
   openFeedbackHub = () => {},
   closeFeedbackHub = () => {},
+  openTargetSimulator = () => {},
   goToTab = () => {},
 }) => {
   const reduceMotion = useReducedMotion();
@@ -68,10 +72,10 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
   const [sampleEse, setSampleEse] = useState(86);     // out of 100
   const [marksAdjusted, setMarksAdjusted] = useState(false);
 
-  // Looping course types state for Step 6
+  // Looping course types state for Step 7
   const [courseTypeIndex, setCourseTypeIndex] = useState(0);
 
-  // Target GPA prediction state for Step 7
+  // Target GPA prediction state for Step 8
   const [targetGpa, setTargetGpa] = useState(8.5);
 
   const measureTimerRef = useRef<number | null>(null);
@@ -130,6 +134,10 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
         return '#tour-feedback-header, [data-tour="feedback-header"], #feedback-hub-heading, #tour-feedback-hub';
       case 'semester_selector':
         return '#tour-semester-selector, [data-tour="semester-selector"]';
+      case 'target_simulator':
+        return '#tour-target-grade-simulator, [data-tour="target-grade-simulator"]';
+      case 'grades_of_choice':
+        return '#tour-grades-of-choice-button, [data-tour="grades-of-choice-button"]';
       case 'bottom_bar':
         if (bTab === 'calculator') return '#tour-tab-calculator, [data-tour="tab-calculator"], #tour-desktop-tab-calculator';
         if (bTab === 'courses') return '#tour-tab-courses, [data-tour="tab-courses"], #tour-desktop-tab-courses';
@@ -152,8 +160,14 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
 
     const element = document.querySelector(selector);
     if (element instanceof HTMLElement) {
-      if (typeof element.scrollIntoView === 'function' && step === 'department') {
-        element.scrollIntoView({ block: 'nearest', behavior: 'instant' });
+      if (typeof element.scrollIntoView === 'function') {
+        if (step === 'department' || step === 'target_simulator' || step === 'grades_of_choice') {
+          element.scrollIntoView({ block: 'center', behavior: 'instant' });
+        }
+      }
+      if (step === 'target_simulator') {
+        const details = element.closest('details') || element.querySelector('details');
+        if (details instanceof HTMLDetailsElement) details.open = true;
       }
       const rect = element.getBoundingClientRect();
       if (rect.width > 0 && rect.height > 0) {
@@ -194,6 +208,10 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
       navigateToStep('semester_selector');
     } else if (step === 'semester_selector') {
       navigateToStep('marks_entry');
+    } else if (step === 'target_simulator') {
+      navigateToStep('features_types');
+    } else if (step === 'grades_of_choice') {
+      navigateToStep('bottom_bar');
     } else if (step === 'bottom_bar') {
       navigateToStep('finish');
     } else {
@@ -239,12 +257,32 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
         break;
 
       case 'marks_entry':
+        closeFeedbackHub();
+        closeProfile();
+        goToTab('calculator');
+        screenWaitMs = 50;
+        break;
+
+      case 'target_simulator':
+        closeFeedbackHub();
+        closeProfile();
+        openTargetSimulator();
+        screenWaitMs = 300; // Allow course editor and EndSemesterSection to mount
+        break;
+
       case 'features_types':
       case 'features_prediction':
         closeFeedbackHub();
         closeProfile();
         goToTab('calculator');
         screenWaitMs = 50;
+        break;
+
+      case 'grades_of_choice':
+        closeFeedbackHub();
+        closeProfile();
+        goToTab('gpa');
+        screenWaitMs = 280; // Allow GPA Hub screen to render
         break;
 
       case 'bottom_bar':
@@ -266,7 +304,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
     transitionTimerRef.current = window.setTimeout(() => {
       measureTarget(nextStep, 'calculator');
     }, screenWaitMs);
-  }, [clearAllTimers, closeProfile, openProfile, closeFeedbackHub, openFeedbackHub, goToTab, measureTarget]);
+  }, [clearAllTimers, closeProfile, openProfile, closeFeedbackHub, openFeedbackHub, openTargetSimulator, goToTab, measureTarget]);
 
   // Listen for resize / rotation: re-measure once
   useEffect(() => {
@@ -281,7 +319,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
     };
   }, [currentStep, bottomTab, measureTarget]);
 
-  // Looping demo for Step 6 (Course Types): cycles every 1.8s
+  // Looping demo for Step 7 (Course Types): cycles every 1.8s
   useEffect(() => {
     if (currentStep !== 'features_types') return;
     const interval = window.setInterval(() => {
@@ -290,7 +328,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
     return () => window.clearInterval(interval);
   }, [currentStep]);
 
-  // Bottom Bar tab sequencing (Step 8 of 8): ~1.5s per tab
+  // Bottom Bar tab sequencing (Step 10 of 10): ~1.5s per tab
   const advanceBottomBarTab = useCallback((nextTab: BottomBarTab) => {
     clearAllTimers();
     setBottomTab(nextTab);
@@ -385,7 +423,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
 
   const isUnderlineStep = currentStep === 'bottom_bar';
 
-  // Course types metadata for Step 6
+  // Course types metadata for Step 7
   const courseTypesDemo = [
     { title: 'Theory', badge: '40 CA / 60 ESE', desc: 'Continuous assessments + End Semester Theory Exam' },
     { title: 'Theory + Lab', badge: '50 CA / 50 ESE', desc: 'Integrated lecture, tests, and practical examination' },
@@ -462,7 +500,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
           </div>
         )}
 
-        {/* STEP 1: Profile Icon (Step 1 of 8) */}
+        {/* STEP 1: Profile Icon (Step 1 of 10) */}
         {currentStep === 'profile_icon' && (
           <div
             className="pointer-events-auto absolute max-w-xs w-[calc(100%-2rem)] rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-5 shadow-2xl text-left"
@@ -487,7 +525,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
               </button>
               <div className="flex items-center gap-2.5">
                 <span className="text-[11px] font-bold text-slate-400">
-                  Step <span className="font-numeric tabular-nums">1</span> of <span className="font-numeric tabular-nums">8</span>
+                  Step <span className="font-numeric tabular-nums">1</span> of <span className="font-numeric tabular-nums">10</span>
                 </span>
                 <button
                   type="button"
@@ -502,7 +540,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
           </div>
         )}
 
-        {/* STEP 2: Department on Profile Page (Step 2 of 8) */}
+        {/* STEP 2: Department on Profile Page (Step 2 of 10) */}
         {currentStep === 'department' && (
           <div
             className="pointer-events-auto absolute max-w-xs w-[calc(100%-2rem)] rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-5 shadow-2xl text-left"
@@ -527,7 +565,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
               </button>
               <div className="flex items-center gap-2.5">
                 <span className="text-[11px] font-bold text-slate-400">
-                  Step <span className="font-numeric tabular-nums">2</span> of <span className="font-numeric tabular-nums">8</span>
+                  Step <span className="font-numeric tabular-nums">2</span> of <span className="font-numeric tabular-nums">10</span>
                 </span>
                 <button
                   type="button"
@@ -542,7 +580,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
           </div>
         )}
 
-        {/* STEP 3: Feedback Hub (Step 3 of 8) */}
+        {/* STEP 3: Feedback Hub (Step 3 of 10) */}
         {currentStep === 'feedback_hub' && (
           <div
             className="pointer-events-auto absolute max-w-xs w-[calc(100%-2rem)] rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-5 shadow-2xl text-left"
@@ -567,7 +605,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
               </button>
               <div className="flex items-center gap-2.5">
                 <span className="text-[11px] font-bold text-slate-400">
-                  Step <span className="font-numeric tabular-nums">3</span> of <span className="font-numeric tabular-nums">8</span>
+                  Step <span className="font-numeric tabular-nums">3</span> of <span className="font-numeric tabular-nums">10</span>
                 </span>
                 <button
                   type="button"
@@ -582,7 +620,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
           </div>
         )}
 
-        {/* STEP 4: Semester Selector (Step 4 of 8) */}
+        {/* STEP 4: Semester Selector (Step 4 of 10) */}
         {currentStep === 'semester_selector' && (
           <div
             className="pointer-events-auto absolute max-w-xs w-[calc(100%-2rem)] rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-5 shadow-2xl text-left"
@@ -607,7 +645,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
               </button>
               <div className="flex items-center gap-2.5">
                 <span className="text-[11px] font-bold text-slate-400">
-                  Step <span className="font-numeric tabular-nums">4</span> of <span className="font-numeric tabular-nums">8</span>
+                  Step <span className="font-numeric tabular-nums">4</span> of <span className="font-numeric tabular-nums">10</span>
                 </span>
                 <button
                   type="button"
@@ -622,7 +660,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
           </div>
         )}
 
-        {/* STEP 5: Marks Entry (Step 5 of 8) */}
+        {/* STEP 5: Marks Entry (Step 5 of 10) */}
         {currentStep === 'marks_entry' && (
           <div className="pointer-events-auto w-full max-w-md rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-5 sm:p-6 shadow-2xl text-left">
             <div>
@@ -737,11 +775,11 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
               </button>
               <div className="flex items-center gap-2.5">
                 <span className="text-[11px] font-bold text-slate-400">
-                  Step <span className="font-numeric tabular-nums">5</span> of <span className="font-numeric tabular-nums">8</span>
+                  Step <span className="font-numeric tabular-nums">5</span> of <span className="font-numeric tabular-nums">10</span>
                 </span>
                 <button
                   type="button"
-                  onClick={() => navigateToStep('features_types')}
+                  onClick={() => navigateToStep('target_simulator')}
                   className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-[#172554] px-4 text-xs font-bold text-white hover:bg-[#1e3a8a] active:scale-95 transition-transform cursor-pointer"
                 >
                   <span>{marksAdjusted ? 'Continue' : 'Next'}</span>
@@ -752,7 +790,47 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
           </div>
         )}
 
-        {/* STEP 6: Course Types Demo (Step 6 of 8) */}
+        {/* STEP 6: Target Grade Simulator (Step 6 of 10) */}
+        {currentStep === 'target_simulator' && (
+          <div
+            className="pointer-events-auto absolute max-w-xs w-[calc(100%-2rem)] rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-5 shadow-2xl text-left"
+            style={{
+              top: targetRect ? Math.min(window.innerHeight - 170, targetRect.y + targetRect.height + 16) : '40%',
+              left: targetRect ? Math.max(16, Math.min(targetRect.x - 10, window.innerWidth - 320)) : 16,
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <span className="flex h-2 w-2 rounded-full bg-[#F0482E] shrink-0" />
+              <p className="text-sm font-black text-[#172554] dark:text-[#f1f1f3]">
+                Pick a target grade. See the marks you need.
+              </p>
+            </div>
+            <div className="mt-4 flex items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={handleClose}
+                className="text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 cursor-pointer"
+              >
+                Skip tour
+              </button>
+              <div className="flex items-center gap-2.5">
+                <span className="text-[11px] font-bold text-slate-400">
+                  Step <span className="font-numeric tabular-nums">6</span> of <span className="font-numeric tabular-nums">10</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => navigateToStep('features_types')}
+                  className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-[#172554] px-3.5 text-xs font-bold text-white hover:bg-[#1e3a8a] active:scale-95 transition-transform cursor-pointer"
+                >
+                  <span>Next</span>
+                  <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* STEP 7: Course Types Demo (Step 7 of 10) */}
         {currentStep === 'features_types' && (
           <div className="pointer-events-auto w-full max-w-sm rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-6 shadow-2xl text-left">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/40 text-[#172554] dark:text-[#a9bbd0]">
@@ -788,7 +866,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
               </button>
               <div className="flex items-center gap-2.5">
                 <span className="text-[11px] font-bold text-slate-400">
-                  Step <span className="font-numeric tabular-nums">6</span> of <span className="font-numeric tabular-nums">8</span>
+                  Step <span className="font-numeric tabular-nums">7</span> of <span className="font-numeric tabular-nums">10</span>
                 </span>
                 <button
                   type="button"
@@ -803,7 +881,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
           </div>
         )}
 
-        {/* STEP 7: Target GPA Prediction Demo (Step 7 of 8) */}
+        {/* STEP 8: Target GPA Prediction Demo (Step 8 of 10) */}
         {currentStep === 'features_prediction' && (
           <div className="pointer-events-auto w-full max-w-sm rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-6 shadow-2xl text-left">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600">
@@ -847,11 +925,11 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
               </button>
               <div className="flex items-center gap-2.5">
                 <span className="text-[11px] font-bold text-slate-400">
-                  Step <span className="font-numeric tabular-nums">7</span> of <span className="font-numeric tabular-nums">8</span>
+                  Step <span className="font-numeric tabular-nums">8</span> of <span className="font-numeric tabular-nums">10</span>
                 </span>
                 <button
                   type="button"
-                  onClick={() => navigateToStep('bottom_bar')}
+                  onClick={() => navigateToStep('grades_of_choice')}
                   className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-[#172554] px-4 text-xs font-bold text-white hover:bg-[#1e3a8a] active:scale-95 transition-transform cursor-pointer"
                 >
                   <span>Next</span>
@@ -862,7 +940,47 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
           </div>
         )}
 
-        {/* STEP 8: Bottom Bar Underline Sequence (Step 8 of 8) */}
+        {/* STEP 9: Enter Grades of Choice (Step 9 of 10) */}
+        {currentStep === 'grades_of_choice' && (
+          <div
+            className="pointer-events-auto absolute max-w-xs w-[calc(100%-2rem)] rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-5 shadow-2xl text-left"
+            style={{
+              bottom: targetRect ? Math.max(16, window.innerHeight - targetRect.y + 16) : 100,
+              left: targetRect ? Math.max(16, Math.min(targetRect.x - 20, window.innerWidth - 320)) : 16,
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <span className="flex h-2 w-2 rounded-full bg-[#F0482E] shrink-0" />
+              <p className="text-sm font-black text-[#172554] dark:text-[#f1f1f3]">
+                Pick a grade per course. Get a quick GPA, no marks needed.
+              </p>
+            </div>
+            <div className="mt-4 flex items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={handleClose}
+                className="text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 cursor-pointer"
+              >
+                Skip tour
+              </button>
+              <div className="flex items-center gap-2.5">
+                <span className="text-[11px] font-bold text-slate-400">
+                  Step <span className="font-numeric tabular-nums">9</span> of <span className="font-numeric tabular-nums">10</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => navigateToStep('bottom_bar')}
+                  className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-[#172554] px-3.5 text-xs font-bold text-white hover:bg-[#1e3a8a] active:scale-95 transition-transform cursor-pointer"
+                >
+                  <span>Next</span>
+                  <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* STEP 10: Bottom Bar Underline Sequence (Step 10 of 10) */}
         {currentStep === 'bottom_bar' && (
           <div
             className="pointer-events-auto absolute max-w-xs w-[calc(100%-2rem)] rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-4 shadow-2xl text-left"
@@ -890,7 +1008,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
               </button>
               <div className="flex items-center gap-2">
                 <span className="text-[11px] font-bold text-slate-400">
-                  Step <span className="font-numeric tabular-nums">8</span> of <span className="font-numeric tabular-nums">8</span>
+                  Step <span className="font-numeric tabular-nums">10</span> of <span className="font-numeric tabular-nums">10</span>
                 </span>
                 <button
                   type="button"
@@ -910,7 +1028,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
           </div>
         )}
 
-        {/* STEP 9: Finish Card */}
+        {/* STEP 11: Finish Card */}
         {currentStep === 'finish' && (
           <div className="pointer-events-auto w-full max-w-sm rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-6 shadow-2xl text-left">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600">

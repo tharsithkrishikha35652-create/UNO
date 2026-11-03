@@ -22,10 +22,10 @@ export interface EnvValidationResult {
  * Validates required Firebase client environment variables at application startup.
  * Fails loudly with detailed diagnostic errors if any required key is missing or malformed.
  */
-export function validateFirebaseEnvironment(): EnvValidationResult {
+export function validateFirebaseEnvironment(customConfig?: Partial<typeof rawFirebaseConfig>): EnvValidationResult {
   const errors: string[] = [];
 
-  const { apiKey, authDomain, projectId, storageBucket, messagingSenderId, appId } = rawFirebaseConfig;
+  const { apiKey, authDomain, projectId, storageBucket, messagingSenderId, appId } = customConfig ?? rawFirebaseConfig;
 
   // 1. API Key validation
   if (!apiKey || typeof apiKey !== 'string' || !apiKey.trim()) {

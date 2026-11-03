@@ -229,7 +229,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
           {/* Column 3: Simulator & Combined ESE Breakdown */}
           <div className={`${hasTheory ? 'lg:col-span-4' : 'lg:col-span-6'} p-3 sm:p-4 bg-white flex flex-col justify-between`}>
             <details className="group">
-              <summary className="flex cursor-pointer list-none items-center gap-2 py-1 focus-visible:outline-2 focus-visible:outline-[#172554]">
+              <summary id="tour-target-grade-simulator" data-tour="target-grade-simulator" className="flex cursor-pointer list-none items-center gap-2 py-1 focus-visible:outline-2 focus-visible:outline-[#172554]">
                 <div className="text-[#d97757] shrink-0">
                   <Target className="w-5 h-5" />
                 </div>
@@ -353,7 +353,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
           {/* Target Grade "What-If" Planner */}
           <div className="md:col-span-6 p-3 sm:p-4 bg-white flex flex-col justify-between">
             <details className="group">
-              <summary className="flex cursor-pointer list-none items-center gap-2 py-1 focus-visible:outline-2 focus-visible:outline-[#172554]">
+              <summary id="tour-target-grade-simulator" data-tour="target-grade-simulator" className="flex cursor-pointer list-none items-center gap-2 py-1 focus-visible:outline-2 focus-visible:outline-[#172554]">
                 <div className="text-[#d97757] shrink-0">
                   <Target className="w-5 h-5" />
                 </div>
