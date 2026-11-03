@@ -145,3 +145,4 @@ export function getRecentSecurityEvents(): SecurityEvent[] {
 export function clearSecurityEvents(): void {
   eventBuffer.length = 0;
 }
+
