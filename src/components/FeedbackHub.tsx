@@ -106,9 +106,10 @@ export const FeedbackHub: React.FC<FeedbackHubProps> = ({ user, guestMode }) => 
     void getIdTokenResult(user)
       .then(({ claims }) => {
         const firebaseClaims = claims.firebase as { sign_in_provider?: unknown } | undefined;
-        const allowed = user.email === 'projectunocc@gmail.com' &&
-          claims.email_verified === true &&
-          firebaseClaims?.sign_in_provider === 'google.com';
+        const allowed = (claims.admin === true && claims.email_verified === true) ||
+          (user.email === 'projectunocc@gmail.com' &&
+            claims.email_verified === true &&
+            firebaseClaims?.sign_in_provider === 'google.com');
         if (!cancelled) setIsAdmin(allowed);
       })
       .catch((error: unknown) => {

@@ -56,7 +56,7 @@ function friendlyAuthError(error: unknown, provider: 'email' | 'google' = 'email
     case 'auth/email-already-in-use':
       return 'An account already exists for this email. Try logging in.';
     case 'auth/weak-password':
-      return 'Choose a password with at least 6 characters.';
+      return 'Choose a stronger password with at least 8 characters, including letters and numbers.';
     case 'auth/operation-not-allowed':
       return provider === 'google'
         ? 'Google sign-in is disabled. Enable Google under Authentication → Sign-in method in Firebase Console.'
@@ -195,12 +195,32 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
     setNotice('');
     try {
       if (mode === 'signup') {
+        if (password.length < 8) {
+          setError('Password must be at least 8 characters long.');
+          setBusy(false);
+          return;
+        }
+        if (!/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) {
+          setError('Password must include at least one letter and one number.');
+          setBusy(false);
+          return;
+        }
         await createUserWithEmailAndPassword(auth, email.trim(), password);
       } else if (mode === 'login') {
         await signInWithEmailAndPassword(auth, email.trim(), password);
       } else {
-        await sendPasswordResetEmail(auth, email.trim());
-        setNotice('Password reset email sent. Check your inbox.');
+        try {
+          await sendPasswordResetEmail(auth, email.trim());
+        } catch (resetError) {
+          const code = typeof resetError === 'object' && resetError !== null && 'code' in resetError
+            ? String(resetError.code)
+            : '';
+          // Return identical response for non-existent users to prevent user enumeration
+          if (code !== 'auth/user-not-found') {
+            throw resetError;
+          }
+        }
+        setNotice('If an account exists for this email, a password reset link has been sent. Check your inbox.');
       }
     } catch (authError) {
       setError(friendlyAuthError(authError));
@@ -357,11 +377,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
                       type={showPassword ? 'text' : 'password'}
                       autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
                       required
-                      minLength={mode === 'signup' ? 6 : undefined}
+                      minLength={mode === 'signup' ? 8 : undefined}
                       value={password}
                       onChange={(event) => setPassword(event.target.value)}
                       className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 pr-11 text-sm focus:border-[#172554]"
-                      placeholder={mode === 'signup' ? 'At least 6 characters' : 'Your password'}
+                      placeholder={mode === 'signup' ? 'At least 8 characters (letters & numbers)' : 'Your password'}
                     />
                     <button
                       type="button"

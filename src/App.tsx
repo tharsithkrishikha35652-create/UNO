@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { getRedirectResult, onAuthStateChanged, signOut, type User } from "firebase/auth";
 import { Capacitor } from "@capacitor/core";
+import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
 import { App as CapacitorApp } from "@capacitor/app";
 import { AcademicProfileData, Department, InternshipTrainingMarks, MiniProjectMarks, SubjectData } from "./types";
 import {
@@ -633,6 +634,9 @@ export default function App() {
       );
     }
     try {
+      if (Capacitor.isNativePlatform()) {
+        await FirebaseAuthentication.signOut().catch(() => {});
+      }
       await signOut(auth);
     } catch (error) {
       console.error("Unable to sign out:", error);
