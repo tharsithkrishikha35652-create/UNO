@@ -442,7 +442,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
               </button>
             ) : !configurationError ? (
               <p className="text-slate-600">
-                {mode === 'signup' ? 'Already have an account?' : 'New to Project UNO?'}{' '}
+                {mode === 'signup' ? 'Already have an account?' : 'New to CalCredit?'}{' '}
                 <button
                   type="button"
                   onClick={() => selectMode(mode === 'signup' ? 'login' : 'signup')}
