@@ -8,10 +8,14 @@ import {
   Minus,
   Plus,
   Sparkles,
-  Target,
 } from 'lucide-react';
 import type { AppTheme } from './ThemeToggle';
-import { TOUR_STORAGE_KEY } from './TourErrorBoundary';
+import {
+  TOUR_STORAGE_KEY,
+  lockTourScroll,
+  unlockTourScroll,
+  forceUnlockTourScroll,
+} from './TourErrorBoundary';
 
 export interface FirstTimeTourProps {
   isOpen: boolean;
@@ -34,7 +38,6 @@ export type TourStep =
   | 'marks_entry'
   | 'target_simulator'
   | 'features_types'
-  | 'features_prediction'
   | 'grades_of_choice'
   | 'bottom_bar'
   | 'finish';
@@ -48,11 +51,16 @@ interface TargetRect {
   height: number;
 }
 
-const RED_PEN_COLOR = '#F0482E'; // CalCredit logo red
+// CalCredit logo stroke colors read from src/assets/branding/calcredit_logo_final.svg
+// Light theme (#markL): stroke="#E23B22"
+// Dark theme (#markD): stroke="#F0482E"
+const PEN_COLOR_LIGHT = '#E23B22';
+const PEN_COLOR_DARK = '#F0482E';
 
 export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
   isOpen,
   onClose,
+  theme,
   openProfile = () => {},
   closeProfile = () => {},
   openFeedbackHub = () => {},
@@ -66,6 +74,12 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
   const [targetRect, setTargetRect] = useState<TargetRect | null>(null);
   const [penDrawn, setPenDrawn] = useState(false);
 
+  // Exact theme-matching pen color
+  const isDark =
+    theme === 'dark' ||
+    (typeof document !== 'undefined' && document.documentElement.classList.contains('dark'));
+  const penColor = isDark ? PEN_COLOR_DARK : PEN_COLOR_LIGHT;
+
   // Sample marks state for Step 5 (Marks entry)
   const [sampleTest1, setSampleTest1] = useState(44); // out of 50
   const [sampleTest2, setSampleTest2] = useState(46); // out of 50
@@ -75,10 +89,8 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
   // Looping course types state for Step 7
   const [courseTypeIndex, setCourseTypeIndex] = useState(0);
 
-  // Target GPA prediction state for Step 8
-  const [targetGpa, setTargetGpa] = useState(8.5);
-
   const measureTimerRef = useRef<number | null>(null);
+  const settleTimerRef = useRef<number | null>(null);
   const transitionTimerRef = useRef<number | null>(null);
   const autoAdvanceTimerRef = useRef<number | null>(null);
 
@@ -87,6 +99,10 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
     if (measureTimerRef.current !== null) {
       window.clearTimeout(measureTimerRef.current);
       measureTimerRef.current = null;
+    }
+    if (settleTimerRef.current !== null) {
+      window.clearTimeout(settleTimerRef.current);
+      settleTimerRef.current = null;
     }
     if (transitionTimerRef.current !== null) {
       window.clearTimeout(transitionTimerRef.current);
@@ -100,7 +116,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
 
   const handleClose = useCallback(() => {
     clearAllTimers();
-    // Return user to Calculator tab and close any open drawers/screens
+    forceUnlockTourScroll();
     closeProfile();
     closeFeedbackHub();
     goToTab('calculator');
@@ -110,17 +126,65 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
     onClose();
   }, [clearAllTimers, closeProfile, closeFeedbackHub, goToTab, onClose]);
 
-  // Handle escape key
+  // Clean unlock on unmount
   useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        handleClose();
+    return () => {
+      clearAllTimers();
+      forceUnlockTourScroll();
+    };
+  }, [clearAllTimers]);
+
+  // Window-level scroll blocking while tour is active
+  useEffect(() => {
+    if (!isOpen) {
+      forceUnlockTourScroll();
+      return;
+    }
+
+    // Block mouse wheel
+    const handleWheel = (e: WheelEvent) => {
+      if (e.cancelable) {
+        e.preventDefault();
       }
     };
+
+    // Block touch scrolling while permitting interactions on range inputs inside the tour card
+    const handleTouchMove = (e: TouchEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target && target.tagName === 'INPUT' && (target as HTMLInputElement).type === 'range') {
+        return;
+      }
+      if (e.cancelable) {
+        e.preventDefault();
+      }
+    };
+
+    // Block keyboard scroll keys while keeping Escape for closing
+    const scrollKeys = new Set(['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' ', 'Spacebar']);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        handleClose();
+        return;
+      }
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) {
+        return;
+      }
+      if (scrollKeys.has(e.key)) {
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener('wheel', handleWheel, { passive: false });
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('wheel', handleWheel);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, [isOpen, handleClose]);
 
   // Target element selector mapping
@@ -149,43 +213,65 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
     }
   }, []);
 
-  // Measure target position once per step (and on resize/rotation)
+  // Measure target position per step:
+  // 1. Scroll target element into view automatically
+  // 2. Wait for it to settle
+  // 3. Lock scrolling
+  // 4. Measure and draw the pen
   const measureTarget = useCallback((step: TourStep, bTab: BottomBarTab, retryCount = 0) => {
     const selector = getStepTargetSelector(step, bTab);
     if (!selector) {
       setTargetRect(null);
       setPenDrawn(true);
+      lockTourScroll();
       return;
     }
 
     const element = document.querySelector(selector);
     if (element instanceof HTMLElement) {
-      if (typeof element.scrollIntoView === 'function') {
-        if (step === 'department' || step === 'target_simulator' || step === 'grades_of_choice') {
-          element.scrollIntoView({ block: 'center', behavior: 'instant' });
-        }
-      }
       if (step === 'target_simulator') {
         const details = element.closest('details') || element.querySelector('details');
         if (details instanceof HTMLDetailsElement) details.open = true;
       }
-      const rect = element.getBoundingClientRect();
-      if (rect.width > 0 && rect.height > 0) {
-        setTargetRect({
-          x: rect.left,
-          y: rect.top,
-          width: rect.width,
-          height: rect.height,
-        });
-        setPenDrawn(false);
-        if (measureTimerRef.current !== null) {
-          window.clearTimeout(measureTimerRef.current);
-        }
-        measureTimerRef.current = window.setTimeout(() => {
-          setPenDrawn(true);
-        }, 50);
-        return;
+
+      // Temporarily unlock scroll so browser can scroll the element into view
+      unlockTourScroll();
+      if (typeof element.scrollIntoView === 'function') {
+        element.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
       }
+
+      // Wait for scrolling to settle, then lock scroll and measure
+      if (settleTimerRef.current !== null) {
+        window.clearTimeout(settleTimerRef.current);
+      }
+      settleTimerRef.current = window.setTimeout(() => {
+        lockTourScroll();
+        const rect = element.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          setTargetRect({
+            x: rect.left,
+            y: rect.top,
+            width: rect.width,
+            height: rect.height,
+          });
+          setPenDrawn(false);
+          if (measureTimerRef.current !== null) {
+            window.clearTimeout(measureTimerRef.current);
+          }
+          measureTimerRef.current = window.setTimeout(() => {
+            setPenDrawn(true);
+          }, 50);
+          return;
+        }
+
+        // Retry if element has not finished rendering bounding box
+        if (retryCount < 2) {
+          measureTimerRef.current = window.setTimeout(() => {
+            measureTarget(step, bTab, retryCount + 1);
+          }, 120);
+        }
+      }, 70);
+      return;
     }
 
     // Element might still be mounting or animating in: retry once after 120ms
@@ -200,6 +286,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
     }
 
     // If target cannot be found or measured, per instructions: skip to next step
+    lockTourScroll();
     if (step === 'profile_icon') {
       navigateToStep('department');
     } else if (step === 'department') {
@@ -226,6 +313,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
     setTargetRect(null);
     setPenDrawn(false);
     setCurrentStep(nextStep);
+    unlockTourScroll();
 
     let screenWaitMs = 60;
 
@@ -271,7 +359,6 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
         break;
 
       case 'features_types':
-      case 'features_prediction':
         closeFeedbackHub();
         closeProfile();
         goToTab('calculator');
@@ -328,7 +415,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
     return () => window.clearInterval(interval);
   }, [currentStep]);
 
-  // Bottom Bar tab sequencing (Step 10 of 10): ~1.5s per tab
+  // Bottom Bar tab sequencing (Step 9 of 9): ~1.5s per tab
   const advanceBottomBarTab = useCallback((nextTab: BottomBarTab) => {
     clearAllTimers();
     setBottomTab(nextTab);
@@ -441,7 +528,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
       {/* Background layer: clean, transparent, no dark spotlight, no glassmorphism */}
       <div className="absolute inset-0 bg-slate-900/25 pointer-events-none" />
 
-      {/* SVG Canvas for the Hand-Drawn Red Pen */}
+      {/* SVG Canvas for the Hand-Drawn Pen matching CalCredit logo C stroke */}
       {targetRect && (
         <svg
           className="absolute inset-0 w-full h-full pointer-events-none"
@@ -450,7 +537,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
           <path
             d={isUnderlineStep ? underlinePath : circlePath}
             fill="none"
-            stroke={RED_PEN_COLOR}
+            stroke={penColor}
             strokeWidth={isUnderlineStep ? 3.5 : 2.8}
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -471,10 +558,13 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
         {/* STEP 0: Welcome Card */}
         {currentStep === 'welcome' && (
           <div className="pointer-events-auto w-full max-w-sm rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-6 shadow-2xl text-left">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-50 dark:bg-red-950/40 text-[#F0482E]">
+            <div
+              className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-50 dark:bg-red-950/40"
+              style={{ color: penColor }}
+            >
               <Sparkles className="h-6 w-6" aria-hidden="true" />
             </div>
-            <h2 className="mt-4 text-lg font-black text-[#172554] dark:text-[#f1f1f3] leading-snug">
+            <h2 className="mt-4 font-heading text-lg font-black text-[#172554] dark:text-[#f1f1f3] leading-snug">
               Your CEG GPA, calculated the right way.
             </h2>
             <p className="mt-1.5 text-xs text-slate-600 dark:text-slate-400 font-semibold">
@@ -500,7 +590,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
           </div>
         )}
 
-        {/* STEP 1: Profile Icon (Step 1 of 10) */}
+        {/* STEP 1: Profile Icon (Step 1 of 9) */}
         {currentStep === 'profile_icon' && (
           <div
             className="pointer-events-auto absolute max-w-xs w-[calc(100%-2rem)] rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-5 shadow-2xl text-left"
@@ -510,8 +600,8 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
             }}
           >
             <div className="flex items-center gap-2">
-              <span className="flex h-2 w-2 rounded-full bg-[#F0482E] shrink-0" />
-              <p className="text-sm font-black text-[#172554] dark:text-[#f1f1f3]">
+              <span className="flex h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: penColor }} />
+              <p className="font-heading text-sm font-black text-[#172554] dark:text-[#f1f1f3]">
                 Your profile lives here.
               </p>
             </div>
@@ -525,7 +615,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
               </button>
               <div className="flex items-center gap-2.5">
                 <span className="text-[11px] font-bold text-slate-400">
-                  Step <span className="font-numeric tabular-nums">1</span> of <span className="font-numeric tabular-nums">10</span>
+                  Step <span className="font-numeric tabular-nums">1</span> of <span className="font-numeric tabular-nums">9</span>
                 </span>
                 <button
                   type="button"
@@ -540,7 +630,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
           </div>
         )}
 
-        {/* STEP 2: Department on Profile Page (Step 2 of 10) */}
+        {/* STEP 2: Department on Profile Page (Step 2 of 9) */}
         {currentStep === 'department' && (
           <div
             className="pointer-events-auto absolute max-w-xs w-[calc(100%-2rem)] rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-5 shadow-2xl text-left"
@@ -550,8 +640,8 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
             }}
           >
             <div className="flex items-center gap-2">
-              <span className="flex h-2 w-2 rounded-full bg-[#F0482E] shrink-0" />
-              <p className="text-sm font-black text-[#172554] dark:text-[#f1f1f3]">
+              <span className="flex h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: penColor }} />
+              <p className="font-heading text-sm font-black text-[#172554] dark:text-[#f1f1f3]">
                 Your department is set here.
               </p>
             </div>
@@ -565,7 +655,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
               </button>
               <div className="flex items-center gap-2.5">
                 <span className="text-[11px] font-bold text-slate-400">
-                  Step <span className="font-numeric tabular-nums">2</span> of <span className="font-numeric tabular-nums">10</span>
+                  Step <span className="font-numeric tabular-nums">2</span> of <span className="font-numeric tabular-nums">9</span>
                 </span>
                 <button
                   type="button"
@@ -580,7 +670,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
           </div>
         )}
 
-        {/* STEP 3: Feedback Hub (Step 3 of 10) */}
+        {/* STEP 3: Feedback Hub (Step 3 of 9) */}
         {currentStep === 'feedback_hub' && (
           <div
             className="pointer-events-auto absolute max-w-xs w-[calc(100%-2rem)] rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-5 shadow-2xl text-left"
@@ -590,8 +680,8 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
             }}
           >
             <div className="flex items-center gap-2">
-              <span className="flex h-2 w-2 rounded-full bg-[#F0482E] shrink-0" />
-              <p className="text-sm font-black text-[#172554] dark:text-[#f1f1f3]">
+              <span className="flex h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: penColor }} />
+              <p className="font-heading text-sm font-black text-[#172554] dark:text-[#f1f1f3]">
                 Tell us what to improve or report a problem.
               </p>
             </div>
@@ -605,7 +695,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
               </button>
               <div className="flex items-center gap-2.5">
                 <span className="text-[11px] font-bold text-slate-400">
-                  Step <span className="font-numeric tabular-nums">3</span> of <span className="font-numeric tabular-nums">10</span>
+                  Step <span className="font-numeric tabular-nums">3</span> of <span className="font-numeric tabular-nums">9</span>
                 </span>
                 <button
                   type="button"
@@ -620,7 +710,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
           </div>
         )}
 
-        {/* STEP 4: Semester Selector (Step 4 of 10) */}
+        {/* STEP 4: Semester Selector (Step 4 of 9) */}
         {currentStep === 'semester_selector' && (
           <div
             className="pointer-events-auto absolute max-w-xs w-[calc(100%-2rem)] rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-5 shadow-2xl text-left"
@@ -630,8 +720,8 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
             }}
           >
             <div className="flex items-center gap-2">
-              <span className="flex h-2 w-2 rounded-full bg-[#F0482E] shrink-0" />
-              <p className="text-sm font-black text-[#172554] dark:text-[#f1f1f3]">
+              <span className="flex h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: penColor }} />
+              <p className="font-heading text-sm font-black text-[#172554] dark:text-[#f1f1f3]">
                 Choose or change your semester here.
               </p>
             </div>
@@ -645,7 +735,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
               </button>
               <div className="flex items-center gap-2.5">
                 <span className="text-[11px] font-bold text-slate-400">
-                  Step <span className="font-numeric tabular-nums">4</span> of <span className="font-numeric tabular-nums">10</span>
+                  Step <span className="font-numeric tabular-nums">4</span> of <span className="font-numeric tabular-nums">9</span>
                 </span>
                 <button
                   type="button"
@@ -660,11 +750,11 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
           </div>
         )}
 
-        {/* STEP 5: Marks Entry (Step 5 of 10) */}
+        {/* STEP 5: Marks Entry (Step 5 of 9) */}
         {currentStep === 'marks_entry' && (
           <div className="pointer-events-auto w-full max-w-md rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-5 sm:p-6 shadow-2xl text-left">
             <div>
-              <p className="text-sm sm:text-base font-black text-[#172554] dark:text-[#f1f1f3]">
+              <p className="font-heading text-sm sm:text-base font-black text-[#172554] dark:text-[#f1f1f3]">
                 Enter your marks. Watch your grade update live.
               </p>
               <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400 font-semibold">
@@ -677,7 +767,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
               <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2.5">
                 <div>
                   <span className="text-[10px] font-black uppercase text-slate-500">Sample Theory Course</span>
-                  <p className="text-xs sm:text-sm font-bold text-[#172554] dark:text-[#f1f1f3]">
+                  <p className="font-heading text-xs sm:text-sm font-bold text-[#172554] dark:text-[#f1f1f3]">
                     Data Structures and Algorithms
                   </p>
                 </div>
@@ -717,7 +807,8 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
                       max={50}
                       value={sampleTest1}
                       onChange={(e) => { setSampleTest1(Number(e.target.value)); setMarksAdjusted(true); }}
-                      className="flex-1 accent-[#F0482E] cursor-pointer"
+                      style={{ accentColor: penColor }}
+                      className="flex-1 cursor-pointer"
                     />
                     <button
                       type="button"
@@ -750,7 +841,8 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
                       max={100}
                       value={sampleEse}
                       onChange={(e) => { setSampleEse(Number(e.target.value)); setMarksAdjusted(true); }}
-                      className="flex-1 accent-[#F0482E] cursor-pointer"
+                      style={{ accentColor: penColor }}
+                      className="flex-1 cursor-pointer"
                     />
                     <button
                       type="button"
@@ -775,7 +867,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
               </button>
               <div className="flex items-center gap-2.5">
                 <span className="text-[11px] font-bold text-slate-400">
-                  Step <span className="font-numeric tabular-nums">5</span> of <span className="font-numeric tabular-nums">10</span>
+                  Step <span className="font-numeric tabular-nums">5</span> of <span className="font-numeric tabular-nums">9</span>
                 </span>
                 <button
                   type="button"
@@ -790,18 +882,22 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
           </div>
         )}
 
-        {/* STEP 6: Target Grade Simulator (Step 6 of 10) */}
+        {/* STEP 6: Target Grade Simulator (Step 6 of 9) - Exactly ONE step */}
         {currentStep === 'target_simulator' && (
           <div
             className="pointer-events-auto absolute max-w-xs w-[calc(100%-2rem)] rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-5 shadow-2xl text-left"
             style={{
-              top: targetRect ? Math.min(window.innerHeight - 170, targetRect.y + targetRect.height + 16) : '40%',
+              top: targetRect
+                ? (targetRect.y + targetRect.height + 180 < window.innerHeight
+                    ? targetRect.y + targetRect.height + 14
+                    : Math.max(16, targetRect.y - 165))
+                : '35%',
               left: targetRect ? Math.max(16, Math.min(targetRect.x - 10, window.innerWidth - 320)) : 16,
             }}
           >
             <div className="flex items-center gap-2">
-              <span className="flex h-2 w-2 rounded-full bg-[#F0482E] shrink-0" />
-              <p className="text-sm font-black text-[#172554] dark:text-[#f1f1f3]">
+              <span className="flex h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: penColor }} />
+              <p className="font-heading text-sm font-black text-[#172554] dark:text-[#f1f1f3]">
                 Pick a target grade. See the marks you need.
               </p>
             </div>
@@ -815,7 +911,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
               </button>
               <div className="flex items-center gap-2.5">
                 <span className="text-[11px] font-bold text-slate-400">
-                  Step <span className="font-numeric tabular-nums">6</span> of <span className="font-numeric tabular-nums">10</span>
+                  Step <span className="font-numeric tabular-nums">6</span> of <span className="font-numeric tabular-nums">9</span>
                 </span>
                 <button
                   type="button"
@@ -830,24 +926,27 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
           </div>
         )}
 
-        {/* STEP 7: Course Types Demo (Step 7 of 10) */}
+        {/* STEP 7: Course Types Demo (Step 7 of 9) */}
         {currentStep === 'features_types' && (
           <div className="pointer-events-auto w-full max-w-sm rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-6 shadow-2xl text-left">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/40 text-[#172554] dark:text-[#a9bbd0]">
               <BookOpen className="h-6 w-6" aria-hidden="true" />
             </div>
 
-            <h2 className="mt-4 text-base font-black text-[#172554] dark:text-[#f1f1f3]">
+            <h2 className="mt-4 font-heading text-base font-black text-[#172554] dark:text-[#f1f1f3]">
               Every course type, graded by its own rules.
             </h2>
 
             {/* Cycling course type card */}
             <div className="mt-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#161618] p-3.5 transition-all">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-black text-[#172554] dark:text-[#f1f1f3]">
+                <span className="font-heading text-xs font-black text-[#172554] dark:text-[#f1f1f3]">
                   {courseTypesDemo[courseTypeIndex]?.title}
                 </span>
-                <span className="rounded-full bg-red-100 dark:bg-red-950/50 border border-red-300 dark:border-red-800 px-2 py-0.5 text-[10px] font-black font-numeric tabular-nums text-[#F0482E]">
+                <span
+                  className="rounded-full bg-red-100 dark:bg-red-950/50 border px-2 py-0.5 text-[10px] font-black font-numeric tabular-nums"
+                  style={{ color: penColor, borderColor: penColor }}
+                >
                   {courseTypesDemo[courseTypeIndex]?.badge}
                 </span>
               </div>
@@ -866,66 +965,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
               </button>
               <div className="flex items-center gap-2.5">
                 <span className="text-[11px] font-bold text-slate-400">
-                  Step <span className="font-numeric tabular-nums">7</span> of <span className="font-numeric tabular-nums">10</span>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => navigateToStep('features_prediction')}
-                  className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-[#172554] px-4 text-xs font-bold text-white hover:bg-[#1e3a8a] active:scale-95 transition-transform cursor-pointer"
-                >
-                  <span>Next</span>
-                  <ChevronRight className="h-4 w-4" aria-hidden="true" />
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 8: Target GPA Prediction Demo (Step 8 of 10) */}
-        {currentStep === 'features_prediction' && (
-          <div className="pointer-events-auto w-full max-w-sm rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-6 shadow-2xl text-left">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600">
-              <Target className="h-6 w-6" aria-hidden="true" />
-            </div>
-
-            <h2 className="mt-4 text-base font-black text-[#172554] dark:text-[#f1f1f3]">
-              Predict the marks you need to hit your target GPA.
-            </h2>
-
-            {/* Mini prediction preview */}
-            <div className="mt-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#161618] p-3.5">
-              <div className="flex items-center justify-between text-xs font-bold">
-                <span className="text-slate-600 dark:text-slate-400">Target Semester GPA</span>
-                <span className="text-[#172554] dark:text-[#f1f1f3] font-black font-numeric tabular-nums">{targetGpa.toFixed(1)}</span>
-              </div>
-              <input
-                type="range"
-                min={7.0}
-                max={9.5}
-                step={0.1}
-                value={targetGpa}
-                onChange={(e) => setTargetGpa(Number(e.target.value))}
-                className="mt-2 w-full accent-[#F0482E] cursor-pointer"
-              />
-              <div className="mt-2 flex items-center justify-between rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 px-2.5 py-1.5">
-                <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-300">Required in End Sem</span>
-                <span className="text-xs font-black font-numeric tabular-nums text-emerald-900 dark:text-emerald-200">
-                  {Math.round(targetGpa * 8.8 + 2)} / 100
-                </span>
-              </div>
-            </div>
-
-            <div className="mt-5 flex items-center justify-between gap-3">
-              <button
-                type="button"
-                onClick={handleClose}
-                className="text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 cursor-pointer"
-              >
-                Skip tour
-              </button>
-              <div className="flex items-center gap-2.5">
-                <span className="text-[11px] font-bold text-slate-400">
-                  Step <span className="font-numeric tabular-nums">8</span> of <span className="font-numeric tabular-nums">10</span>
+                  Step <span className="font-numeric tabular-nums">7</span> of <span className="font-numeric tabular-nums">9</span>
                 </span>
                 <button
                   type="button"
@@ -940,7 +980,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
           </div>
         )}
 
-        {/* STEP 9: Enter Grades of Choice (Step 9 of 10) */}
+        {/* STEP 8: Enter Grades of Choice (Step 8 of 9) */}
         {currentStep === 'grades_of_choice' && (
           <div
             className="pointer-events-auto absolute max-w-xs w-[calc(100%-2rem)] rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-5 shadow-2xl text-left"
@@ -950,8 +990,8 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
             }}
           >
             <div className="flex items-center gap-2">
-              <span className="flex h-2 w-2 rounded-full bg-[#F0482E] shrink-0" />
-              <p className="text-sm font-black text-[#172554] dark:text-[#f1f1f3]">
+              <span className="flex h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: penColor }} />
+              <p className="font-heading text-sm font-black text-[#172554] dark:text-[#f1f1f3]">
                 Pick a grade per course. Get a quick GPA, no marks needed.
               </p>
             </div>
@@ -965,7 +1005,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
               </button>
               <div className="flex items-center gap-2.5">
                 <span className="text-[11px] font-bold text-slate-400">
-                  Step <span className="font-numeric tabular-nums">9</span> of <span className="font-numeric tabular-nums">10</span>
+                  Step <span className="font-numeric tabular-nums">8</span> of <span className="font-numeric tabular-nums">9</span>
                 </span>
                 <button
                   type="button"
@@ -980,7 +1020,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
           </div>
         )}
 
-        {/* STEP 10: Bottom Bar Underline Sequence (Step 10 of 10) */}
+        {/* STEP 9: Bottom Bar Underline Sequence (Step 9 of 9) */}
         {currentStep === 'bottom_bar' && (
           <div
             className="pointer-events-auto absolute max-w-xs w-[calc(100%-2rem)] rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-4 shadow-2xl text-left"
@@ -990,8 +1030,8 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
             }}
           >
             <div className="flex items-center gap-2">
-              <span className="flex h-2 w-2 rounded-full bg-[#F0482E] shrink-0" />
-              <p className="text-sm font-black text-[#172554] dark:text-[#f1f1f3]">
+              <span className="flex h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: penColor }} />
+              <p className="font-heading text-sm font-black text-[#172554] dark:text-[#f1f1f3]">
                 {bottomTab === 'calculator' && 'Quick marks, instant grade.'}
                 {bottomTab === 'courses' && 'Your subjects and course types.'}
                 {bottomTab === 'gpa' && "This semester's GPA, and predictions."}
@@ -1008,7 +1048,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
               </button>
               <div className="flex items-center gap-2">
                 <span className="text-[11px] font-bold text-slate-400">
-                  Step <span className="font-numeric tabular-nums">10</span> of <span className="font-numeric tabular-nums">10</span>
+                  Step <span className="font-numeric tabular-nums">9</span> of <span className="font-numeric tabular-nums">9</span>
                 </span>
                 <button
                   type="button"
@@ -1028,14 +1068,14 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
           </div>
         )}
 
-        {/* STEP 11: Finish Card */}
+        {/* STEP 10: Finish Card */}
         {currentStep === 'finish' && (
           <div className="pointer-events-auto w-full max-w-sm rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-6 shadow-2xl text-left">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600">
               <Check className="h-6 w-6 stroke-[3]" aria-hidden="true" />
             </div>
 
-            <h2 className="mt-4 text-lg font-black text-[#172554] dark:text-[#f1f1f3] leading-snug">
+            <h2 className="mt-4 font-heading text-lg font-black text-[#172554] dark:text-[#f1f1f3] leading-snug">
               You're set. Replay this tour anytime from Profile.
             </h2>
 

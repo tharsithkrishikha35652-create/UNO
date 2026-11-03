@@ -62,7 +62,7 @@ import {
   ProfileDrawer,
 } from "./components/AcademicProfile";
 import { StickyResultSummary } from "./components/StickyResultSummary";
-import { TourErrorBoundary, TOUR_STORAGE_KEY } from "./components/TourErrorBoundary";
+import { TourErrorBoundary, TOUR_STORAGE_KEY, forceUnlockTourScroll } from "./components/TourErrorBoundary";
 const FirstTimeTour = React.lazy(() => import("./components/FirstTimeTour"));
 import { createPortal } from "react-dom";
 import { ThemeToggle, type AppTheme } from "./components/ThemeToggle";
@@ -887,6 +887,7 @@ function AuthenticatedApp({
   const [isTourActive, setIsTourActive] = useState(false);
 
   const handleCloseTour = useCallback(() => {
+    forceUnlockTourScroll();
     try {
       localStorage.setItem(TOUR_STORAGE_KEY, "true");
     } catch {}
