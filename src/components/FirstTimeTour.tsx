@@ -965,9 +965,6 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
                     <p className="font-heading text-xs font-black text-[#172554] dark:text-[#f1f1f3] leading-snug">
                       Projects missing lab &amp; activity marks to preview your grade early.
                     </p>
-                    <p className="mt-1 text-[11px] font-medium text-slate-600 dark:text-slate-400">
-                      Adjust the % to match your teacher. Tap ? for details.
-                    </p>
                   </div>
                 </div>
                 <div className="mt-4 flex items-center justify-between gap-3">
@@ -1038,7 +1035,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
                   <span className="flex h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: penColor }} />
                   <p className="font-heading text-sm font-black text-[#172554] dark:text-[#f1f1f3]">
                     {totalMarksBeat === 1
-                      ? 'Test not out of 50? Tap the pencil.'
+                      ? 'Maximum marks not out of 50?'
                       : 'Teachers set different totals. Match it to your paper.'}
                   </p>
                 </div>
