@@ -17,9 +17,15 @@ export interface PresetCourse {
 }
 
 export const CSE_ELECTIVE_SLOTS_BY_SEMESTER: Record<number, string[]> = {
-  5: ['Open Elective I', 'Professional Elective I'],
+  5: ['Professional Elective I', 'Open Elective I'],
   6: ['Open Elective II', 'Professional Elective II', 'Professional Elective III'],
-  7: ['Professional Elective IV', 'Professional Elective V', 'Professional Elective VI'],
+  7: [
+    'Emerging Technology Course I',
+    'Emerging Technology Course II',
+    'Professional Elective IV',
+    'Professional Elective V',
+    'Professional Elective VI',
+  ],
 };
 
 export const ECE_ELECTIVE_SLOTS_BY_SEMESTER: Record<number, string[]> = {
@@ -209,82 +215,111 @@ export const IE_ELECTIVE_SLOTS_BY_SEMESTER: Record<number, string[]> = {
 };
 
 
-const CSE_ELECTIVE_COURSE_OPTIONS: Omit<PresetCourse, 'id'>[] = [
-  { name: 'Exploratory Data Analysis', code: 'CS23001', type: '2-0-2', courseType: '2-0-2', semester: 5, group: 'elective', electiveSlot: 'Professional Elective I' },
-  { name: 'Recommender Systems', code: 'CS23002', type: '2-0-2', courseType: '2-0-2', semester: 5, group: 'elective', electiveSlot: 'Professional Elective I' },
-  { name: 'Data Warehousing', code: 'CS23003', type: '3-0-0', courseType: 'theory', semester: 5, group: 'elective', electiveSlot: 'Professional Elective I' },
-  { name: 'Data Mining', code: 'CS23004', type: '3-0-0', courseType: 'theory', semester: 5, group: 'elective', electiveSlot: 'Professional Elective I' },
-  { name: 'Business Analytics', code: 'CS23005', type: '2-0-2', courseType: '2-0-2', semester: 5, group: 'elective', electiveSlot: 'Professional Elective I' },
-  { name: 'Image and Video Analytics', code: 'CS23006', type: '2-0-2', courseType: '2-0-2', semester: 5, group: 'elective', electiveSlot: 'Professional Elective I' },
-  { name: 'Natural Language Processing', code: 'CS23007', type: '3-0-0', courseType: 'theory', semester: 5, group: 'elective', electiveSlot: 'Professional Elective I' },
-  { name: 'Big Data Analytics', code: 'CS23008', type: '2-0-2', courseType: '2-0-2', semester: 5, group: 'elective', electiveSlot: 'Professional Elective I' },
-  { name: 'Bio Informatics', code: 'CS23009', type: '3-0-0', courseType: 'theory', semester: 5, group: 'elective', electiveSlot: 'Professional Elective I' },
-
-  { name: 'Web Technologies', code: 'CS23010', type: '2-0-2', courseType: '2-0-2', semester: 5, group: 'elective', electiveSlot: 'Professional Elective I' },
-  { name: 'App Development', code: 'CS23011', type: '2-0-2', courseType: '2-0-2', semester: 5, group: 'elective', electiveSlot: 'Professional Elective I' },
-  { name: 'Cloud Services Management', code: 'CS23012', type: '2-0-2', courseType: '2-0-2', semester: 5, group: 'elective', electiveSlot: 'Professional Elective I' },
-  { name: 'UI and UX Design', code: 'CS23013', type: '2-0-2', courseType: '2-0-2', semester: 5, group: 'elective', electiveSlot: 'Professional Elective I' },
-  { name: 'Software Testing and Automation', code: 'CS23014', type: '2-0-2', courseType: '2-0-2', semester: 5, group: 'elective', electiveSlot: 'Professional Elective I' },
-  { name: 'Web Application Security', code: 'CS23015', type: '2-0-2', courseType: '2-0-2', semester: 5, group: 'elective', electiveSlot: 'Professional Elective I' },
-  { name: 'DevOps', code: 'CS23016', type: '2-0-2', courseType: '2-0-2', semester: 5, group: 'elective', electiveSlot: 'Professional Elective I' },
-  { name: 'Programming Paradigms', code: 'CS23017', type: '3-0-0', courseType: 'theory', semester: 5, group: 'elective', electiveSlot: 'Professional Elective I' },
-  { name: 'Software Project Management', code: 'CS23018', type: '3-0-0', courseType: 'theory', semester: 5, group: 'elective', electiveSlot: 'Professional Elective I' },
-
-  { name: 'Cloud Computing', code: 'CS23019', type: '2-0-2', courseType: '2-0-2', semester: 6, group: 'elective', electiveSlot: 'Professional Elective II' },
-  { name: 'Virtualization', code: 'CS23020', type: '2-0-2', courseType: '2-0-2', semester: 6, group: 'elective', electiveSlot: 'Professional Elective II' },
-  { name: 'Information Visualization', code: 'CS23021', type: '3-0-0', courseType: 'theory', semester: 6, group: 'elective', electiveSlot: 'Professional Elective II' },
-  { name: 'Unix Internals', code: 'CS23022', type: '3-0-0', courseType: 'theory', semester: 6, group: 'elective', electiveSlot: 'Professional Elective II' },
-  { name: 'Storage Technologies', code: 'CS23023', type: '3-0-0', courseType: 'theory', semester: 6, group: 'elective', electiveSlot: 'Professional Elective II' },
-  { name: 'Software Defined Networks', code: 'CS23024', type: '2-0-2', courseType: '2-0-2', semester: 6, group: 'elective', electiveSlot: 'Professional Elective II' },
-  { name: 'Stream Processing', code: 'CS23025', type: '2-0-2', courseType: '2-0-2', semester: 6, group: 'elective', electiveSlot: 'Professional Elective II' },
-  { name: 'Security and Privacy in Cloud', code: 'CS23026', type: '2-0-2', courseType: '2-0-2', semester: 6, group: 'elective', electiveSlot: 'Professional Elective II' },
-  { name: 'GPU Computing', code: 'CS23027', type: '3-0-0', courseType: 'theory', semester: 6, group: 'elective', electiveSlot: 'Professional Elective II' },
-
-  { name: 'Ethical Hacking', code: 'CS23028', type: '2-0-2', courseType: '2-0-2', semester: 6, group: 'elective', electiveSlot: 'Professional Elective III' },
-  { name: 'Digital and Mobile Forensics', code: 'CS23029', type: '2-0-2', courseType: '2-0-2', semester: 6, group: 'elective', electiveSlot: 'Professional Elective III' },
-  { name: 'Social Network Security', code: 'CS23030', type: '2-0-2', courseType: '2-0-2', semester: 6, group: 'elective', electiveSlot: 'Professional Elective III' },
-  { name: 'Modern Cryptography', code: 'CS23031', type: '2-0-2', courseType: '2-0-2', semester: 6, group: 'elective', electiveSlot: 'Professional Elective III' },
-  { name: 'Engineering Secure Software Systems', code: 'CS23032', type: '2-0-2', courseType: '2-0-2', semester: 6, group: 'elective', electiveSlot: 'Professional Elective III' },
-  { name: 'Cyber Security', code: 'CS23033', type: '2-0-2', courseType: '2-0-2', semester: 6, group: 'elective', electiveSlot: 'Professional Elective III' },
-  { name: 'Network Security', code: 'CS23034', type: '2-0-2', courseType: '2-0-2', semester: 6, group: 'elective', electiveSlot: 'Professional Elective III' },
-  { name: 'Information Security', code: 'CS23035', type: '3-0-0', courseType: 'theory', semester: 6, group: 'elective', electiveSlot: 'Professional Elective III' },
-  { name: 'Mobile Networks', code: 'CS23036', type: '3-0-0', courseType: 'theory', semester: 6, group: 'elective', electiveSlot: 'Professional Elective III' },
-
-  { name: 'Distributed Systems', code: 'CS23037', type: '3-0-0', courseType: 'theory', semester: 7, group: 'elective', electiveSlot: 'Professional Elective IV' },
-  { name: 'Multimedia and Animation', code: 'CS23038', type: '2-0-2', courseType: '2-0-2', semester: 7, group: 'elective', electiveSlot: 'Professional Elective IV' },
-  { name: 'Video Creation and Editing', code: 'CS23039', type: '2-0-2', courseType: '2-0-2', semester: 7, group: 'elective', electiveSlot: 'Professional Elective IV' },
-  { name: 'Game Theory', code: 'CS23040', type: '2-0-2', courseType: '2-0-2', semester: 7, group: 'elective', electiveSlot: 'Professional Elective IV' },
-  { name: 'Digital Marketing', code: 'CS23041', type: '2-0-2', courseType: '2-0-2', semester: 7, group: 'elective', electiveSlot: 'Professional Elective IV' },
-  { name: 'Visual Effects', code: 'CS23042', type: '2-0-2', courseType: '2-0-2', semester: 7, group: 'elective', electiveSlot: 'Professional Elective IV' },
-  { name: 'Game Development', code: 'CS23043', type: '2-0-2', courseType: '2-0-2', semester: 7, group: 'elective', electiveSlot: 'Professional Elective IV' },
-  { name: 'Graph Theory', code: 'CS23044', type: '3-0-0', courseType: 'theory', semester: 7, group: 'elective', electiveSlot: 'Professional Elective IV' },
-  { name: 'Image Processing', code: 'CS23045', type: '3-0-0', courseType: 'theory', semester: 7, group: 'elective', electiveSlot: 'Professional Elective IV' },
-
-  { name: 'Augmented Reality / Virtual Reality', code: 'CS23046', type: '2-0-2', courseType: '2-0-2', semester: 7, group: 'elective', electiveSlot: 'Professional Elective V' },
-  { name: 'Robotic Process Automation', code: 'CS23047', type: '2-0-2', courseType: '2-0-2', semester: 7, group: 'elective', electiveSlot: 'Professional Elective V' },
-  { name: 'Healthcare Analytics', code: 'CS23048', type: '3-0-0', courseType: 'theory', semester: 7, group: 'elective', electiveSlot: 'Professional Elective V' },
-  { name: 'Large Language Models', code: 'CS23049', type: '3-0-0', courseType: 'theory', semester: 7, group: 'elective', electiveSlot: 'Professional Elective V' },
-  { name: 'Quantum Computing', code: 'CS23050', type: '2-0-2', courseType: '2-0-2', semester: 7, group: 'elective', electiveSlot: 'Professional Elective V' },
-  { name: 'Cryptocurrency and Blockchain Technologies', code: 'CS23051', type: '2-0-2', courseType: '2-0-2', semester: 7, group: 'elective', electiveSlot: 'Professional Elective V' },
-  { name: 'Metaverse', code: 'CS23052', type: '3-0-0', courseType: 'theory', semester: 7, group: 'elective', electiveSlot: 'Professional Elective V' },
-  { name: '3D Printing and Design', code: 'CS23053', type: '2-0-2', courseType: '2-0-2', semester: 7, group: 'elective', electiveSlot: 'Professional Elective V' },
-  { name: 'Autonomous Vehicles', code: 'CS23054', type: '3-0-0', courseType: 'theory', semester: 7, group: 'elective', electiveSlot: 'Professional Elective V' },
-
-  { name: 'Knowledge Engineering', code: 'CS23055', type: '2-0-2', courseType: '2-0-2', semester: 7, group: 'elective', electiveSlot: 'Professional Elective VI' },
-  { name: 'Soft Computing', code: 'CS23056', type: '2-0-2', courseType: '2-0-2', semester: 7, group: 'elective', electiveSlot: 'Professional Elective VI' },
-  { name: 'Deep Learning', code: 'CS23057', type: '3-0-0', courseType: 'theory', semester: 7, group: 'elective', electiveSlot: 'Professional Elective VI' },
-  { name: 'Text and Speech Analysis', code: 'CS23058', type: '2-0-2', courseType: '2-0-2', semester: 7, group: 'elective', electiveSlot: 'Professional Elective VI' },
-  { name: 'Optimization Techniques', code: 'CS23059', type: '2-0-2', courseType: '2-0-2', semester: 7, group: 'elective', electiveSlot: 'Professional Elective VI' },
-  { name: 'Social Network Analysis', code: 'CS23060', type: '2-0-2', courseType: '2-0-2', semester: 7, group: 'elective', electiveSlot: 'Professional Elective VI' },
-  { name: 'Cognitive Science', code: 'CS23061', type: '2-0-2', courseType: '2-0-2', semester: 7, group: 'elective', electiveSlot: 'Professional Elective VI' },
-  { name: 'Responsible AI', code: 'CS23062', type: '3-0-0', courseType: 'theory', semester: 7, group: 'elective', electiveSlot: 'Professional Elective VI' },
-  { name: 'Generative AI', code: 'CS23063', type: '3-0-0', courseType: 'theory', semester: 7, group: 'elective', electiveSlot: 'Professional Elective VI' },
+const CSE_VERTICAL_ELECTIVES: Array<{ name: string; code: string; type: string; courseType: CourseType }> = [
+  { name: 'Exploratory Data Analysis', code: 'CS23001', type: 'Theory', courseType: 'theory' },
+  { name: 'Recommender Systems', code: 'CS23002', type: 'Theory', courseType: 'theory' },
+  { name: 'Data Warehousing', code: 'CS23003', type: 'Theory', courseType: 'theory' },
+  { name: 'Data Mining', code: 'CS23004', type: 'Theory', courseType: 'theory' },
+  { name: 'Business Analytics', code: 'CS23005', type: 'Theory', courseType: 'theory' },
+  { name: 'Image and Video Analytics', code: 'CS23006', type: 'Theory', courseType: 'theory' },
+  { name: 'Natural Language Processing', code: 'CS23007', type: 'Theory', courseType: 'theory' },
+  { name: 'Big Data Analytics', code: 'CS23008', type: 'Theory', courseType: 'theory' },
+  { name: 'Bio Informatics', code: 'CS23009', type: 'Theory', courseType: 'theory' },
+  { name: 'Web Technologies', code: 'CS23010', type: 'Theory', courseType: 'theory' },
+  { name: 'App Development', code: 'CS23011', type: 'Theory', courseType: 'theory' },
+  { name: 'Cloud Services Management', code: 'CS23012', type: 'Theory', courseType: 'theory' },
+  { name: 'UI and UX Design', code: 'CS23013', type: 'Theory', courseType: 'theory' },
+  { name: 'Software Testing and Automation', code: 'CS23014', type: 'Theory', courseType: 'theory' },
+  { name: 'Web Application Security', code: 'CS23015', type: 'Theory', courseType: 'theory' },
+  { name: 'DevOps', code: 'CS23016', type: 'Theory', courseType: 'theory' },
+  { name: 'Programming Paradigms', code: 'CS23017', type: 'Theory', courseType: 'theory' },
+  { name: 'Software Project Management', code: 'CS23018', type: 'Theory', courseType: 'theory' },
+  { name: 'Cloud Computing', code: 'CS23019', type: 'Theory', courseType: 'theory' },
+  { name: 'Virtualization', code: 'CS23020', type: 'Theory', courseType: 'theory' },
+  { name: 'Information Visualization', code: 'CS23021', type: 'Theory', courseType: 'theory' },
+  { name: 'Unix Internals', code: 'CS23022', type: 'Theory', courseType: 'theory' },
+  { name: 'Storage Technologies', code: 'CS23023', type: 'Theory', courseType: 'theory' },
+  { name: 'Software Defined Networks', code: 'CS23024', type: 'Theory', courseType: 'theory' },
+  { name: 'Stream Processing', code: 'CS23025', type: 'Theory', courseType: 'theory' },
+  { name: 'Security and Privacy in Cloud', code: 'CS23026', type: 'Theory', courseType: 'theory' },
+  { name: 'GPU Computing', code: 'CS23027', type: 'Theory', courseType: 'theory' },
+  { name: 'Ethical Hacking', code: 'CS23028', type: 'Theory', courseType: 'theory' },
+  { name: 'Digital and Mobile Forensics', code: 'CS23029', type: 'Theory', courseType: 'theory' },
+  { name: 'Social Network Security', code: 'CS23030', type: 'Theory', courseType: 'theory' },
+  { name: 'Modern Cryptography', code: 'CS23031', type: 'Theory', courseType: 'theory' },
+  { name: 'Engineering Secure Software Systems', code: 'CS23032', type: 'Theory', courseType: 'theory' },
+  { name: 'Cyber Security', code: 'CS23033', type: 'Theory', courseType: 'theory' },
+  { name: 'Network Security', code: 'CS23034', type: 'Theory', courseType: 'theory' },
+  { name: 'Information Security', code: 'CS23035', type: 'Theory', courseType: 'theory' },
+  { name: 'Mobile Networks', code: 'CS23036', type: 'Theory', courseType: 'theory' },
+  { name: 'Distributed Systems', code: 'CS23037', type: 'Theory', courseType: 'theory' },
+  { name: 'Multimedia and Animation', code: 'CS23038', type: 'Theory', courseType: 'theory' },
+  { name: 'Video Creation and Editing', code: 'CS23039', type: 'Theory', courseType: 'theory' },
+  { name: 'Game Theory', code: 'CS23040', type: 'Theory', courseType: 'theory' },
+  { name: 'Digital Marketing', code: 'CS23041', type: 'Theory', courseType: 'theory' },
+  { name: 'Visual Effects', code: 'CS23042', type: 'Theory', courseType: 'theory' },
+  { name: 'Game Development', code: 'CS23043', type: 'Theory', courseType: 'theory' },
+  { name: 'Graph Theory', code: 'CS23044', type: 'Theory', courseType: 'theory' },
+  { name: 'Image Processing', code: 'CS23045', type: 'Theory', courseType: 'theory' },
+  { name: 'Augmented Reality / Virtual Reality', code: 'CS23046', type: 'Theory', courseType: 'theory' },
+  { name: 'Robotic Process Automation', code: 'CS23047', type: 'Theory', courseType: 'theory' },
+  { name: 'Healthcare Analytics', code: 'CS23048', type: 'Theory', courseType: 'theory' },
+  { name: 'Large Language Models', code: 'CS23049', type: 'Theory', courseType: 'theory' },
+  { name: 'Quantum Computing', code: 'CS23050', type: 'Theory', courseType: 'theory' },
+  { name: 'Cryptocurrency and Blockchain Technologies', code: 'CS23051', type: 'Theory', courseType: 'theory' },
+  { name: 'Metaverse', code: 'CS23052', type: 'Theory', courseType: 'theory' },
+  { name: '3D Printing and Design', code: 'CS23053', type: 'Theory', courseType: 'theory' },
+  { name: 'Autonomous Vehicles', code: 'CS23054', type: 'Theory', courseType: 'theory' },
+  { name: 'Knowledge Engineering', code: 'CS23055', type: 'Theory', courseType: 'theory' },
+  { name: 'Soft Computing', code: 'CS23056', type: 'Theory', courseType: 'theory' },
+  { name: 'Deep Learning', code: 'CS23057', type: 'Theory', courseType: 'theory' },
+  { name: 'Text and Speech Analysis', code: 'CS23058', type: 'Theory', courseType: 'theory' },
+  { name: 'Optimization Techniques', code: 'CS23059', type: 'Theory', courseType: 'theory' },
+  { name: 'Social Network Analysis', code: 'CS23060', type: 'Theory', courseType: 'theory' },
+  { name: 'Cognitive Science', code: 'CS23061', type: 'Theory', courseType: 'theory' },
+  { name: 'Responsible AI', code: 'CS23062', type: 'Theory', courseType: 'theory' },
+  { name: 'Generative AI', code: 'CS23063', type: 'Theory', courseType: 'theory' },
 ];
 
-const CSE_ELECTIVE_OPTION_BOOK: PresetCourse[] = CSE_ELECTIVE_COURSE_OPTIONS.map((course, index) => ({
-  id: `${course.semester}-${course.electiveSlot}-${index}`,
-  ...course,
-}));
+const CSE_ETC_COURSES: Omit<PresetCourse, 'id' | 'semester' | 'group' | 'electiveSlot'>[] = [
+  { name: 'Embedded Systems and Internet of Things', code: 'CS23E01', type: '3-0-2', courseType: '3-0-2' },
+  { name: 'Artificial Intelligence', code: 'CS23E02', type: 'Theory', courseType: 'theory' },
+];
+
+const CSE_OE_COURSES: Omit<PresetCourse, 'id' | 'semester' | 'group' | 'electiveSlot'>[] = [
+  { name: 'Data Mining', code: 'CS23901', type: 'Theory', courseType: 'theory' },
+  { name: 'Information Security', code: 'CS23902', type: 'Theory', courseType: 'theory' },
+  { name: 'Software Project Management', code: 'CS23903', type: 'Theory', courseType: 'theory' },
+  { name: 'Image Processing', code: 'CS23904', type: 'Theory', courseType: 'theory' },
+];
+
+const CSE_ELECTIVE_OPTION_BOOK: PresetCourse[] = [
+  ...[5, 6, 7].flatMap((semester) => {
+    const slots = semester === 5
+      ? ['Professional Elective I']
+      : semester === 6
+        ? ['Professional Elective II', 'Professional Elective III']
+        : ['Professional Elective IV', 'Professional Elective V', 'Professional Elective VI'];
+    return slots.flatMap((electiveSlot) => CSE_VERTICAL_ELECTIVES.map((course, index) => ({
+      id: `cse-${semester}-${electiveSlot}-${index}`,
+      ...course,
+      semester: semester as SemesterNumber,
+      group: 'elective' as const,
+      electiveSlot,
+    })));
+  }),
+  ...CSE_ETC_COURSES.flatMap((course, index) => [
+    { id: `cse-7-ETC-I-${index}`, ...course, semester: 7 as SemesterNumber, group: 'elective' as const, electiveSlot: 'Emerging Technology Course I' },
+    { id: `cse-7-ETC-II-${index}`, ...course, semester: 7 as SemesterNumber, group: 'elective' as const, electiveSlot: 'Emerging Technology Course II' },
+  ]),
+  ...[5, 6].flatMap((semester) => CSE_OE_COURSES.map((course, index) => ({
+    id: `cse-${semester}-OE-${index}`,
+    ...course,
+    semester: semester as SemesterNumber,
+    group: 'elective' as const,
+    electiveSlot: semester === 5 ? 'Open Elective I' : 'Open Elective II',
+  }))),
+];
 
 export const CSE_PRESET_COURSES: PresetCourse[] = [
   // Semester I
@@ -662,24 +697,6 @@ export const CSE_PRESET_COURSES: PresetCourse[] = [
 
   // Semester VII
   {
-    id: 'CS23701',
-    name: 'Emerging Technology Course I',
-    code: 'CS23701',
-    type: '3-0-2',
-    courseType: '3-0-2',
-    semester: 7,
-    group: 'core',
-  },
-  {
-    id: 'CS23702',
-    name: 'Emerging Technology Course II',
-    code: 'CS23702',
-    type: '3-0-0',
-    courseType: 'theory',
-    semester: 7,
-    group: 'core',
-  },
-  {
     id: 'IOC_SEM7_III',
     name: 'Industry Oriented Course III',
     code: '',
@@ -874,9 +891,9 @@ const ECE_ELECTIVE_OPTION_BOOK: PresetCourse[] = [
 export const ECE_PRESET_COURSES: PresetCourse[] = [
   // Semester I (27 credits)
   {
-    id: 'EN23C03_ECE',
+    id: 'EN23C05_ECE',
     name: 'Foundation English',
-    code: 'EN23C03',
+    code: 'EN23C05',
     type: '2-0-2',
     courseType: '2-0-2',
     semester: 1,
@@ -1397,14 +1414,6 @@ const CIVIL_OE_COURSES: Array<{ name: string; code: string; type: string; course
   { name: 'Sustainable Engineering', code: 'CE23901', type: 'Theory', courseType: 'theory' },
   { name: 'Waste to Energy', code: 'CE23902', type: 'Theory', courseType: 'theory' },
   { name: 'Hydrology', code: 'CE23903', type: 'Theory', courseType: 'theory' },
-  { name: 'Automotive Electronics', code: 'EC23901', type: 'Theory', courseType: 'theory' },
-  { name: 'Electronics Engineering', code: 'EC23902', type: 'Theory', courseType: 'theory' },
-  { name: 'Wireless Technologies', code: 'EC23903', type: 'Theory', courseType: 'theory' },
-  { name: 'Microcontroller Programming', code: 'EC23904', type: 'Theory', courseType: 'theory' },
-  { name: 'Consumer Electronics', code: 'EC23905', type: 'Theory', courseType: 'theory' },
-  { name: 'Robotics and its Applications', code: 'EC23908', type: 'Theory', courseType: 'theory' },
-  { name: 'UI and UX Design', code: 'CS23013', type: '2-0-2', courseType: '2-0-2' },
-  { name: 'Web Technologies', code: 'CS23010', type: '2-0-2', courseType: '2-0-2' },
 ];
 
 const CIVIL_ELECTIVE_OPTION_BOOK: PresetCourse[] = [
@@ -2234,12 +2243,8 @@ const BME_ETC_COURSES: Array<{ name: string; code: string; type: string; courseT
 const BME_OE_COURSES: Array<{ name: string; code: string; type: string; courseType: CourseType }> = [
   { name: 'Management of Wastes in Hospitals', code: 'BM23901', type: 'Theory', courseType: 'theory' },
   { name: 'Introduction to Biomaterials', code: 'BM23902', type: 'Theory', courseType: 'theory' },
-  { name: 'Medical Instrumentation', code: 'BM23037', type: 'Theory', courseType: 'theory' },
-  { name: 'Biomedical Equipment', code: 'BM23038', type: 'Theory', courseType: 'theory' },
-  { name: 'Sustainable Engineering', code: 'CE23901', type: 'Theory', courseType: 'theory' },
-  { name: 'Electronics Engineering', code: 'EC23902', type: 'Theory', courseType: 'theory' },
-  { name: 'UI and UX Design', code: 'CS23013', type: '2-0-2', courseType: '2-0-2' },
-  { name: 'Web Technologies', code: 'CS23010', type: '2-0-2', courseType: '2-0-2' },
+  { name: 'Principles of Telemedicine', code: 'BM23903', type: 'Theory', courseType: 'theory' },
+  { name: 'Electronics in Medicine', code: 'BM23904', type: 'Theory', courseType: 'theory' },
 ];
 
 const BME_ELECTIVE_OPTION_BOOK: PresetCourse[] = [
@@ -2478,8 +2483,6 @@ const IT_OE_COURSES: Array<{ name: string; code: string; type: string; courseTyp
   { name: 'Introduction of Web Programming', code: 'IT23906', type: 'Theory', courseType: 'theory' },
   { name: 'Full Stack Development', code: 'IT23907', type: 'Theory', courseType: 'theory' },
   { name: 'Augmented and Virtual Reality', code: 'IT23908', type: 'Theory', courseType: 'theory' },
-  { name: 'Sustainable Engineering', code: 'CE23901', type: 'Theory', courseType: 'theory' },
-  { name: 'Electronics Engineering', code: 'EC23902', type: 'Theory', courseType: 'theory' },
 ];
 
 const IT_ELECTIVE_OPTION_BOOK: PresetCourse[] = [
@@ -2904,6 +2907,7 @@ const MFG_ETC1_COURSES: Omit<PresetCourse, 'id' | 'semester' | 'group' | 'electi
 
 const MFG_ETC2_COURSES: Omit<PresetCourse, 'id' | 'semester' | 'group' | 'electiveSlot'>[] = [
   { name: 'Electronic Chip Manufacturing', code: 'MF23E03', type: 'Theory', courseType: 'theory' },
+  { name: 'Advanced Composite Materials and Manufacturing', code: 'MF23E04', type: 'Theory', courseType: 'theory' },
 ];
 
 const MFG_OE_COURSES: Omit<PresetCourse, 'id' | 'semester' | 'group' | 'electiveSlot'>[] = [
@@ -3129,13 +3133,20 @@ const VLSI_VERTICAL_ELECTIVES: Omit<PresetCourse, 'id' | 'semester' | 'group' | 
   { name: 'Wireless Sensor Network Design', code: 'EC23C01', type: 'Theory', courseType: 'theory' },
   { name: 'Natural Language Processing', code: 'VL23043', type: '2-0-2', courseType: '2-0-2' },
   { name: 'Computer Vision', code: 'VL23044', type: 'Theory', courseType: 'theory' },
+  { name: 'Software Defined Networks', code: 'VL23045', type: 'Theory', courseType: 'theory' },
+  { name: 'Massive MIMO Networks', code: 'VL23046', type: 'Theory', courseType: 'theory' },
+  { name: 'Cryptography and Network Security', code: 'EC23E06', type: 'Theory', courseType: 'theory' },
+  { name: 'Optical Communication and Networks', code: 'VL23048', type: 'Theory', courseType: 'theory' },
+  { name: '5G Wireless Communication Networks', code: 'VL23049', type: 'Theory', courseType: 'theory' },
+  { name: 'Wireless Broadband Networks', code: 'VL23050', type: 'Theory', courseType: 'theory' },
+  { name: 'Cognitive Radio Networks', code: 'VL23051', type: 'Theory', courseType: 'theory' },
 ];
 
 const VLSI_ETC_COURSES: Omit<PresetCourse, 'id' | 'semester' | 'group' | 'electiveSlot'>[] = [
-  { name: 'Quantum Computing Technologies', code: 'VL23E01', type: 'Theory', courseType: 'theory' },
-  { name: 'Neuromorphic VLSI Design', code: 'VL23E02', type: 'Theory', courseType: 'theory' },
-  { name: 'Hardware Security and Trust', code: 'VL23E03', type: 'Theory', courseType: 'theory' },
-  { name: 'Silicon Photonics', code: 'VL23E04', type: 'Theory', courseType: 'theory' },
+  { name: 'Introduction to Machine Learning', code: 'VL23E01', type: '2-0-2', courseType: '2-0-2' },
+  { name: 'VLSI Digital Signal Processing System', code: 'VL23E02', type: 'Theory', courseType: 'theory' },
+  { name: 'System Verilog for Verification', code: 'VL23E03', type: '2-0-2', courseType: '2-0-2' },
+  { name: 'Spintronics and Quantum Dots', code: 'VL23E04', type: 'Theory', courseType: 'theory' },
 ];
 
 const VLSI_OE_COURSES: Omit<PresetCourse, 'id' | 'semester' | 'group' | 'electiveSlot'>[] = [
@@ -3376,6 +3387,11 @@ const MECH_OE_COURSES: Omit<PresetCourse, 'id' | 'semester' | 'group' | 'electiv
   { name: 'Fuel Cells', code: 'ME23904', type: 'Theory', courseType: 'theory' },
   { name: 'Sustainable Energy Technologies and Assessment', code: 'ME23905', type: 'Theory', courseType: 'theory' },
   { name: 'Modern Healthcare Machines', code: 'ME23906', type: 'Theory', courseType: 'theory' },
+  { name: 'Energy Auditing and Conservation', code: 'ME23907', type: 'Theory', courseType: 'theory' },
+  { name: 'Future Energy Resources and Mobility', code: 'ME23908', type: 'Theory', courseType: 'theory' },
+  { name: 'Hydrogen as a Fuel for Powertrains', code: 'ME23909', type: 'Theory', courseType: 'theory' },
+  { name: 'Concepts of Competitive Manufacturing', code: 'ME23910', type: 'Theory', courseType: 'theory' },
+  { name: 'Solar Energy Technologies', code: 'ME23911', type: 'Theory', courseType: 'theory' },
 ];
 
 const MECH_ELECTIVE_OPTION_BOOK: PresetCourse[] = [
@@ -4069,14 +4085,16 @@ const MSE_VERTICAL_ELECTIVES: Array<{ name: string; code: string; type: string; 
 const MSE_ETC_COURSES: Array<{ name: string; code: string; type: string; courseType: CourseType }> = [
   { name: 'Advanced Sintering technology', code: 'MS23E01', type: 'Theory', courseType: 'theory' },
   { name: 'Industrial 5.0 & IOT', code: 'MS23E02', type: 'Theory', courseType: 'theory' },
+];
+
+const MSE_ETC2_COURSES: Array<{ name: string; code: string; type: string; courseType: CourseType }> = [
   { name: 'Machine Learning in Materials Science', code: 'MS23E03', type: '2-0-2', courseType: '2-0-2' },
-  { name: 'Atomistic Modelling of Materials', code: 'MS23E04', type: 'Theory', courseType: 'theory' },
+  { name: 'Atomistic Modelling of Materials', code: 'MS23E04', type: '3-0-0', courseType: 'theory' },
 ];
 
 const MSE_OE_COURSES: Array<{ name: string; code: string; type: string; courseType: CourseType }> = [
   { name: 'Introduction to Non-destructive testing', code: 'MS23901', type: 'Theory', courseType: 'theory' },
   { name: 'Materials Characterization Techniques', code: 'MS23902', type: 'Theory', courseType: 'theory' },
-  { name: 'Functional Materials & Devices', code: 'MS23903', type: 'Theory', courseType: 'theory' },
 ];
 
 const MSE_ELECTIVE_OPTION_BOOK: PresetCourse[] = [
@@ -4093,7 +4111,7 @@ const MSE_ELECTIVE_OPTION_BOOK: PresetCourse[] = [
   })),
 
   // Sem 6 ETC II
-  ...MSE_ETC_COURSES.map((course, idx) => ({
+  ...MSE_ETC2_COURSES.map((course, idx) => ({
     id: `${course.code}_SEM6_ETC2_MSE_${idx}`,
     name: course.name,
     code: course.code,
@@ -4265,52 +4283,53 @@ export const MSE_PRESET_COURSES: PresetCourse[] = [
 
 const IE_VERTICAL_ELECTIVES: Array<{ name: string; code: string; type: string; courseType: CourseType }> = [
   // Vertical I: Operations and Supply Chain
-  { name: 'Operations Management', code: 'IE23001', type: 'Theory', courseType: 'theory' },
-  { name: 'Supply Chain Management Decisions', code: 'IE23002', type: 'Theory', courseType: 'theory' },
-  { name: 'Logistics Management', code: 'IE23003', type: 'Theory', courseType: 'theory' },
-  { name: 'Warehousing', code: 'IE23004', type: 'Theory', courseType: 'theory' },
-  { name: 'Facilities Planning and Design', code: 'IE23005', type: 'Theory', courseType: 'theory' },
-  { name: 'Global Supply Chain Management', code: 'IE23006', type: 'Theory', courseType: 'theory' },
+  { name: 'Decision Making Models', code: 'IE23001', type: 'Theory', courseType: 'theory' },
+  { name: 'Engineering Economics and Costing', code: 'IE23C05', type: 'Theory', courseType: 'theory' },
+  { name: 'Supply Chain Analytics', code: 'IE23C10', type: 'Theory', courseType: 'theory' },
+  { name: 'Sustainable Supply Chain Management', code: 'IE23002', type: 'Theory', courseType: 'theory' },
+  { name: 'Project Management', code: 'IE23C08', type: 'Theory', courseType: 'theory' },
+  { name: 'Logistics, Warehouse and EXIM Management', code: 'IE23003', type: 'Theory', courseType: 'theory' },
+  { name: 'Enterprise Resource Planning', code: 'IE23004', type: 'Theory', courseType: 'theory' },
 
   // Vertical II: Quality Systems
-  { name: 'Applied Statistical Quality Control', code: 'IE23007', type: 'Theory', courseType: 'theory' },
-  { name: 'Six Sigma and Lean Manufacturing', code: 'IE23008', type: 'Theory', courseType: 'theory' },
-  { name: 'Reliability Engineering Techniques', code: 'IE23009', type: 'Theory', courseType: 'theory' },
-  { name: 'Maintenance Engineering and Management', code: 'IE23010', type: 'Theory', courseType: 'theory' },
-  { name: 'Quality Analytics', code: 'IE23011', type: 'Theory', courseType: 'theory' },
-  { name: 'Quality Management Systems and Auditing', code: 'IE23012', type: 'Theory', courseType: 'theory' },
+  { name: 'Quality Systems and Auditing', code: 'IE23005', type: 'Theory', courseType: 'theory' },
+  { name: 'Metrology and Measurements', code: 'IE23006', type: 'Theory', courseType: 'theory' },
+  { name: 'Lean Manufacturing and Six Sigma', code: 'IE23C03', type: 'Theory', courseType: 'theory' },
+  { name: 'Maintenance Engineering and Management', code: 'IE23007', type: 'Theory', courseType: 'theory' },
+  { name: 'Software Engineering and Methodology', code: 'IE23008', type: 'Theory', courseType: 'theory' },
+  { name: 'Software Quality Management', code: 'IE23009', type: 'Theory', courseType: 'theory' },
 
   // Vertical III: Manufacturing Systems
-  { name: 'Flexible Manufacturing Systems', code: 'IE23013', type: 'Theory', courseType: 'theory' },
-  { name: 'Advanced Manufacturing Processes', code: 'IE23014', type: 'Theory', courseType: 'theory' },
-  { name: 'Additive Manufacturing', code: 'IE23015', type: 'Theory', courseType: 'theory' },
-  { name: 'Computer Integrated Manufacturing', code: 'IE23016', type: 'Theory', courseType: 'theory' },
-  { name: 'Industry 4.0 in Manufacturing', code: 'IE23017', type: 'Theory', courseType: 'theory' },
-  { name: 'Smart Factory and Industrial IoT', code: 'IE23018', type: 'Theory', courseType: 'theory' },
+  { name: 'Facilities Planning and Design', code: 'IE23010', type: 'Theory', courseType: 'theory' },
+  { name: 'Operations Scheduling Algorithms', code: 'IE23011', type: 'Theory', courseType: 'theory' },
+  { name: 'Computer Integrated Manufacturing Systems', code: 'IE23012', type: 'Theory', courseType: 'theory' },
+  { name: 'Productivity Management and Re-engineering', code: 'IE23013', type: 'Theory', courseType: 'theory' },
+  { name: 'Decision Support and Intelligent System', code: 'IE23014', type: 'Theory', courseType: 'theory' },
+  { name: 'Smart Manufacturing and Robotics', code: 'IE23015', type: 'Theory', courseType: 'theory' },
 
   // Vertical IV: Product and Process Development
-  { name: 'Product Lifecycle Management', code: 'IE23019', type: 'Theory', courseType: 'theory' },
-  { name: 'Value Engineering and Analysis', code: 'IE23020', type: 'Theory', courseType: 'theory' },
-  { name: 'Design for Manufacturing and Assembly', code: 'IE23021', type: 'Theory', courseType: 'theory' },
-  { name: 'Innovation and New Product Development', code: 'IE23022', type: 'Theory', courseType: 'theory' },
-  { name: 'Process Optimization Techniques', code: 'IE23023', type: 'Theory', courseType: 'theory' },
-  { name: 'Sustainable Product Development', code: 'IE23024', type: 'Theory', courseType: 'theory' },
+  { name: 'Process Measurement Systems', code: 'IE23016', type: 'Theory', courseType: 'theory' },
+  { name: 'Product Life Cycle Management', code: 'IE23C04', type: 'Theory', courseType: 'theory' },
+  { name: 'Additive Manufacturing', code: 'IE23017', type: 'Theory', courseType: 'theory' },
+  { name: 'Product Design and Development', code: 'IE23018', type: 'Theory', courseType: 'theory' },
+  { name: 'Creativity, Innovation and Value Engineering', code: 'IE23019', type: 'Theory', courseType: 'theory' },
+  { name: 'Accounting and Finance for Management', code: 'IE23020', type: 'Theory', courseType: 'theory' },
 
   // Vertical V: Human Factors
-  { name: 'Cognitive Ergonomics', code: 'IE23025', type: 'Theory', courseType: 'theory' },
-  { name: 'Occupational Health and Industrial Safety', code: 'IE23026', type: 'Theory', courseType: 'theory' },
-  { name: 'Human Factors in Engineering Design', code: 'IE23027', type: 'Theory', courseType: 'theory' },
-  { name: 'Workstation and Workspace Design', code: 'IE23028', type: 'Theory', courseType: 'theory' },
-  { name: 'Environmental Ergonomics', code: 'IE23029', type: 'Theory', courseType: 'theory' },
-  { name: 'Ergonomics Simulation and Modelling', code: 'IE23030', type: 'Theory', courseType: 'theory' },
+  { name: 'Safety and Risk Analytics', code: 'IE23021', type: 'Theory', courseType: 'theory' },
+  { name: 'Safety Engineering and Management', code: 'IE23C09', type: 'Theory', courseType: 'theory' },
+  { name: 'Human Machine Interaction System', code: 'IE23022', type: 'Theory', courseType: 'theory' },
+  { name: 'Cognitive Ergonomics', code: 'IE23023', type: 'Theory', courseType: 'theory' },
+  { name: 'Occupational Health and Safety', code: 'IE23024', type: 'Theory', courseType: 'theory' },
+  { name: 'Principles of Management', code: 'IE23025', type: 'Theory', courseType: 'theory' },
 
   // Vertical VI: Sustainable Systems
-  { name: 'Systems Engineering and Management', code: 'IE23031', type: 'Theory', courseType: 'theory' },
-  { name: 'Waste Management and Circular Economy', code: 'IE23032', type: 'Theory', courseType: 'theory' },
-  { name: 'Energy Management and Auditing', code: 'IE23033', type: 'Theory', courseType: 'theory' },
-  { name: 'Life Cycle Assessment and Carbon Footprint', code: 'IE23034', type: 'Theory', courseType: 'theory' },
-  { name: 'Sustainable Manufacturing Systems', code: 'IE23035', type: 'Theory', courseType: 'theory' },
-  { name: 'Green Supply Chain Management', code: 'IE23036', type: 'Theory', courseType: 'theory' },
+  { name: 'Environmental Impact Assessment', code: 'IE23026', type: 'Theory', courseType: 'theory' },
+  { name: 'Circular Economy', code: 'IE23027', type: 'Theory', courseType: 'theory' },
+  { name: 'Life Cycle Assessment', code: 'IE23028', type: 'Theory', courseType: 'theory' },
+  { name: 'Environmental Management Systems and Auditing', code: 'IE23029', type: 'Theory', courseType: 'theory' },
+  { name: 'Systems Engineering and Management', code: 'IE23030', type: 'Theory', courseType: 'theory' },
+  { name: 'Waste Management', code: 'IE23031', type: 'Theory', courseType: 'theory' },
 ];
 
 const IE_ETC_COURSES: Array<{ name: string; code: string; type: string; courseType: CourseType }> = [

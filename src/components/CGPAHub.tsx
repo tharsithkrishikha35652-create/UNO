@@ -103,6 +103,11 @@ const getInitialSemesterInputs = (
   );
 };
 
+const exceedsMaximumGpa = (value: string): boolean =>
+  value.trim() !== "" &&
+  Number.isFinite(Number(value)) &&
+  Number(value) > 10;
+
 const cachedSemesterInputsByDept: Record<string, Record<number, SemesterResultInput>> = {};
 let cachedSelectedSemester = 1;
 
@@ -354,6 +359,12 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
                   step={0.01}
                   inputMode="decimal"
                   aria-label={`Semester ${semester} GPA`}
+                  aria-invalid={exceedsMaximumGpa(semesterInputs[semester].gpa)}
+                  aria-describedby={
+                    exceedsMaximumGpa(semesterInputs[semester].gpa)
+                      ? `semester-${semester}-gpa-error`
+                      : undefined
+                  }
                   placeholder="0.00 – 10.00"
                   value={semesterInputs[semester].gpa}
                   onChange={(event) =>
@@ -361,6 +372,15 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
                   }
                   className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 font-numeric tabular-nums focus:border-[#172554] focus:outline-2 focus:outline-[#172554]"
                 />
+                {exceedsMaximumGpa(semesterInputs[semester].gpa) && (
+                  <span
+                    id={`semester-${semester}-gpa-error`}
+                    className="mt-1 block text-xs font-semibold text-rose-700"
+                    role="alert"
+                  >
+                    Please enter a valid GPA from 0 to 10.
+                  </span>
+                )}
               </label>
               <div className="block">
                 <div className="mb-1 flex items-center justify-between gap-1 text-xs font-semibold text-slate-600">

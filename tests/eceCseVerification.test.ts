@@ -81,6 +81,47 @@ describe('Department Course & Curriculum Verification', () => {
     ]);
   });
 
+  it('verifies Civil Engineering elective catalog matches the 2026 syllabus exactly', () => {
+    const civilCatalog = getPresetCourses('CIVIL');
+
+    const openElectiveI = civilCatalog
+      .filter((course) => course.group === 'elective' && course.electiveSlot === 'Open Elective I')
+      .map((course) => course.code)
+      .filter(Boolean)
+      .sort();
+
+    const emergingTechI = civilCatalog
+      .filter((course) => course.group === 'elective' && course.electiveSlot === 'Emerging Technology Course I')
+      .map((course) => course.code)
+      .filter(Boolean)
+      .sort();
+
+    expect(openElectiveI).toEqual(['CE23901', 'CE23902', 'CE23903']);
+    expect(emergingTechI).toEqual(['CE23E01', 'CE23E02', 'CE23E03', 'CE23E04']);
+  });
+
+  it('verifies IT Engineering open electives are limited to the official IT syllabus set', () => {
+    const itCatalog = getPresetCourses('IT');
+
+    const openElectiveCodes = itCatalog
+      .filter((course) => course.group === 'elective' && course.electiveSlot === 'Open Elective I')
+      .map((course) => course.code)
+      .filter(Boolean)
+      .sort();
+
+    expect(openElectiveCodes).toEqual([
+      'IT23901',
+      'IT23902',
+      'IT23903',
+      'IT23904',
+      'IT23905',
+      'IT23906',
+      'IT23907',
+      'IT23908',
+    ]);
+    expect(openElectiveCodes.every((code) => code.startsWith('IT23'))).toBe(true);
+  });
+
   it('verifies Civil Engineering specific course types and weights', () => {
     expect(getCourseType({ id: 'ce1', name: 'Building and Structural Drawing', courseType: 'laboratory-course' } as any)).toBe('laboratory-course');
     expect(getCourseType({ id: 'ce2', name: 'Environmental Engineering Drawing', courseType: 'laboratory-course' } as any)).toBe('laboratory-course');
@@ -242,6 +283,11 @@ describe('Department Course & Curriculum Verification', () => {
       'Professional Elective VI',
       'Open Elective II',
     ]);
+    expect(
+      getPresetCourses('MFG')
+        .filter((course) => course.group === 'elective' && course.electiveSlot === 'Emerging Technology Course II')
+        .map((course) => course.code)
+    ).toContain('MF23E04');
   });
 
   it('verifies Electronics Engineering (VLSI Design & Tech) total credits is 172 and individual semesters match exactly', () => {
@@ -267,6 +313,14 @@ describe('Department Course & Curriculum Verification', () => {
       'Professional Elective VI',
       'Open Elective II',
     ]);
+
+    const vlsiCourses = getPresetCourses('VLSI');
+    expect(vlsiCourses.filter((course) => course.group === 'elective' && course.electiveSlot === 'Emerging Technology I').map((course) => course.code)).toEqual([
+      'VL23E01', 'VL23E02', 'VL23E03', 'VL23E04',
+    ]);
+    for (const courseCode of ['VL23045', 'VL23046', 'EC23E06', 'VL23048', 'VL23049', 'VL23050', 'VL23051']) {
+      expect(vlsiCourses.some((course) => course.group === 'elective' && course.code === courseCode), courseCode).toBe(true);
+    }
   });
 
   it('verifies Mechanical Engineering (MECH) total credits is 177 and individual semesters match exactly', () => {
@@ -292,6 +346,13 @@ describe('Department Course & Curriculum Verification', () => {
       'Emerging Technology Course II',
       'Professional Elective VI',
       'Open Elective II',
+    ]);
+    const mechOpenElectiveCodes = getPresetCourses('MECH')
+      .filter((course) => course.group === 'elective' && course.electiveSlot === 'Open Elective I')
+      .map((course) => course.code);
+    expect(mechOpenElectiveCodes).toEqual([
+      'ME23901', 'ME23902', 'ME23903', 'ME23904', 'ME23905', 'ME23906',
+      'ME23907', 'ME23908', 'ME23909', 'ME23910', 'ME23911',
     ]);
   });
 
@@ -328,6 +389,12 @@ describe('Department Course & Curriculum Verification', () => {
       'Professional Elective IV',
       'Professional Elective V',
       'Professional Elective VI',
+    ]);
+    const bmeOpenElectives = getPresetCourses('BME').filter(
+      (course) => course.group === 'elective' && course.electiveSlot === 'Open Elective I'
+    );
+    expect(bmeOpenElectives.map((course) => course.code)).toEqual([
+      'BM23901', 'BM23902', 'BM23903', 'BM23904',
     ]);
   });
 
@@ -367,9 +434,20 @@ describe('Department Course & Curriculum Verification', () => {
     ]);
 
     const cseSlots = getElectiveSlotsBySemester('CSE');
-    expect(cseSlots[5]).toEqual(['Open Elective I', 'Professional Elective I']);
+    expect(cseSlots[5]).toEqual(['Professional Elective I', 'Open Elective I']);
     expect(cseSlots[6]).toEqual(['Open Elective II', 'Professional Elective II', 'Professional Elective III']);
-    expect(cseSlots[7]).toEqual(['Professional Elective IV', 'Professional Elective V', 'Professional Elective VI']);
+    expect(cseSlots[7]).toEqual([
+      'Emerging Technology Course I',
+      'Emerging Technology Course II',
+      'Professional Elective IV',
+      'Professional Elective V',
+      'Professional Elective VI',
+    ]);
+    const cseOptions = getPresetCourses('CSE');
+    expect(cseOptions.some((course) => course.code === 'CS23063' && course.electiveSlot === 'Professional Elective VI')).toBe(true);
+    expect(cseOptions.some((course) => course.code === 'CS23E01' && course.electiveSlot === 'Emerging Technology Course I')).toBe(true);
+    expect(cseOptions.some((course) => course.code === 'CS23E02' && course.electiveSlot === 'Emerging Technology Course II')).toBe(true);
+    expect(cseOptions.some((course) => course.code === 'CS23904' && course.electiveSlot === 'Open Elective II')).toBe(true);
   });
 
   it('verifies ECE and VLSI specific course types and weights according to Regulations 2023', () => {
@@ -598,6 +676,13 @@ it('verifies explicit grade-based GPA calculation for a chosen semester', () => 
     expect(MECH_GPA_COURSES.find((course) => course.code === 'ME23403')?.credits).toBe(4);
   });
 
+  it('uses each 2026 syllabus Foundation English course code', () => {
+    expect(CSE_GPA_COURSES.find((course) => course.name === 'Foundation English')?.code).toBe('EN23C03');
+    expect(ECE_GPA_COURSES.find((course) => course.name === 'Foundation English')?.code).toBe('EN23C05');
+    expect(CSE_PRESET_COURSES.find((course) => course.name === 'Foundation English')?.code).toBe('EN23C03');
+    expect(ECE_PRESET_COURSES.find((course) => course.name === 'Foundation English')?.code).toBe('EN23C05');
+  });
+
   it('correctly detects obsolete ghost dummy placeholder courses and preserves real courses', () => {
     expect(isGhostPlaceholderCourse({ name: 'Course 1 (Sem 5)' })).toBe(true);
     expect(isGhostPlaceholderCourse({ name: 'Course 1 (Sem 1)' })).toBe(true);
@@ -635,6 +720,11 @@ it('verifies explicit grade-based GPA calculation for a chosen semester', () => 
       'Professional Elective VI',
       'Open Elective II',
     ]);
+    const ptOptions = getPresetCourses('PT');
+    expect(ptOptions.some((course) => course.code === 'PP23001' && course.electiveSlot === 'Professional Elective I')).toBe(true);
+    expect(ptOptions.some((course) => course.code === 'IE23028' && course.electiveSlot === 'Professional Elective VI')).toBe(true);
+    expect(ptOptions.some((course) => course.code === 'PP23E04' && course.electiveSlot === 'Emerging Technology Course I')).toBe(true);
+    expect(ptOptions.some((course) => course.code === 'PP23903' && course.electiveSlot === 'Open Elective II')).toBe(true);
   });
 
   it('verifies Mining Engineering (MINING) total credits is 181 and individual semesters match exactly', () => {
@@ -685,6 +775,13 @@ it('verifies explicit grade-based GPA calculation for a chosen semester', () => 
       'Professional Elective VI',
       'Open Elective II',
     ]);
+    const mseCourses = getPresetCourses('MSE');
+    expect(mseCourses.filter((course) => course.electiveSlot === 'Emerging Technology Course I').map((course) => course.code))
+      .toEqual(['MS23E01', 'MS23E02']);
+    expect(mseCourses.filter((course) => course.electiveSlot === 'Emerging Technology Course II').map((course) => course.code))
+      .toEqual(['MS23E03', 'MS23E04']);
+    expect(mseCourses.filter((course) => course.electiveSlot === 'Open Elective I').map((course) => course.code))
+      .toEqual(['MS23901', 'MS23902']);
   });
 
   it('verifies Industrial Engineering (IE) total credits is 177 and individual semesters match exactly', () => {
@@ -711,6 +808,12 @@ it('verifies explicit grade-based GPA calculation for a chosen semester', () => 
       'Professional Elective VI',
       'Open Elective II',
     ]);
+    const ieCourses = getPresetCourses('IE');
+    for (const courseCode of ['IE23015', 'IE23020', 'IE23025', 'IE23031']) {
+      expect(ieCourses.some((course) => course.group === 'elective' && course.code === courseCode), courseCode).toBe(true);
+    }
+    expect(ieCourses.filter((course) => course.electiveSlot === 'Emerging Technology Course I').map((course) => course.code))
+      .toEqual(['IE23E01', 'IE23E02', 'IE23E03', 'IE23E04']);
   });
 
   it('verifies department dropdown options are arranged alphabetically by department name', () => {

@@ -64,8 +64,8 @@ export const CSE_GPA_COURSES: readonly GpaCourse[] = [
   { code: 'PE-II', name: 'Professional Elective II', credits: 3, semester: 6, electiveSlot: 'Professional Elective II' },
   { code: 'PE-III', name: 'Professional Elective III', credits: 3, semester: 6, electiveSlot: 'Professional Elective III' },
 
-  { code: 'CS23701', name: 'Emerging Technology Course I', credits: 4, semester: 7 },
-  { code: 'CS23702', name: 'Emerging Technology Course II', credits: 3, semester: 7 },
+  { code: 'ETC-I', name: 'Emerging Technology Course I', credits: 4, semester: 7, electiveSlot: 'Emerging Technology Course I' },
+  { code: 'ETC-II', name: 'Emerging Technology Course II', credits: 3, semester: 7, electiveSlot: 'Emerging Technology Course II' },
   { code: '', name: 'Industry Oriented Course III', credits: 1, semester: 7 },
   { code: 'PE-IV', name: 'Professional Elective IV', credits: 3, semester: 7, electiveSlot: 'Professional Elective IV' },
   { code: 'PE-V', name: 'Professional Elective V', credits: 3, semester: 7, electiveSlot: 'Professional Elective V' },
@@ -76,7 +76,7 @@ export const CSE_GPA_COURSES: readonly GpaCourse[] = [
 
 export const ECE_GPA_COURSES: readonly GpaCourse[] = [
   // Semester 1 (23 credits)
-  { code: 'EN23C03', name: 'Foundation English', credits: 3, semester: 1 },
+  { code: 'EN23C05', name: 'Foundation English', credits: 3, semester: 1 },
   { code: 'MA23C11', name: 'Calculus', credits: 4, semester: 1 },
   { code: 'PH23C11', name: 'Engineering Physics', credits: 4, semester: 1 },
   { code: 'ME23C01', name: 'Engineering Drawing and 3D Modelling', credits: 4, semester: 1 },
@@ -319,7 +319,7 @@ export const GEO_GPA_COURSES: readonly GpaCourse[] = [
 ] as const;
 
 export const BME_GPA_COURSES: readonly GpaCourse[] = [
-  // Semester 1 (22 credits)
+  // Semester 1 (18 credits)
   { code: 'EN23C05', name: 'Foundation English', credits: 3, semester: 1 },
   { code: 'MA23C11', name: 'Calculus', credits: 4, semester: 1 },
   { code: 'CY23C10', name: 'Engineering Chemistry', credits: 4, semester: 1 },
