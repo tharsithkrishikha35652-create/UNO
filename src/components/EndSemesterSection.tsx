@@ -234,7 +234,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                   <Target className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-[#172554]">
+                  <h4 id="tour-target-grade-simulator-text" data-tour="target-grade-simulator-text" className="text-sm font-bold text-[#172554]">
                     Target Grade Simulator
                   </h4>
                   <span className="text-[11px] font-semibold text-slate-500">
@@ -357,7 +357,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                 <div className="text-[#d97757] shrink-0">
                   <Target className="w-5 h-5" />
                 </div>
-                <h4 className="text-sm font-bold text-[#172554]">Target Grade Simulator</h4>
+                <h4 id="tour-target-grade-simulator-text" data-tour="target-grade-simulator-text" className="text-sm font-bold text-[#172554]">Target Grade Simulator</h4>
                 <ChevronDown className="ml-auto h-4 w-4 shrink-0 text-[#3b4d66] transition-transform group-open:rotate-180" aria-hidden="true" />
               </summary>
 

@@ -591,6 +591,8 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
               <button
                 ref={editButtonRef}
                 type="button"
+                id="tour-edit-profile"
+                data-tour="edit-profile"
                 onClick={() => setEditing(true)}
                 className="min-h-11 w-full rounded-xl bg-[#172554] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#1e3a8a] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#172554]"
               >
@@ -616,6 +618,8 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
               {/* Feedback */}
               <button
                 type="button"
+                id="tour-profile-feedback"
+                data-tour="profile-feedback"
                 onClick={onOpenFeedback}
                 className="flex min-h-12 w-full items-center justify-between rounded-xl border border-slate-300 bg-white p-3.5 text-left hover:bg-slate-50 transition-colors focus-visible:outline-2 focus-visible:outline-[#172554]"
               >

@@ -201,7 +201,7 @@ export const FeedbackHub: React.FC<FeedbackHubProps> = ({ user, guestMode }) => 
             <MessageSquare className="h-4 w-4" aria-hidden="true" />
           </span>
           <div>
-            <h1 id="feedback-hub-heading" className={`text-xl font-black ${palette.heading}`}>Feedback Hub</h1>
+            <h1 id="feedback-hub-heading" data-tour="feedback-hub-text" className={`text-xl font-black ${palette.heading}`}>Feedback Hub</h1>
             <p className="mt-1 max-w-prose text-sm text-slate-600">Share a suggestion or report a problem to help improve CALCREDIT.</p>
           </div>
         </div>

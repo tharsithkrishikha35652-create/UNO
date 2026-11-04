@@ -183,6 +183,7 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
               <div className="relative">
                 <input
                   id={`test-scored-${number}`}
+                  data-tour={number === 1 ? "marks-entry" : undefined}
                   type="number"
                   inputMode="decimal"
                   min={0}
@@ -211,6 +212,8 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
                       setMaxError(null);
                       setIsEditingMax(!isEditingMax);
                     }}
+                    id={`tour-test-max-pencil-${number}`}
+                    data-tour="test-max-pencil"
                     title="Configure maximum marks"
                     aria-label={`Configure maximum marks for ${testDisplayName ?? `CA Test ${number}`}`}
                     className="p-1 rounded text-slate-400 hover:text-[#172554] dark:hover:text-[#f1f1f3] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
@@ -224,6 +227,8 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
                   {isEditingMax && (
                     <motion.div
                       ref={editMaxRef}
+                      id={`tour-test-max-editor-${number}`}
+                      data-tour="test-max-editor"
                       initial={reduceMotion ? false : { opacity: 0, y: -4, scale: 0.98 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={reduceMotion ? undefined : { opacity: 0, y: -4, scale: 0.98 }}
@@ -236,6 +241,8 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
                         </span>
                         <button
                           type="button"
+                          id={`tour-test-max-cancel-${number}`}
+                          data-tour="test-max-cancel"
                           onClick={handleCancelMax}
                           className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer p-0.5"
                           aria-label="Cancel editing maximum marks"
@@ -246,18 +253,22 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
 
                       <div className="flex items-center gap-2">
                         <input
+                          id={`tour-test-max-input-${number}`}
+                          data-tour="test-max-input"
                           type="number"
                           inputMode="numeric"
                           min={1}
                           step={1}
                           value={tempMax}
+                          readOnly={typeof document !== 'undefined' && document.body.hasAttribute('data-tour-active')}
                           onChange={(e) => {
+                            if (typeof document !== 'undefined' && document.body.hasAttribute('data-tour-active')) return;
                             setTempMax(e.target.value);
                             setMaxError(null);
                           }}
                           placeholder="e.g. 25, 30, 50"
                           className="h-9 w-full px-2.5 text-sm font-bold border border-[#172554] dark:border-slate-600 rounded-lg bg-white dark:bg-[#161618] text-[#172554] dark:text-[#f1f1f3] focus:outline-hidden font-numeric tabular-nums"
-                          autoFocus
+                          autoFocus={!(typeof document !== 'undefined' && document.body.hasAttribute('data-tour-active'))}
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') handleSaveMax();
                             if (e.key === 'Escape') handleCancelMax();

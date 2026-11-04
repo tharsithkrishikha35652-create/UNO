@@ -1,19 +1,15 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useReducedMotion } from 'motion/react';
 import {
   ArrowRight,
-  BookOpen,
   Check,
   ChevronRight,
-  Minus,
-  Plus,
   Sparkles,
 } from 'lucide-react';
 import type { AppTheme } from './ThemeToggle';
 import {
   TOUR_STORAGE_KEY,
   lockTourScroll,
-  unlockTourScroll,
   forceUnlockTourScroll,
 } from './TourErrorBoundary';
 
@@ -25,24 +21,25 @@ export interface FirstTimeTourProps {
   closeProfile?: () => void;
   openFeedbackHub?: () => void;
   closeFeedbackHub?: () => void;
+  openCourseCalculator?: () => void;
+  restoreTestMax?: () => void;
   openTargetSimulator?: () => void;
   goToTab?: (tab: 'calculator' | 'courses' | 'gpa' | 'cgpa') => void;
 }
 
 export type TourStep =
   | 'welcome'
-  | 'profile_icon'
-  | 'department'
-  | 'feedback_hub'
-  | 'semester_selector'
-  | 'marks_entry'
-  | 'target_simulator'
-  | 'features_types'
-  | 'grades_of_choice'
-  | 'bottom_bar'
+  | 'profile_icon'          // Step 1 of 10
+  | 'edit_profile'          // Step 2 of 10
+  | 'feedback_drawer'       // Step 3 of 10
+  | 'feedback_screen'       // Step 4 of 10
+  | 'semester_selector'     // Step 5 of 10
+  | 'estimated_lab'         // Step 6 of 10
+  | 'marks_entry'           // Step 7 of 10
+  | 'change_total_marks'    // Step 8 of 10 (2 beats)
+  | 'target_simulator'      // Step 9 of 10
+  | 'grades_of_choice'      // Step 10 of 10
   | 'finish';
-
-type BottomBarTab = 'calculator' | 'courses' | 'gpa' | 'cgpa';
 
 interface TargetRect {
   x: number;
@@ -51,11 +48,156 @@ interface TargetRect {
   height: number;
 }
 
-// CalCredit logo stroke colors read from src/assets/branding/calcredit_logo_final.svg
+interface CardPosition {
+  top: number;
+  left: number;
+  placement: 'above' | 'below';
+  arrowX: number;
+}
+
+const TOTAL_STEPS = 10;
+
+// Exact pen colors read from src/assets/branding/calcredit_logo_final.svg
 // Light theme (#markL): stroke="#E23B22"
 // Dark theme (#markD): stroke="#F0482E"
 const PEN_COLOR_LIGHT = '#E23B22';
 const PEN_COLOR_DARK = '#F0482E';
+
+function safeScrollIntoView(el: HTMLElement, options?: ScrollIntoViewOptions) {
+  try {
+    el.scrollIntoView(options ?? { block: 'center', behavior: 'auto' });
+  } catch {
+    try {
+      el.scrollIntoView(true);
+    } catch {}
+  }
+}
+
+function safeScrollBy(x: number, y: number) {
+  try {
+    window.scrollBy({ left: x, top: y, behavior: 'auto' });
+  } catch {
+    try {
+      window.scrollBy(x, y);
+    } catch {}
+  }
+}
+
+function findVisibleTarget(selector: string): HTMLElement | null {
+  try {
+    const candidates = document.querySelectorAll<HTMLElement>(selector);
+    for (const element of candidates) {
+      const rect = element.getBoundingClientRect();
+      const style = window.getComputedStyle(element);
+      if (
+        rect.width > 0 &&
+        rect.height > 0 &&
+        element.getClientRects().length > 0 &&
+        style.display !== 'none' &&
+        style.visibility !== 'hidden' &&
+        Number(style.opacity) > 0
+      ) {
+        return element;
+      }
+    }
+  } catch {}
+  return null;
+}
+
+/** Computes non-overlapping tooltip positioning and arrow alignment */
+function computeCardPosition(
+  target: TargetRect | null,
+  step?: TourStep,
+  cardHeight: number = 150
+): CardPosition {
+  const vh = typeof window !== 'undefined' ? window.innerHeight : 800;
+  const vw = typeof window !== 'undefined' ? window.innerWidth : 400;
+  const cardWidth = Math.min(320, vw - 32);
+
+  if (!target) {
+    let defaultTop = Math.round(vh * 0.22);
+    let defaultLeft = Math.max(16, Math.round((vw - cardWidth) / 2));
+    let placement: 'above' | 'below' = 'below';
+    let arrowX = Math.round(cardWidth / 2);
+
+    if (step === 'semester_selector') {
+      defaultTop = 64;
+      defaultLeft = Math.max(16, vw - cardWidth - 16);
+      arrowX = cardWidth - 45;
+    } else if (step === 'grades_of_choice') {
+      defaultTop = Math.max(20, Math.round(vh * 0.45));
+      defaultLeft = Math.max(16, Math.round((vw - cardWidth) / 2));
+      placement = 'above';
+      arrowX = Math.round(cardWidth / 2);
+    }
+
+    return {
+      top: defaultTop,
+      left: defaultLeft,
+      placement,
+      arrowX,
+    };
+  }
+
+  const targetCenterX = target.x + target.width / 2;
+  const spaceBelow = vh - (target.y + target.height);
+  const spaceAbove = target.y;
+
+  // Prefer side with ample clearance, strictly ensuring the element is NEVER covered
+  let placement: 'above' | 'below' = 'below';
+  if (step === 'grades_of_choice') {
+    // Strictly position above the button to guarantee it is never covered
+    placement = 'above';
+  } else if (step === 'semester_selector' || step === 'feedback_screen') {
+    // Strictly position below header dropdown or heading
+    placement = 'below';
+  } else if (spaceBelow >= cardHeight + 20) {
+    placement = 'below';
+  } else if (spaceAbove >= cardHeight + 20) {
+    placement = 'above';
+  } else {
+    placement = spaceBelow >= spaceAbove ? 'below' : 'above';
+  }
+
+  let top: number;
+  if (placement === 'below') {
+    // Top of card is at least 14px below bottom of target
+    top = Math.round(target.y + target.height + 14);
+  } else {
+    // Bottom of card is at least 14px above top of target
+    top = Math.round(target.y - cardHeight - 14);
+  }
+
+  // Ensure card never overlaps the target element
+  if (placement === 'below' && top < target.y + target.height + 8) {
+    top = Math.round(target.y + target.height + 8);
+  } else if (placement === 'above' && top + cardHeight > target.y - 8) {
+    top = Math.round(target.y - cardHeight - 8);
+  }
+
+  // Strictly clamp inside visible viewport so card is never cut off
+  top = Math.max(12, Math.min(top, vh - cardHeight - 12));
+
+  // Horizontally position card:
+  // For semester selector, align card towards right so arrow points into the pill button
+  let left: number;
+  if (step === 'semester_selector') {
+    left = Math.max(16, vw - cardWidth - 16);
+  } else {
+    left = Math.round(targetCenterX - cardWidth / 2);
+    left = Math.max(16, Math.min(left, vw - cardWidth - 16));
+  }
+
+  // Arrow offset relative to card left, clamped to keep inside card curves
+  const arrowX = Math.max(24, Math.min(Math.round(targetCenterX - left), cardWidth - 24));
+
+  return {
+    top,
+    left,
+    placement,
+    arrowX,
+  };
+}
 
 export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
   isOpen,
@@ -65,14 +207,28 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
   closeProfile = () => {},
   openFeedbackHub = () => {},
   closeFeedbackHub = () => {},
+  openCourseCalculator = () => {},
+  restoreTestMax = () => {},
   openTargetSimulator = () => {},
   goToTab = () => {},
 }) => {
   const reduceMotion = useReducedMotion();
   const [currentStep, setCurrentStep] = useState<TourStep>('welcome');
-  const [bottomTab, setBottomTab] = useState<BottomBarTab>('calculator');
+  const [totalMarksBeat, setTotalMarksBeat] = useState<1 | 2>(1);
   const [targetRect, setTargetRect] = useState<TargetRect | null>(null);
   const [penDrawn, setPenDrawn] = useState(false);
+
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [cardHeight, setCardHeight] = useState(150);
+
+  useEffect(() => {
+    if (cardRef.current) {
+      const h = cardRef.current.offsetHeight;
+      if (h > 0 && Math.abs(h - cardHeight) > 4) {
+        setCardHeight(h);
+      }
+    }
+  });
 
   // Exact theme-matching pen color
   const isDark =
@@ -80,59 +236,85 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
     (typeof document !== 'undefined' && document.documentElement.classList.contains('dark'));
   const penColor = isDark ? PEN_COLOR_DARK : PEN_COLOR_LIGHT;
 
-  // Sample marks state for Step 5 (Marks entry)
-  const [sampleTest1, setSampleTest1] = useState(44); // out of 50
-  const [sampleTest2, setSampleTest2] = useState(46); // out of 50
-  const [sampleEse, setSampleEse] = useState(86);     // out of 100
-  const [marksAdjusted, setMarksAdjusted] = useState(false);
+  const pollTimerRef = useRef<number | null>(null);
+  const penDrawTimerRef = useRef<number | null>(null);
+  const refineTimerRef = useRef<number | null>(null);
+  const currentStepRef = useRef<TourStep>('welcome');
 
-  // Looping course types state for Step 7
-  const [courseTypeIndex, setCourseTypeIndex] = useState(0);
+  // Keep currentStepRef in sync with currentStep state
+  useEffect(() => {
+    currentStepRef.current = currentStep;
+  }, [currentStep]);
 
-  const measureTimerRef = useRef<number | null>(null);
-  const settleTimerRef = useRef<number | null>(null);
-  const transitionTimerRef = useRef<number | null>(null);
-  const autoAdvanceTimerRef = useRef<number | null>(null);
+  // Helper to close total marks editor and restore 50
+  const closeMaxEditor = useCallback(() => {
+    try {
+      const cancelBtn = document.querySelector(
+        '#tour-test-max-cancel-1, [data-tour="test-max-cancel"]'
+      ) as HTMLButtonElement | null;
+      if (cancelBtn) {
+        cancelBtn.click();
+      } else {
+        const pencilBtn = document.querySelector(
+          '#tour-test-max-pencil-1, [data-tour="test-max-pencil"]'
+        ) as HTMLButtonElement | null;
+        const editor = document.querySelector(
+          '#tour-test-max-editor-1, [data-tour="test-max-editor"]'
+        );
+        if (pencilBtn && editor) pencilBtn.click();
+      }
+      restoreTestMax();
+    } catch (err) {
+      console.warn('Error closing max editor:', err);
+    }
+  }, [restoreTestMax]);
 
   // Cleanup all timers on unmount or step change
   const clearAllTimers = useCallback(() => {
-    if (measureTimerRef.current !== null) {
-      window.clearTimeout(measureTimerRef.current);
-      measureTimerRef.current = null;
+    if (pollTimerRef.current !== null) {
+      window.clearTimeout(pollTimerRef.current);
+      pollTimerRef.current = null;
     }
-    if (settleTimerRef.current !== null) {
-      window.clearTimeout(settleTimerRef.current);
-      settleTimerRef.current = null;
+    if (penDrawTimerRef.current !== null) {
+      window.clearTimeout(penDrawTimerRef.current);
+      penDrawTimerRef.current = null;
     }
-    if (transitionTimerRef.current !== null) {
-      window.clearTimeout(transitionTimerRef.current);
-      transitionTimerRef.current = null;
-    }
-    if (autoAdvanceTimerRef.current !== null) {
-      window.clearTimeout(autoAdvanceTimerRef.current);
-      autoAdvanceTimerRef.current = null;
+    if (refineTimerRef.current !== null) {
+      window.clearTimeout(refineTimerRef.current);
+      refineTimerRef.current = null;
     }
   }, []);
 
   const handleClose = useCallback(() => {
     clearAllTimers();
+    closeMaxEditor();
     forceUnlockTourScroll();
     closeProfile();
     closeFeedbackHub();
     goToTab('calculator');
+    if (typeof document !== 'undefined') {
+      document.body.removeAttribute('data-tour-active');
+    }
     try {
       localStorage.setItem(TOUR_STORAGE_KEY, 'true');
     } catch {}
     onClose();
-  }, [clearAllTimers, closeProfile, closeFeedbackHub, goToTab, onClose]);
+  }, [clearAllTimers, closeMaxEditor, closeProfile, closeFeedbackHub, goToTab, onClose]);
 
   // Clean unlock on unmount
   useEffect(() => {
+    if (isOpen && typeof document !== 'undefined') {
+      document.body.setAttribute('data-tour-active', 'true');
+    }
     return () => {
       clearAllTimers();
+      closeMaxEditor();
       forceUnlockTourScroll();
+      if (typeof document !== 'undefined') {
+        document.body.removeAttribute('data-tour-active');
+      }
     };
-  }, [clearAllTimers]);
+  }, [isOpen, clearAllTimers, closeMaxEditor]);
 
   // Window-level scroll blocking while tour is active
   useEffect(() => {
@@ -141,26 +323,26 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
       return;
     }
 
-    // Block mouse wheel
+    lockTourScroll();
+
     const handleWheel = (e: WheelEvent) => {
-      if (e.cancelable) {
-        e.preventDefault();
-      }
+      if (e.cancelable) e.preventDefault();
     };
 
-    // Block touch scrolling while permitting interactions on range inputs inside the tour card
     const handleTouchMove = (e: TouchEvent) => {
-      const target = e.target as HTMLElement | null;
-      if (target && target.tagName === 'INPUT' && (target as HTMLInputElement).type === 'range') {
-        return;
-      }
-      if (e.cancelable) {
-        e.preventDefault();
-      }
+      if (e.cancelable) e.preventDefault();
     };
 
-    // Block keyboard scroll keys while keeping Escape for closing
-    const scrollKeys = new Set(['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' ', 'Spacebar']);
+    const scrollKeys = new Set([
+      'ArrowUp',
+      'ArrowDown',
+      'PageUp',
+      'PageDown',
+      'Home',
+      'End',
+      ' ',
+      'Spacebar',
+    ]);
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
@@ -188,215 +370,274 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
   }, [isOpen, handleClose]);
 
   // Target element selector mapping
-  const getStepTargetSelector = useCallback((step: TourStep, bTab: BottomBarTab): string | null => {
-    switch (step) {
-      case 'profile_icon':
-        return '#tour-profile-button, [data-tour="profile-button"]';
-      case 'department':
-        return '#tour-profile-department, [data-tour="profile-department"]';
-      case 'feedback_hub':
-        return '#tour-feedback-header, [data-tour="feedback-header"], #feedback-hub-heading, #tour-feedback-hub';
-      case 'semester_selector':
-        return '#tour-semester-selector, [data-tour="semester-selector"]';
-      case 'target_simulator':
-        return '#tour-target-grade-simulator, [data-tour="target-grade-simulator"]';
-      case 'grades_of_choice':
-        return '#tour-grades-of-choice-button, [data-tour="grades-of-choice-button"]';
-      case 'bottom_bar':
-        if (bTab === 'calculator') return '#tour-tab-calculator, [data-tour="tab-calculator"], #tour-desktop-tab-calculator';
-        if (bTab === 'courses') return '#tour-tab-courses, [data-tour="tab-courses"], #tour-desktop-tab-courses';
-        if (bTab === 'gpa') return '#tour-tab-gpa, [data-tour="tab-gpa"], #tour-desktop-tab-gpa';
-        if (bTab === 'cgpa') return '#tour-tab-cgpa, [data-tour="tab-cgpa"], #tour-desktop-tab-cgpa';
-        return null;
-      default:
-        return null;
-    }
-  }, []);
-
-  // Measure target position per step:
-  // 1. Scroll target element into view automatically
-  // 2. Wait for it to settle
-  // 3. Lock scrolling
-  // 4. Measure and draw the pen
-  const measureTarget = useCallback((step: TourStep, bTab: BottomBarTab, retryCount = 0) => {
-    const selector = getStepTargetSelector(step, bTab);
-    if (!selector) {
-      setTargetRect(null);
-      setPenDrawn(true);
-      lockTourScroll();
-      return;
-    }
-
-    const element = document.querySelector(selector);
-    if (element instanceof HTMLElement) {
-      if (step === 'target_simulator') {
-        const details = element.closest('details') || element.querySelector('details');
-        if (details instanceof HTMLDetailsElement) details.open = true;
-      }
-
-      // Temporarily unlock scroll so browser can scroll the element into view
-      unlockTourScroll();
-      if (typeof element.scrollIntoView === 'function') {
-        element.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
-      }
-
-      // Wait for scrolling to settle, then lock scroll and measure
-      if (settleTimerRef.current !== null) {
-        window.clearTimeout(settleTimerRef.current);
-      }
-      settleTimerRef.current = window.setTimeout(() => {
-        lockTourScroll();
-        const rect = element.getBoundingClientRect();
-        if (rect.width > 0 && rect.height > 0) {
-          setTargetRect({
-            x: rect.left,
-            y: rect.top,
-            width: rect.width,
-            height: rect.height,
-          });
-          setPenDrawn(false);
-          if (measureTimerRef.current !== null) {
-            window.clearTimeout(measureTimerRef.current);
+  const getStepTargetSelector = useCallback(
+    (step: TourStep, marksBeat: 1 | 2): string | null => {
+      switch (step) {
+        case 'profile_icon':
+          return '#tour-profile-button, [data-tour="profile-button"]';
+        case 'edit_profile':
+          return '#tour-edit-profile, [data-tour="edit-profile"]';
+        case 'feedback_drawer':
+          return '#tour-profile-feedback, [data-tour="profile-feedback"]';
+        case 'feedback_screen':
+          return '#feedback-hub-heading, [data-tour="feedback-hub-text"], #tour-feedback-header h1, #tour-feedback-header';
+        case 'semester_selector':
+          return '#tour-semester-selector, [data-tour="semester-selector"]';
+        case 'estimated_lab':
+          return '#tour-estimated-lab-checkbox, [data-tour="estimated-lab-checkbox"]';
+        case 'marks_entry':
+          return '#test-scored-1, [data-tour="marks-entry"]';
+        case 'change_total_marks':
+          if (marksBeat === 1) {
+            return '#tour-test-max-pencil-1, [data-tour="test-max-pencil"]';
           }
-          measureTimerRef.current = window.setTimeout(() => {
-            setPenDrawn(true);
-          }, 50);
-          return;
-        }
-
-        // Retry if element has not finished rendering bounding box
-        if (retryCount < 2) {
-          measureTimerRef.current = window.setTimeout(() => {
-            measureTarget(step, bTab, retryCount + 1);
-          }, 120);
-        }
-      }, 70);
-      return;
-    }
-
-    // Element might still be mounting or animating in: retry once after 120ms
-    if (retryCount < 2) {
-      if (measureTimerRef.current !== null) {
-        window.clearTimeout(measureTimerRef.current);
+          return '#tour-test-max-input-1, [data-tour="test-max-input"], #tour-test-max-editor-1, [data-tour="test-max-editor"]';
+        case 'target_simulator':
+          return '#tour-target-grade-simulator-text, [data-tour="target-grade-simulator-text"], #tour-target-grade-simulator h4, #tour-target-grade-simulator';
+        case 'grades_of_choice':
+          return '#tour-grades-of-choice-button, [data-tour="grades-of-choice-button"]';
+        default:
+          return null;
       }
-      measureTimerRef.current = window.setTimeout(() => {
-        measureTarget(step, bTab, retryCount + 1);
-      }, 120);
-      return;
-    }
+    },
+    []
+  );
 
-    // If target cannot be found or measured, per instructions: skip to next step
-    lockTourScroll();
-    if (step === 'profile_icon') {
-      navigateToStep('department');
-    } else if (step === 'department') {
-      navigateToStep('feedback_hub');
-    } else if (step === 'feedback_hub') {
-      navigateToStep('semester_selector');
-    } else if (step === 'semester_selector') {
-      navigateToStep('marks_entry');
-    } else if (step === 'target_simulator') {
-      navigateToStep('features_types');
-    } else if (step === 'grades_of_choice') {
-      navigateToStep('bottom_bar');
-    } else if (step === 'bottom_bar') {
-      navigateToStep('finish');
-    } else {
+  // Measure target position with resilient polling & smooth scrolling
+  const measureTarget = useCallback(
+    (step: TourStep, marksBeat: 1 | 2) => {
+      const selector = getStepTargetSelector(step, marksBeat);
+      if (!selector) {
+        setTargetRect(null);
+        setPenDrawn(true);
+        return;
+      }
+
+      let attempt = 0;
+      const maxAttempts = 80; // Allow drawers and tab content time to finish rendering
+
+      const applyTargetMeasurement = (element: HTMLElement, sel: string, st: TourStep) => {
+        const finalRect = element.getBoundingClientRect();
+        if (finalRect.width > 0 && finalRect.height > 0) {
+          setTargetRect({
+            x: Math.round(finalRect.left),
+            y: Math.round(finalRect.top),
+            width: Math.round(finalRect.width),
+            height: Math.round(finalRect.height),
+          });
+
+          // Lock scrolling after element is in position
+          lockTourScroll();
+
+          setPenDrawn(true);
+
+          // Refine measurement after ongoing animations settle
+          if (refineTimerRef.current !== null) {
+            window.clearTimeout(refineTimerRef.current);
+          }
+          refineTimerRef.current = window.setTimeout(() => {
+            if (currentStepRef.current !== st) return;
+            try {
+              const refinedEl = findVisibleTarget(sel);
+              if (refinedEl) {
+                const r = refinedEl.getBoundingClientRect();
+                if (r.width > 0 && r.height > 0) {
+                  setTargetRect({
+                    x: Math.round(r.left),
+                    y: Math.round(r.top),
+                    width: Math.round(r.width),
+                    height: Math.round(r.height),
+                  });
+                }
+              }
+            } catch {}
+          }, 140);
+        }
+      };
+
+      const pollForElement = () => {
+        attempt += 1;
+        if (currentStepRef.current !== step) return;
+
+        try {
+          const element = findVisibleTarget(selector);
+          if (element) {
+            const isHeader = element.closest('header') !== null;
+            const curRect = element.getBoundingClientRect();
+            const inViewport =
+              curRect.top >= 20 &&
+              curRect.bottom <= (window.innerHeight || 800) - 20 &&
+              curRect.left >= 0 &&
+              curRect.right <= (window.innerWidth || 400);
+
+            const needsScroll =
+              step === 'target_simulator' ||
+              step === 'grades_of_choice' ||
+              (!isHeader && !inViewport);
+
+            if (needsScroll) {
+              if (step === 'target_simulator') {
+                const details = element.closest('details') || element.querySelector('details');
+                if (details instanceof HTMLDetailsElement) details.open = true;
+                safeScrollIntoView(element, { block: 'center', behavior: 'auto' });
+                safeScrollBy(0, 75);
+              } else if (step === 'grades_of_choice') {
+                safeScrollIntoView(element, { block: 'center', behavior: 'auto' });
+              } else {
+                safeScrollIntoView(element, { block: 'center', behavior: 'auto' });
+              }
+
+              // Allow browser layout and scroll to settle before measuring
+              window.setTimeout(() => {
+                if (currentStepRef.current !== step) return;
+                const settledElement = findVisibleTarget(selector);
+                if (settledElement) {
+                  applyTargetMeasurement(settledElement, selector, step);
+                } else if (attempt < maxAttempts) {
+                  pollTimerRef.current = window.setTimeout(pollForElement, 50);
+                }
+              }, 100);
+              return;
+            }
+
+            // Element is already in visible viewport
+            applyTargetMeasurement(element, selector, step);
+            return;
+          }
+        } catch (err) {
+          console.warn('Tour measuring error:', err);
+        }
+
+        if (attempt < maxAttempts) {
+          pollTimerRef.current = window.setTimeout(pollForElement, 50);
+        } else {
+          lockTourScroll();
+          setPenDrawn(true);
+        }
+      };
+
+      pollForElement();
+    },
+    [getStepTargetSelector]
+  );
+
+  // Navigate to real screens for each step and measure
+  const navigateToStep = useCallback(
+    (nextStep: TourStep) => {
+      currentStepRef.current = nextStep;
+      clearAllTimers();
       setTargetRect(null);
-      setPenDrawn(true);
-    }
-  }, [getStepTargetSelector]);
+      setPenDrawn(false);
+      setCurrentStep(nextStep);
 
-  // Navigate to real screens for each step and wait until fully appeared
-  const navigateToStep = useCallback((nextStep: TourStep) => {
-    clearAllTimers();
-    setTargetRect(null);
-    setPenDrawn(false);
-    setCurrentStep(nextStep);
-    unlockTourScroll();
+      // Temporarily release scroll lock so programmatic scrolling operates cleanly
+      forceUnlockTourScroll();
 
-    let screenWaitMs = 60;
+      switch (nextStep) {
+        case 'welcome':
+        case 'profile_icon':
+          closeMaxEditor();
+          closeProfile();
+          closeFeedbackHub();
+          goToTab('calculator');
+          break;
 
-    switch (nextStep) {
-      case 'welcome':
-      case 'profile_icon':
-        closeProfile();
-        closeFeedbackHub();
-        goToTab('calculator');
-        screenWaitMs = 100;
-        break;
+        case 'edit_profile':
+          closeMaxEditor();
+          openProfile();
+          break;
 
-      case 'department':
-        openProfile();
-        screenWaitMs = 320; // Allow profile drawer transition to finish
-        break;
+        case 'feedback_drawer':
+          closeMaxEditor();
+          openProfile();
+          break;
 
-      case 'feedback_hub':
-        closeProfile();
-        openFeedbackHub();
-        screenWaitMs = 250; // Allow feedback hub screen to animate in
-        break;
+        case 'feedback_screen':
+          closeMaxEditor();
+          closeProfile();
+          openFeedbackHub();
+          break;
 
-      case 'semester_selector':
-        closeFeedbackHub();
-        closeProfile();
-        goToTab('calculator');
-        screenWaitMs = 200;
-        break;
+        case 'semester_selector':
+          closeMaxEditor();
+          closeFeedbackHub();
+          closeProfile();
+          goToTab('calculator');
+          break;
 
-      case 'marks_entry':
-        closeFeedbackHub();
-        closeProfile();
-        goToTab('calculator');
-        screenWaitMs = 50;
-        break;
+        case 'estimated_lab':
+          closeMaxEditor();
+          closeFeedbackHub();
+          closeProfile();
+          openCourseCalculator();
+          break;
 
-      case 'target_simulator':
-        closeFeedbackHub();
-        closeProfile();
-        openTargetSimulator();
-        screenWaitMs = 300; // Allow course editor and EndSemesterSection to mount
-        break;
+        case 'marks_entry':
+          closeMaxEditor();
+          closeFeedbackHub();
+          closeProfile();
+          openCourseCalculator();
+          break;
 
-      case 'features_types':
-        closeFeedbackHub();
-        closeProfile();
-        goToTab('calculator');
-        screenWaitMs = 50;
-        break;
+        case 'change_total_marks':
+          closeFeedbackHub();
+          closeProfile();
+          openCourseCalculator();
+          setTotalMarksBeat(1);
+          break;
 
-      case 'grades_of_choice':
-        closeFeedbackHub();
-        closeProfile();
-        goToTab('gpa');
-        screenWaitMs = 280; // Allow GPA Hub screen to render
-        break;
+        case 'target_simulator':
+          closeMaxEditor();
+          closeFeedbackHub();
+          closeProfile();
+          openTargetSimulator();
+          break;
 
-      case 'bottom_bar':
-        closeFeedbackHub();
-        closeProfile();
-        setBottomTab('calculator');
-        goToTab('calculator');
-        screenWaitMs = 150;
-        break;
+        case 'grades_of_choice':
+          closeMaxEditor();
+          closeFeedbackHub();
+          closeProfile();
+          goToTab('gpa');
+          break;
 
-      case 'finish':
-        closeFeedbackHub();
-        closeProfile();
-        goToTab('calculator');
-        screenWaitMs = 50;
-        break;
-    }
+        case 'finish':
+          closeMaxEditor();
+          closeFeedbackHub();
+          closeProfile();
+          goToTab('calculator');
+          setTargetRect(null);
+          return;
+      }
 
-    transitionTimerRef.current = window.setTimeout(() => {
-      measureTarget(nextStep, 'calculator');
-    }, screenWaitMs);
-  }, [clearAllTimers, closeProfile, openProfile, closeFeedbackHub, openFeedbackHub, openTargetSimulator, goToTab, measureTarget]);
+    },
+    [
+      clearAllTimers,
+      closeMaxEditor,
+      closeProfile,
+      openProfile,
+      closeFeedbackHub,
+      openFeedbackHub,
+      openCourseCalculator,
+      openTargetSimulator,
+      goToTab,
+      measureTarget,
+    ]
+  );
 
-  // Listen for resize / rotation: re-measure once
+  // Measure after each step has rendered its destination screen. Keeping this
+  // tied to step state avoids losing the target outline during batched updates.
+  useEffect(() => {
+    if (!isOpen || currentStep === 'welcome' || currentStep === 'finish') return;
+    const timer = window.setTimeout(() => {
+      measureTarget(currentStep, totalMarksBeat);
+    }, 75);
+    return () => window.clearTimeout(timer);
+  }, [isOpen, currentStep, totalMarksBeat, measureTarget]);
+
+  // Resize / orientation listener to recalculate position smoothly
   useEffect(() => {
     const handleResize = () => {
-      measureTarget(currentStep, bottomTab);
+      measureTarget(currentStep, totalMarksBeat);
     };
     window.addEventListener('resize', handleResize, { passive: true });
     window.addEventListener('orientationchange', handleResize, { passive: true });
@@ -404,49 +645,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('orientationchange', handleResize);
     };
-  }, [currentStep, bottomTab, measureTarget]);
-
-  // Looping demo for Step 7 (Course Types): cycles every 1.8s
-  useEffect(() => {
-    if (currentStep !== 'features_types') return;
-    const interval = window.setInterval(() => {
-      setCourseTypeIndex((prev) => (prev + 1) % 4);
-    }, 1800);
-    return () => window.clearInterval(interval);
-  }, [currentStep]);
-
-  // Bottom Bar tab sequencing (Step 9 of 9): ~1.5s per tab
-  const advanceBottomBarTab = useCallback((nextTab: BottomBarTab) => {
-    clearAllTimers();
-    setBottomTab(nextTab);
-    goToTab(nextTab);
-    setTargetRect(null);
-    setPenDrawn(false);
-    transitionTimerRef.current = window.setTimeout(() => {
-      measureTarget('bottom_bar', nextTab);
-    }, 150);
-  }, [clearAllTimers, goToTab, measureTarget]);
-
-  useEffect(() => {
-    if (currentStep !== 'bottom_bar') return;
-
-    if (autoAdvanceTimerRef.current !== null) {
-      window.clearTimeout(autoAdvanceTimerRef.current);
-    }
-
-    autoAdvanceTimerRef.current = window.setTimeout(() => {
-      if (bottomTab === 'calculator') advanceBottomBarTab('courses');
-      else if (bottomTab === 'courses') advanceBottomBarTab('gpa');
-      else if (bottomTab === 'gpa') advanceBottomBarTab('cgpa');
-      else if (bottomTab === 'cgpa') navigateToStep('finish');
-    }, 1500);
-
-    return () => {
-      if (autoAdvanceTimerRef.current !== null) {
-        window.clearTimeout(autoAdvanceTimerRef.current);
-      }
-    };
-  }, [currentStep, bottomTab, advanceBottomBarTab, navigateToStep]);
+  }, [currentStep, totalMarksBeat, measureTarget]);
 
   // Initial measurement when tour opens
   useEffect(() => {
@@ -455,68 +654,39 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
     return () => clearAllTimers();
   }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Sample marks calculation (Anna University Theory course rules: 40% CA, 60% ESE)
-  const sampleResult = useMemo(() => {
-    const ca = ((sampleTest1 + sampleTest2) / 100) * 40;
-    const ese = (sampleEse / 100) * 60;
-    const total = Math.round(ca + ese);
-
-    let letter = 'U';
-    let gradePoint = 0;
-    if (total >= 91) {
-      letter = 'S';
-      gradePoint = 10;
-    } else if (total >= 81) {
-      letter = 'A+';
-      gradePoint = 9;
-    } else if (total >= 71) {
-      letter = 'A';
-      gradePoint = 8;
-    } else if (total >= 61) {
-      letter = 'B+';
-      gradePoint = 7;
-    } else if (total >= 56) {
-      letter = 'B';
-      gradePoint = 6;
-    } else if (total >= 50) {
-      letter = 'C';
-      gradePoint = 5;
-    }
-
-    return { total, letter, gradePoint };
-  }, [sampleTest1, sampleTest2, sampleEse]);
-
   if (!isOpen) return null;
 
-  // Hand-drawn organic SVG pen paths
+  // Viewport bounds for safe coordinate clamping
+  const vw = typeof window !== 'undefined' ? window.innerWidth : 400;
+  const vh = typeof window !== 'undefined' ? window.innerHeight : 800;
+
+  // Hand-drawn organic SVG pen paths matching CalCredit logo
+  // Clamped inside visible viewport so strokes are never cut off by screen edges
   const circlePath = targetRect
-    ? `M ${targetRect.x + targetRect.width * 0.1} ${targetRect.y + targetRect.height * 0.15} ` +
-      `C ${targetRect.x + targetRect.width * 0.5} ${targetRect.y - 6}, ` +
-      `${targetRect.x + targetRect.width + 6} ${targetRect.y + targetRect.height * 0.25}, ` +
-      `${targetRect.x + targetRect.width + 5} ${targetRect.y + targetRect.height * 0.65} ` +
-      `C ${targetRect.x + targetRect.width + 4} ${targetRect.y + targetRect.height + 6}, ` +
-      `${targetRect.x + targetRect.width * 0.45} ${targetRect.y + targetRect.height + 7}, ` +
-      `${targetRect.x - 5} ${targetRect.y + targetRect.height * 0.65} ` +
-      `C ${targetRect.x - 6} ${targetRect.y + targetRect.height * 0.25}, ` +
-      `${targetRect.x + targetRect.width * 0.3} ${targetRect.y - 5}, ` +
-      `${targetRect.x + targetRect.width * 0.85} ${targetRect.y + 2}`
+    ? (() => {
+        const minX = Math.max(3, targetRect.x - 7);
+        const maxX = Math.min(vw - 3, targetRect.x + targetRect.width + 7);
+        const minY = Math.max(3, targetRect.y - 7);
+        const maxY = Math.min(vh - 3, targetRect.y + targetRect.height + 7);
+
+        const startX = Math.max(3, targetRect.x + targetRect.width * 0.1);
+        const startY = Math.max(3, targetRect.y + targetRect.height * 0.15);
+        const topMidX = targetRect.x + targetRect.width * 0.5;
+        const bottomMidX = targetRect.x + targetRect.width * 0.45;
+        const overlapX = Math.min(maxX, targetRect.x + targetRect.width * 0.85);
+        const overlapY = Math.max(3, targetRect.y + 2);
+
+        return (
+          `M ${startX} ${startY} ` +
+          `C ${topMidX} ${minY}, ${maxX} ${targetRect.y + targetRect.height * 0.25}, ${maxX - 1} ${targetRect.y + targetRect.height * 0.65} ` +
+          `C ${maxX - 2} ${maxY}, ${bottomMidX} ${maxY}, ${minX} ${targetRect.y + targetRect.height * 0.65} ` +
+          `C ${minX} ${targetRect.y + targetRect.height * 0.25}, ${targetRect.x + targetRect.width * 0.3} ${minY}, ${overlapX} ${overlapY}`
+        );
+      })()
     : '';
 
-  const underlinePath = targetRect
-    ? `M ${targetRect.x} ${targetRect.y + targetRect.height + 3} ` +
-      `Q ${targetRect.x + targetRect.width * 0.5} ${targetRect.y + targetRect.height + 7} ` +
-      `${targetRect.x + targetRect.width} ${targetRect.y + targetRect.height + 2}`
-    : '';
-
-  const isUnderlineStep = currentStep === 'bottom_bar';
-
-  // Course types metadata for Step 7
-  const courseTypesDemo = [
-    { title: 'Theory', badge: '40 CA / 60 ESE', desc: 'Continuous assessments + End Semester Theory Exam' },
-    { title: 'Theory + Lab', badge: '50 CA / 50 ESE', desc: 'Integrated lecture, tests, and practical examination' },
-    { title: 'Project Work', badge: '40 Review / 60 Viva', desc: 'Zero written exam. Graded by 3 review stages and viva' },
-    { title: 'Practical / Lab', badge: '60 CA / 40 Exam', desc: 'Model practicals, continuous lab marks and viva' },
-  ];
+  // Smart computed positioning and arrow offset
+  const cardPos = computeCardPosition(targetRect, currentStep, cardHeight);
 
   return (
     <div
@@ -528,17 +698,17 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
       {/* Background layer: clean, transparent, no dark spotlight, no glassmorphism */}
       <div className="absolute inset-0 bg-slate-900/25 pointer-events-none" />
 
-      {/* SVG Canvas for the Hand-Drawn Pen matching CalCredit logo C stroke */}
+      {/* SVG Canvas for the Hand-Drawn Red Pen matching CalCredit logo stroke */}
       {targetRect && (
         <svg
-          className="absolute inset-0 w-full h-full pointer-events-none"
+          className="fixed inset-0 w-full h-full pointer-events-none z-[85]"
           aria-hidden="true"
         >
           <path
-            d={isUnderlineStep ? underlinePath : circlePath}
+            d={circlePath}
             fill="none"
             stroke={penColor}
-            strokeWidth={isUnderlineStep ? 3.5 : 2.8}
+            strokeWidth={3}
             strokeLinecap="round"
             strokeLinejoin="round"
             pathLength={100}
@@ -547,547 +717,487 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
             style={{
               transition: reduceMotion
                 ? 'none'
-                : 'stroke-dashoffset 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+                : 'stroke-dashoffset 0.45s cubic-bezier(0.16, 1, 0.3, 1)',
             }}
           />
         </svg>
       )}
 
       {/* Main Tour Content Card container */}
-      <div className="absolute inset-0 pointer-events-none flex items-center justify-center p-4">
+      <div className="fixed inset-0 pointer-events-none z-[90]">
         {/* STEP 0: Welcome Card */}
         {currentStep === 'welcome' && (
-          <div className="pointer-events-auto w-full max-w-sm rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-6 shadow-2xl text-left">
-            <div
-              className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-50 dark:bg-red-950/40"
-              style={{ color: penColor }}
-            >
-              <Sparkles className="h-6 w-6" aria-hidden="true" />
-            </div>
-            <h2 className="mt-4 font-heading text-lg font-black text-[#172554] dark:text-[#f1f1f3] leading-snug">
-              Your CEG GPA, calculated the right way.
-            </h2>
-            <p className="mt-1.5 text-xs text-slate-600 dark:text-slate-400 font-semibold">
-              Take a 30-second tour.
-            </p>
-            <div className="mt-6 flex items-center gap-2.5">
-              <button
-                type="button"
-                onClick={() => navigateToStep('profile_icon')}
-                className="flex-1 min-h-11 inline-flex items-center justify-center gap-2 rounded-xl bg-[#172554] px-4 text-xs font-bold text-white hover:bg-[#1e3a8a] active:scale-98 transition-transform cursor-pointer"
+          <div className="pointer-events-auto absolute inset-0 flex items-center justify-center p-4">
+            <div className="w-full max-w-sm rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-6 shadow-2xl text-left">
+              <div
+                className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-50 dark:bg-red-950/40"
+                style={{ color: penColor }}
               >
-                <span>Show me</span>
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </button>
-              <button
-                type="button"
-                onClick={handleClose}
-                className="min-h-11 px-4 text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 cursor-pointer"
-              >
-                Skip
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 1: Profile Icon (Step 1 of 9) */}
-        {currentStep === 'profile_icon' && (
-          <div
-            className="pointer-events-auto absolute max-w-xs w-[calc(100%-2rem)] rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-5 shadow-2xl text-left"
-            style={{
-              top: targetRect ? Math.min(window.innerHeight - 170, targetRect.y + targetRect.height + 16) : '20%',
-              left: targetRect ? Math.max(16, Math.min(targetRect.x - 10, window.innerWidth - 320)) : 16,
-            }}
-          >
-            <div className="flex items-center gap-2">
-              <span className="flex h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: penColor }} />
-              <p className="font-heading text-sm font-black text-[#172554] dark:text-[#f1f1f3]">
-                Your profile lives here.
+                <Sparkles className="h-6 w-6" aria-hidden="true" />
+              </div>
+              <h2 className="mt-4 font-heading text-lg font-black text-[#172554] dark:text-[#f1f1f3] leading-snug">
+                Your CEG GPA, calculated the right way.
+              </h2>
+              <p className="mt-1.5 text-xs text-slate-600 dark:text-slate-400 font-semibold">
+                Take a 30-second tour.
               </p>
-            </div>
-            <div className="mt-4 flex items-center justify-between gap-3">
-              <button
-                type="button"
-                onClick={handleClose}
-                className="text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 cursor-pointer"
-              >
-                Skip tour
-              </button>
-              <div className="flex items-center gap-2.5">
-                <span className="text-[11px] font-bold text-slate-400">
-                  Step <span className="font-numeric tabular-nums">1</span> of <span className="font-numeric tabular-nums">9</span>
-                </span>
+              <div className="mt-6 flex items-center gap-2.5">
                 <button
                   type="button"
-                  onClick={() => navigateToStep('department')}
-                  className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-[#172554] px-3.5 text-xs font-bold text-white hover:bg-[#1e3a8a] active:scale-95 transition-transform cursor-pointer"
+                  onClick={() => navigateToStep('profile_icon')}
+                  className="flex-1 min-h-11 inline-flex items-center justify-center gap-2 rounded-xl bg-[#172554] px-4 text-xs font-bold text-white hover:bg-[#1e3a8a] active:scale-98 transition-transform cursor-pointer"
                 >
-                  <span>Next</span>
-                  <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span>Show me</span>
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  className="min-h-11 px-4 text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 cursor-pointer"
+                >
+                  Skip
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* STEP 2: Department on Profile Page (Step 2 of 9) */}
-        {currentStep === 'department' && (
+        {/* STEPS 1-10: Smart positioned tooltip card with directional arrow pointing to target */}
+        {currentStep !== 'welcome' && currentStep !== 'finish' && (
           <div
-            className="pointer-events-auto absolute max-w-xs w-[calc(100%-2rem)] rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-5 shadow-2xl text-left"
+            ref={cardRef}
+            className="pointer-events-auto absolute max-w-xs w-[calc(100%-2rem)] rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-5 shadow-2xl text-left transition-[top,left] duration-200 ease-out"
             style={{
-              top: targetRect ? Math.min(window.innerHeight - 170, targetRect.y + targetRect.height + 16) : '35%',
-              left: targetRect ? Math.max(16, Math.min(targetRect.x - 10, window.innerWidth - 320)) : 16,
+              top: cardPos.top,
+              left: cardPos.left,
             }}
           >
-            <div className="flex items-center gap-2">
-              <span className="flex h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: penColor }} />
-              <p className="font-heading text-sm font-black text-[#172554] dark:text-[#f1f1f3]">
-                Your department is set here.
-              </p>
-            </div>
-            <div className="mt-4 flex items-center justify-between gap-3">
-              <button
-                type="button"
-                onClick={handleClose}
-                className="text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 cursor-pointer"
-              >
-                Skip tour
-              </button>
-              <div className="flex items-center gap-2.5">
-                <span className="text-[11px] font-bold text-slate-400">
-                  Step <span className="font-numeric tabular-nums">2</span> of <span className="font-numeric tabular-nums">9</span>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => navigateToStep('feedback_hub')}
-                  className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-[#172554] px-3.5 text-xs font-bold text-white hover:bg-[#1e3a8a] active:scale-95 transition-transform cursor-pointer"
-                >
-                  <span>Next</span>
-                  <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+            {/* Visual Pointer Arrow pointing directly into the circled target button */}
+            {targetRect && (
+              <div
+                className={`absolute w-3.5 h-3.5 rotate-45 border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] shadow-xs ${
+                  cardPos.placement === 'below'
+                    ? '-top-2 border-t border-l'
+                    : '-bottom-2 border-b border-r'
+                }`}
+                style={{ left: cardPos.arrowX - 7 }}
+                aria-hidden="true"
+              />
+            )}
 
-        {/* STEP 3: Feedback Hub (Step 3 of 9) */}
-        {currentStep === 'feedback_hub' && (
-          <div
-            className="pointer-events-auto absolute max-w-xs w-[calc(100%-2rem)] rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-5 shadow-2xl text-left"
-            style={{
-              top: targetRect ? Math.min(window.innerHeight - 170, targetRect.y + targetRect.height + 16) : '25%',
-              left: targetRect ? Math.max(16, Math.min(targetRect.x - 10, window.innerWidth - 320)) : 16,
-            }}
-          >
-            <div className="flex items-center gap-2">
-              <span className="flex h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: penColor }} />
-              <p className="font-heading text-sm font-black text-[#172554] dark:text-[#f1f1f3]">
-                Tell us what to improve or report a problem.
-              </p>
-            </div>
-            <div className="mt-4 flex items-center justify-between gap-3">
-              <button
-                type="button"
-                onClick={handleClose}
-                className="text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 cursor-pointer"
-              >
-                Skip tour
-              </button>
-              <div className="flex items-center gap-2.5">
-                <span className="text-[11px] font-bold text-slate-400">
-                  Step <span className="font-numeric tabular-nums">3</span> of <span className="font-numeric tabular-nums">9</span>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => navigateToStep('semester_selector')}
-                  className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-[#172554] px-3.5 text-xs font-bold text-white hover:bg-[#1e3a8a] active:scale-95 transition-transform cursor-pointer"
-                >
-                  <span>Next</span>
-                  <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 4: Semester Selector (Step 4 of 9) */}
-        {currentStep === 'semester_selector' && (
-          <div
-            className="pointer-events-auto absolute max-w-xs w-[calc(100%-2rem)] rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-5 shadow-2xl text-left"
-            style={{
-              top: targetRect ? Math.min(window.innerHeight - 170, targetRect.y + targetRect.height + 16) : '20%',
-              left: targetRect ? Math.max(16, Math.min(targetRect.x - 120, window.innerWidth - 320)) : 16,
-            }}
-          >
-            <div className="flex items-center gap-2">
-              <span className="flex h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: penColor }} />
-              <p className="font-heading text-sm font-black text-[#172554] dark:text-[#f1f1f3]">
-                Choose or change your semester here.
-              </p>
-            </div>
-            <div className="mt-4 flex items-center justify-between gap-3">
-              <button
-                type="button"
-                onClick={handleClose}
-                className="text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 cursor-pointer"
-              >
-                Skip tour
-              </button>
-              <div className="flex items-center gap-2.5">
-                <span className="text-[11px] font-bold text-slate-400">
-                  Step <span className="font-numeric tabular-nums">4</span> of <span className="font-numeric tabular-nums">9</span>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => navigateToStep('marks_entry')}
-                  className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-[#172554] px-3.5 text-xs font-bold text-white hover:bg-[#1e3a8a] active:scale-95 transition-transform cursor-pointer"
-                >
-                  <span>Next</span>
-                  <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 5: Marks Entry (Step 5 of 9) */}
-        {currentStep === 'marks_entry' && (
-          <div className="pointer-events-auto w-full max-w-md rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-5 sm:p-6 shadow-2xl text-left">
-            <div>
-              <p className="font-heading text-sm sm:text-base font-black text-[#172554] dark:text-[#f1f1f3]">
-                Enter your marks. Watch your grade update live.
-              </p>
-              <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400 font-semibold">
-                Graded with the exact Anna University rules.
-              </p>
-            </div>
-
-            {/* Interactive Live Sample Course Card */}
-            <div className="mt-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-[#161618] p-4">
-              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2.5">
-                <div>
-                  <span className="text-[10px] font-black uppercase text-slate-500">Sample Theory Course</span>
-                  <p className="font-heading text-xs sm:text-sm font-bold text-[#172554] dark:text-[#f1f1f3]">
-                    Data Structures and Algorithms
+            {/* STEP 1: Profile Icon (Step 1 of 10) */}
+            {currentStep === 'profile_icon' && (
+              <>
+                <div className="flex items-center gap-2">
+                  <span className="flex h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: penColor }} />
+                  <p className="font-heading text-sm font-black text-[#172554] dark:text-[#f1f1f3]">
+                    Your profile lives here.
                   </p>
                 </div>
-                {/* Live result badge */}
-                <div className="flex items-center gap-2">
-                  <div className="text-right">
-                    <span className="block text-[10px] text-slate-400 font-bold">Total</span>
-                    <span className="text-sm font-black font-numeric tabular-nums text-[#172554] dark:text-[#f1f1f3]">
-                      {sampleResult.total}/100
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    onClick={handleClose}
+                    className="text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 cursor-pointer"
+                  >
+                    Skip tour
+                  </button>
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-[11px] font-bold text-slate-400">
+                      Step <span className="font-numeric tabular-nums">1</span> of{' '}
+                      <span className="font-numeric tabular-nums">{TOTAL_STEPS}</span>
                     </span>
-                  </div>
-                  <div className="flex h-10 w-11 items-center justify-center rounded-lg bg-[#172554] text-white">
-                    <span className="text-base font-black font-numeric">{sampleResult.letter}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Adjust sliders/steppers */}
-              <div className="mt-3 space-y-3">
-                <div>
-                  <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300">
-                    <span>Assessment 1 (out of 50)</span>
-                    <span className="text-[#172554] dark:text-[#f1f1f3] font-black font-numeric tabular-nums">{sampleTest1}</span>
-                  </div>
-                  <div className="mt-1 flex items-center gap-2">
                     <button
                       type="button"
-                      aria-label="Decrease Assessment 1"
-                      onClick={() => { setSampleTest1((v) => Math.max(0, v - 2)); setMarksAdjusted(true); }}
-                      className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#202024]"
+                      onClick={() => navigateToStep('edit_profile')}
+                      className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-[#172554] px-3.5 text-xs font-bold text-white hover:bg-[#1e3a8a] active:scale-95 transition-transform cursor-pointer"
                     >
-                      <Minus className="h-3 w-3" />
-                    </button>
-                    <input
-                      type="range"
-                      min={0}
-                      max={50}
-                      value={sampleTest1}
-                      onChange={(e) => { setSampleTest1(Number(e.target.value)); setMarksAdjusted(true); }}
-                      style={{ accentColor: penColor }}
-                      className="flex-1 cursor-pointer"
-                    />
-                    <button
-                      type="button"
-                      aria-label="Increase Assessment 1"
-                      onClick={() => { setSampleTest1((v) => Math.min(50, v + 2)); setMarksAdjusted(true); }}
-                      className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#202024]"
-                    >
-                      <Plus className="h-3 w-3" />
+                      <span>Next</span>
+                      <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
                     </button>
                   </div>
                 </div>
+              </>
+            )}
 
-                <div>
-                  <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300">
-                    <span>End Semester Exam (out of 100)</span>
-                    <span className="text-[#172554] dark:text-[#f1f1f3] font-black font-numeric tabular-nums">{sampleEse}</span>
-                  </div>
-                  <div className="mt-1 flex items-center gap-2">
+            {/* STEP 2: Edit Profile Button in Drawer (Step 2 of 10) */}
+            {currentStep === 'edit_profile' && (
+              <>
+                <div className="flex items-center gap-2">
+                  <span className="flex h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: penColor }} />
+                  <p className="font-heading text-sm font-black text-[#172554] dark:text-[#f1f1f3]">
+                    Edit your profile. Keep your details up to date.
+                  </p>
+                </div>
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    onClick={handleClose}
+                    className="text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 cursor-pointer"
+                  >
+                    Skip tour
+                  </button>
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-[11px] font-bold text-slate-400">
+                      Step <span className="font-numeric tabular-nums">2</span> of{' '}
+                      <span className="font-numeric tabular-nums">{TOTAL_STEPS}</span>
+                    </span>
                     <button
                       type="button"
-                      aria-label="Decrease End Semester"
-                      onClick={() => { setSampleEse((v) => Math.max(0, v - 5)); setMarksAdjusted(true); }}
-                      className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#202024]"
+                      onClick={() => navigateToStep('feedback_drawer')}
+                      className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-[#172554] px-3.5 text-xs font-bold text-white hover:bg-[#1e3a8a] active:scale-95 transition-transform cursor-pointer"
                     >
-                      <Minus className="h-3 w-3" />
-                    </button>
-                    <input
-                      type="range"
-                      min={0}
-                      max={100}
-                      value={sampleEse}
-                      onChange={(e) => { setSampleEse(Number(e.target.value)); setMarksAdjusted(true); }}
-                      style={{ accentColor: penColor }}
-                      className="flex-1 cursor-pointer"
-                    />
-                    <button
-                      type="button"
-                      aria-label="Increase End Semester"
-                      onClick={() => { setSampleEse((v) => Math.min(100, v + 5)); setMarksAdjusted(true); }}
-                      className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#202024]"
-                    >
-                      <Plus className="h-3 w-3" />
+                      <span>Next</span>
+                      <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
                     </button>
                   </div>
                 </div>
-              </div>
-            </div>
+              </>
+            )}
 
-            <div className="mt-5 flex items-center justify-between gap-3">
-              <button
-                type="button"
-                onClick={handleClose}
-                className="text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 cursor-pointer"
-              >
-                Skip tour
-              </button>
-              <div className="flex items-center gap-2.5">
-                <span className="text-[11px] font-bold text-slate-400">
-                  Step <span className="font-numeric tabular-nums">5</span> of <span className="font-numeric tabular-nums">9</span>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => navigateToStep('target_simulator')}
-                  className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-[#172554] px-4 text-xs font-bold text-white hover:bg-[#1e3a8a] active:scale-95 transition-transform cursor-pointer"
-                >
-                  <span>{marksAdjusted ? 'Continue' : 'Next'}</span>
-                  <ChevronRight className="h-4 w-4" aria-hidden="true" />
-                </button>
-              </div>
-            </div>
+            {/* STEP 3: Feedback Item in Drawer (Step 3 of 10) */}
+            {currentStep === 'feedback_drawer' && (
+              <>
+                <div className="flex items-center gap-2">
+                  <span className="flex h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: penColor }} />
+                  <p className="font-heading text-sm font-black text-[#172554] dark:text-[#f1f1f3]">
+                    Feedback is here.
+                  </p>
+                </div>
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    onClick={handleClose}
+                    className="text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 cursor-pointer"
+                  >
+                    Skip tour
+                  </button>
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-[11px] font-bold text-slate-400">
+                      Step <span className="font-numeric tabular-nums">3</span> of{' '}
+                      <span className="font-numeric tabular-nums">{TOTAL_STEPS}</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => navigateToStep('feedback_screen')}
+                      className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-[#172554] px-3.5 text-xs font-bold text-white hover:bg-[#1e3a8a] active:scale-95 transition-transform cursor-pointer"
+                    >
+                      <span>Next</span>
+                      <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* STEP 4: Feedback Screen (Step 4 of 10) - Points to Feedback Hub text without hiding it */}
+            {currentStep === 'feedback_screen' && (
+              <>
+                <div className="flex items-center gap-2">
+                  <span className="flex h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: penColor }} />
+                  <p className="font-heading text-sm font-black text-[#172554] dark:text-[#f1f1f3]">
+                    Tell us what to improve or report a problem.
+                  </p>
+                </div>
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    onClick={handleClose}
+                    className="text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 cursor-pointer"
+                  >
+                    Skip tour
+                  </button>
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-[11px] font-bold text-slate-400">
+                      Step <span className="font-numeric tabular-nums">4</span> of{' '}
+                      <span className="font-numeric tabular-nums">{TOTAL_STEPS}</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => navigateToStep('semester_selector')}
+                      className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-[#172554] px-3.5 text-xs font-bold text-white hover:bg-[#1e3a8a] active:scale-95 transition-transform cursor-pointer"
+                    >
+                      <span>Next</span>
+                      <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* STEP 5: Semester Selector (Step 5 of 10) - Points to header dropdown without hiding it */}
+            {currentStep === 'semester_selector' && (
+              <>
+                <div className="flex items-center gap-2">
+                  <span className="flex h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: penColor }} />
+                  <p className="font-heading text-sm font-black text-[#172554] dark:text-[#f1f1f3]">
+                    Choose or change your semester here.
+                  </p>
+                </div>
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    onClick={handleClose}
+                    className="text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 cursor-pointer"
+                  >
+                    Skip tour
+                  </button>
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-[11px] font-bold text-slate-400">
+                      Step <span className="font-numeric tabular-nums">5</span> of{' '}
+                      <span className="font-numeric tabular-nums">{TOTAL_STEPS}</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => navigateToStep('estimated_lab')}
+                      className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-[#172554] px-3.5 text-xs font-bold text-white hover:bg-[#1e3a8a] active:scale-95 transition-transform cursor-pointer"
+                    >
+                      <span>Next</span>
+                      <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* STEP 6: Estimated Lab & Activity Average (Step 6 of 10) */}
+            {currentStep === 'estimated_lab' && (
+              <>
+                <div className="flex items-start gap-2">
+                  <span className="mt-1 flex h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: penColor }} />
+                  <div>
+                    <p className="font-heading text-xs font-black text-[#172554] dark:text-[#f1f1f3] leading-snug">
+                      Projects missing lab &amp; activity marks to preview your grade early.
+                    </p>
+                    <p className="mt-1 text-[11px] font-medium text-slate-600 dark:text-slate-400">
+                      Adjust the % to match your teacher. Tap ? for details.
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    onClick={handleClose}
+                    className="text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 cursor-pointer"
+                  >
+                    Skip tour
+                  </button>
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-[11px] font-bold text-slate-400">
+                      Step <span className="font-numeric tabular-nums">6</span> of{' '}
+                      <span className="font-numeric tabular-nums">{TOTAL_STEPS}</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => navigateToStep('marks_entry')}
+                      className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-[#172554] px-3.5 text-xs font-bold text-white hover:bg-[#1e3a8a] active:scale-95 transition-transform cursor-pointer"
+                    >
+                      <span>Next</span>
+                      <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* STEP 7: Real Marks Entry Field (Step 7 of 10) */}
+            {currentStep === 'marks_entry' && (
+              <>
+                <div className="flex items-center gap-2">
+                  <span className="flex h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: penColor }} />
+                  <p className="font-heading text-sm font-black text-[#172554] dark:text-[#f1f1f3]">
+                    Enter your marks here. Your grade updates live.
+                  </p>
+                </div>
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    onClick={handleClose}
+                    className="text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 cursor-pointer"
+                  >
+                    Skip tour
+                  </button>
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-[11px] font-bold text-slate-400">
+                      Step <span className="font-numeric tabular-nums">7</span> of{' '}
+                      <span className="font-numeric tabular-nums">{TOTAL_STEPS}</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => navigateToStep('change_total_marks')}
+                      className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-[#172554] px-3.5 text-xs font-bold text-white hover:bg-[#1e3a8a] active:scale-95 transition-transform cursor-pointer"
+                    >
+                      <span>Next</span>
+                      <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* STEP 8: Change Total Marks (Step 8 of 10, 2 beats) */}
+            {currentStep === 'change_total_marks' && (
+              <>
+                <div className="flex items-center gap-2">
+                  <span className="flex h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: penColor }} />
+                  <p className="font-heading text-sm font-black text-[#172554] dark:text-[#f1f1f3]">
+                    {totalMarksBeat === 1
+                      ? 'Test not out of 50? Tap the pencil.'
+                      : 'Teachers set different totals. Match it to your paper.'}
+                  </p>
+                </div>
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    onClick={handleClose}
+                    className="text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 cursor-pointer"
+                  >
+                    Skip tour
+                  </button>
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-[11px] font-bold text-slate-400">
+                      Step <span className="font-numeric tabular-nums">8</span> of{' '}
+                      <span className="font-numeric tabular-nums">{TOTAL_STEPS}</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (totalMarksBeat === 1) {
+                          // Advance to Beat 2: open the max editor popover
+                          const pencilBtn = document.querySelector(
+                            '#tour-test-max-pencil-1, [data-tour="test-max-pencil"]'
+                          ) as HTMLButtonElement | null;
+                          const editor = document.querySelector(
+                            '#tour-test-max-editor-1, [data-tour="test-max-editor"]'
+                          );
+                          if (pencilBtn && !editor) {
+                            pencilBtn.click();
+                          }
+                          setTotalMarksBeat(2);
+                          setPenDrawn(false);
+                          window.setTimeout(() => {
+                            measureTarget('change_total_marks', 2);
+                          }, 80);
+                        } else {
+                          // Beat 2 completed: close editor, restore 50, navigate to target simulator
+                          closeMaxEditor();
+                          navigateToStep('target_simulator');
+                        }
+                      }}
+                      className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-[#172554] px-3.5 text-xs font-bold text-white hover:bg-[#1e3a8a] active:scale-95 transition-transform cursor-pointer"
+                    >
+                      <span>Next</span>
+                      <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* STEP 9: Target Grade Simulator Text (Step 9 of 10) - Scrolls down further and circles text */}
+            {currentStep === 'target_simulator' && (
+              <>
+                <div className="flex items-start gap-2">
+                  <span className="mt-1 flex h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: penColor }} />
+                  <div>
+                    <p className="font-heading text-sm font-black text-[#172554] dark:text-[#f1f1f3]">
+                      Pick a target grade. See the marks you need.
+                    </p>
+                    <p className="mt-1 text-[11px] font-medium text-slate-600 dark:text-slate-400">
+                      Calculates the exact exam score required based on your continuous assessment.
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    onClick={handleClose}
+                    className="text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 cursor-pointer"
+                  >
+                    Skip tour
+                  </button>
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-[11px] font-bold text-slate-400">
+                      Step <span className="font-numeric tabular-nums">9</span> of{' '}
+                      <span className="font-numeric tabular-nums">{TOTAL_STEPS}</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => navigateToStep('grades_of_choice')}
+                      className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-[#172554] px-3.5 text-xs font-bold text-white hover:bg-[#1e3a8a] active:scale-95 transition-transform cursor-pointer"
+                    >
+                      <span>Next</span>
+                      <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* STEP 10: Enter Grades of Choice on GPA Hub (Step 10 of 10) - Positioned above button without hiding it */}
+            {currentStep === 'grades_of_choice' && (
+              <>
+                <div className="flex items-start gap-2">
+                  <span className="mt-1 flex h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: penColor }} />
+                  <div>
+                    <p className="font-heading text-sm font-black text-[#172554] dark:text-[#f1f1f3]">
+                      Already know your grades? Enter them here.
+                    </p>
+                    <p className="mt-1 text-xs text-slate-600 dark:text-slate-400 font-semibold">
+                      Get your semester GPA without entering any marks.
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    onClick={handleClose}
+                    className="text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 cursor-pointer"
+                  >
+                    Skip tour
+                  </button>
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-[11px] font-bold text-slate-400">
+                      Step <span className="font-numeric tabular-nums">10</span> of{' '}
+                      <span className="font-numeric tabular-nums">{TOTAL_STEPS}</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => navigateToStep('finish')}
+                      className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-[#172554] px-3.5 text-xs font-bold text-white hover:bg-[#1e3a8a] active:scale-95 transition-transform cursor-pointer"
+                    >
+                      <span>Next</span>
+                      <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         )}
 
-        {/* STEP 6: Target Grade Simulator (Step 6 of 9) - Exactly ONE step */}
-        {currentStep === 'target_simulator' && (
-          <div
-            className="pointer-events-auto absolute max-w-xs w-[calc(100%-2rem)] rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-5 shadow-2xl text-left"
-            style={{
-              top: targetRect
-                ? (targetRect.y + targetRect.height + 180 < window.innerHeight
-                    ? targetRect.y + targetRect.height + 14
-                    : Math.max(16, targetRect.y - 165))
-                : '35%',
-              left: targetRect ? Math.max(16, Math.min(targetRect.x - 10, window.innerWidth - 320)) : 16,
-            }}
-          >
-            <div className="flex items-center gap-2">
-              <span className="flex h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: penColor }} />
-              <p className="font-heading text-sm font-black text-[#172554] dark:text-[#f1f1f3]">
-                Pick a target grade. See the marks you need.
-              </p>
-            </div>
-            <div className="mt-4 flex items-center justify-between gap-3">
-              <button
-                type="button"
-                onClick={handleClose}
-                className="text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 cursor-pointer"
-              >
-                Skip tour
-              </button>
-              <div className="flex items-center gap-2.5">
-                <span className="text-[11px] font-bold text-slate-400">
-                  Step <span className="font-numeric tabular-nums">6</span> of <span className="font-numeric tabular-nums">9</span>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => navigateToStep('features_types')}
-                  className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-[#172554] px-3.5 text-xs font-bold text-white hover:bg-[#1e3a8a] active:scale-95 transition-transform cursor-pointer"
-                >
-                  <span>Next</span>
-                  <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 7: Course Types Demo (Step 7 of 9) */}
-        {currentStep === 'features_types' && (
-          <div className="pointer-events-auto w-full max-w-sm rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-6 shadow-2xl text-left">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/40 text-[#172554] dark:text-[#a9bbd0]">
-              <BookOpen className="h-6 w-6" aria-hidden="true" />
-            </div>
-
-            <h2 className="mt-4 font-heading text-base font-black text-[#172554] dark:text-[#f1f1f3]">
-              Every course type, graded by its own rules.
-            </h2>
-
-            {/* Cycling course type card */}
-            <div className="mt-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#161618] p-3.5 transition-all">
-              <div className="flex items-center justify-between">
-                <span className="font-heading text-xs font-black text-[#172554] dark:text-[#f1f1f3]">
-                  {courseTypesDemo[courseTypeIndex]?.title}
-                </span>
-                <span
-                  className="rounded-full bg-red-100 dark:bg-red-950/50 border px-2 py-0.5 text-[10px] font-black font-numeric tabular-nums"
-                  style={{ color: penColor, borderColor: penColor }}
-                >
-                  {courseTypesDemo[courseTypeIndex]?.badge}
-                </span>
-              </div>
-              <p className="mt-1.5 text-[11px] text-slate-600 dark:text-slate-400">
-                {courseTypesDemo[courseTypeIndex]?.desc}
-              </p>
-            </div>
-
-            <div className="mt-5 flex items-center justify-between gap-3">
-              <button
-                type="button"
-                onClick={handleClose}
-                className="text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 cursor-pointer"
-              >
-                Skip tour
-              </button>
-              <div className="flex items-center gap-2.5">
-                <span className="text-[11px] font-bold text-slate-400">
-                  Step <span className="font-numeric tabular-nums">7</span> of <span className="font-numeric tabular-nums">9</span>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => navigateToStep('grades_of_choice')}
-                  className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-[#172554] px-4 text-xs font-bold text-white hover:bg-[#1e3a8a] active:scale-95 transition-transform cursor-pointer"
-                >
-                  <span>Next</span>
-                  <ChevronRight className="h-4 w-4" aria-hidden="true" />
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 8: Enter Grades of Choice (Step 8 of 9) */}
-        {currentStep === 'grades_of_choice' && (
-          <div
-            className="pointer-events-auto absolute max-w-xs w-[calc(100%-2rem)] rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-5 shadow-2xl text-left"
-            style={{
-              bottom: targetRect ? Math.max(16, window.innerHeight - targetRect.y + 16) : 100,
-              left: targetRect ? Math.max(16, Math.min(targetRect.x - 20, window.innerWidth - 320)) : 16,
-            }}
-          >
-            <div className="flex items-center gap-2">
-              <span className="flex h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: penColor }} />
-              <p className="font-heading text-sm font-black text-[#172554] dark:text-[#f1f1f3]">
-                Pick a grade per course. Get a quick GPA, no marks needed.
-              </p>
-            </div>
-            <div className="mt-4 flex items-center justify-between gap-3">
-              <button
-                type="button"
-                onClick={handleClose}
-                className="text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 cursor-pointer"
-              >
-                Skip tour
-              </button>
-              <div className="flex items-center gap-2.5">
-                <span className="text-[11px] font-bold text-slate-400">
-                  Step <span className="font-numeric tabular-nums">8</span> of <span className="font-numeric tabular-nums">9</span>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => navigateToStep('bottom_bar')}
-                  className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-[#172554] px-3.5 text-xs font-bold text-white hover:bg-[#1e3a8a] active:scale-95 transition-transform cursor-pointer"
-                >
-                  <span>Next</span>
-                  <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 9: Bottom Bar Underline Sequence (Step 9 of 9) */}
-        {currentStep === 'bottom_bar' && (
-          <div
-            className="pointer-events-auto absolute max-w-xs w-[calc(100%-2rem)] rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-4 shadow-2xl text-left"
-            style={{
-              bottom: targetRect ? Math.max(16, window.innerHeight - targetRect.y + 16) : 90,
-              left: targetRect ? Math.max(16, Math.min(targetRect.x - 30, window.innerWidth - 300)) : 16,
-            }}
-          >
-            <div className="flex items-center gap-2">
-              <span className="flex h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: penColor }} />
-              <p className="font-heading text-sm font-black text-[#172554] dark:text-[#f1f1f3]">
-                {bottomTab === 'calculator' && 'Quick marks, instant grade.'}
-                {bottomTab === 'courses' && 'Your subjects and course types.'}
-                {bottomTab === 'gpa' && "This semester's GPA, and predictions."}
-                {bottomTab === 'cgpa' && 'Your overall CGPA across all semesters.'}
-              </p>
-            </div>
-            <div className="mt-3 flex items-center justify-between gap-3">
-              <button
-                type="button"
-                onClick={handleClose}
-                className="text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 cursor-pointer"
-              >
-                Skip tour
-              </button>
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold text-slate-400">
-                  Step <span className="font-numeric tabular-nums">9</span> of <span className="font-numeric tabular-nums">9</span>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (bottomTab === 'calculator') advanceBottomBarTab('courses');
-                    else if (bottomTab === 'courses') advanceBottomBarTab('gpa');
-                    else if (bottomTab === 'gpa') advanceBottomBarTab('cgpa');
-                    else if (bottomTab === 'cgpa') navigateToStep('finish');
-                  }}
-                  className="inline-flex min-h-8 items-center gap-1 rounded-lg bg-[#172554] px-3 text-[11px] font-bold text-white hover:bg-[#1e3a8a] active:scale-95 transition-transform cursor-pointer"
-                >
-                  <span>Next</span>
-                  <ChevronRight className="h-3 w-3" aria-hidden="true" />
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 10: Finish Card */}
+        {/* FINISH CARD: Appears after Step 10 */}
         {currentStep === 'finish' && (
-          <div className="pointer-events-auto w-full max-w-sm rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-6 shadow-2xl text-left">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600">
-              <Check className="h-6 w-6 stroke-[3]" aria-hidden="true" />
-            </div>
+          <div className="pointer-events-auto absolute inset-0 flex items-center justify-center p-4">
+            <div className="w-full max-w-sm rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-6 shadow-2xl text-left">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600">
+                <Check className="h-6 w-6 stroke-[3]" aria-hidden="true" />
+              </div>
 
-            <h2 className="mt-4 font-heading text-lg font-black text-[#172554] dark:text-[#f1f1f3] leading-snug">
-              You're set. Replay this tour anytime from Profile.
-            </h2>
+              <h2 className="mt-4 font-heading text-lg font-black text-[#172554] dark:text-[#f1f1f3] leading-snug">
+                You're set. Replay this tour anytime from Profile.
+              </h2>
 
-            <div className="mt-6">
-              <button
-                type="button"
-                onClick={handleClose}
-                className="w-full min-h-11 inline-flex items-center justify-center gap-2 rounded-xl bg-[#172554] px-4 text-xs font-bold text-white hover:bg-[#1e3a8a] active:scale-98 transition-transform cursor-pointer"
-              >
-                <span>Start calculating</span>
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </button>
+              <div className="mt-6">
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  className="w-full min-h-11 inline-flex items-center justify-center gap-2 rounded-xl bg-[#172554] px-4 text-xs font-bold text-white hover:bg-[#1e3a8a] active:scale-98 transition-transform cursor-pointer"
+                >
+                  <span>Start calculating</span>
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </button>
+              </div>
             </div>
           </div>
         )}

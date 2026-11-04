@@ -30,7 +30,7 @@ interface AuthScreenProps {
 
 type AuthMode = 'login' | 'signup' | 'reset';
 
-function friendlyAuthError(error: unknown, provider: 'email' | 'google' = 'email', mode?: AuthMode): string {
+export function friendlyAuthError(error: unknown, provider: 'email' | 'google' = 'email', mode?: AuthMode): string {
   const code = typeof error === 'object' && error !== null && 'code' in error
     ? String(error.code)
     : '';
@@ -52,7 +52,7 @@ function friendlyAuthError(error: unknown, provider: 'email' | 'google' = 'email
     case 'auth/invalid-email':
       return 'Enter a valid email address.';
     case 'auth/user-not-found':
-      return mode === 'reset' ? 'No account found with this email address.' : 'The email or password is incorrect.';
+      return 'The email or password is incorrect.';
     case 'auth/invalid-credential':
     case 'auth/wrong-password':
       return 'The email or password is incorrect.';
@@ -168,20 +168,22 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
   const [googleSlow, setGoogleSlow] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const [showGuestConfirmation, setShowGuestConfirmation] = useState(false);
   const [showGuestDeptModal, setShowGuestDeptModal] = useState(false);
   const [guestDeptChoice, setGuestDeptChoice] = useState<Department>('CSE');
   const [deptSearch, setDeptSearch] = useState('');
 
   useEffect(() => {
-    if (!showGuestDeptModal) return;
+    if (!showGuestConfirmation && !showGuestDeptModal) return;
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
+        setShowGuestConfirmation(false);
         setShowGuestDeptModal(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showGuestDeptModal]);
+  }, [showGuestConfirmation, showGuestDeptModal]);
 
   useEffect(() => {
     if (!auth) return;
@@ -345,7 +347,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
             />
             <h1 className="text-base font-black sm:text-lg">Academic Marks Calculator</h1>
           </div>
-          <ThemeToggle theme={theme} onToggle={onToggleTheme} className="border-white/30 bg-white/10 text-white hover:bg-white/20" />
+          <ThemeToggle theme={theme} onToggle={onToggleTheme} className="h-10 w-10 border-white/30 bg-white/10 text-white hover:bg-white/20" />
         </div>
 
         <div className="p-6 sm:p-8">
@@ -468,14 +470,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
           <div className={`${configurationError ? 'mt-6' : 'mt-5'} flex flex-col items-start gap-3 text-sm`}>
             <button
               type="button"
-              onClick={() => setShowGuestDeptModal(true)}
+              onClick={() => setShowGuestConfirmation(true)}
               className="w-full rounded-xl border border-[#172554] bg-white px-4 py-3 text-xs font-bold text-[#172554] hover:bg-slate-50 cursor-pointer transition-colors"
             >
               Continue as guest
             </button>
-            <p className="text-xs text-slate-500">
-              Guest work is temporary and will be cleared when you reload or close this page.
-            </p>
             {!configurationError && mode === 'login' && (
               <button type="button" onClick={() => selectMode('reset')} className="font-semibold text-[#1e3a8a] hover:underline">
                 Forgot password?
@@ -502,6 +501,60 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
         </AnimatePresence>
       </div>
       </motion.section>
+
+      {/* Guest Mode Confirmation Modal */}
+      <AnimatePresence>
+      {showGuestConfirmation && (
+        <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="guest-confirmation-title"
+          aria-describedby="guest-confirmation-description"
+          onClick={() => setShowGuestConfirmation(false)}
+          variants={reduceMotion ? undefined : motionVariants.backdrop}
+          initial={reduceMotion ? { opacity: 1 } : 'initial'}
+          animate="animate"
+          exit="exit"
+        >
+          <motion.div
+            className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+            variants={reduceMotion ? undefined : motionVariants.dialog}
+            initial={reduceMotion ? { opacity: 1 } : 'initial'}
+            animate="animate"
+            exit="exit"
+          >
+            <h2 id="guest-confirmation-title" className="text-lg font-black text-[#172554]">
+              Continue as a guest?
+            </h2>
+            <p id="guest-confirmation-description" className="mt-3 text-sm leading-relaxed text-slate-600">
+              Guest mode stores the marks you enter temporarily. <strong className="font-bold text-slate-900">They’ll be cleared when you close the app.</strong> For saved progress, <strong className="font-bold text-slate-900">sign in with Google</strong>.
+            </p>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                autoFocus
+                onClick={() => setShowGuestConfirmation(false)}
+                className="min-w-20 rounded-xl bg-[#172554] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#1e3a8a] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#172554] transition-colors cursor-pointer"
+              >
+                No
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowGuestConfirmation(false);
+                  setShowGuestDeptModal(true);
+                }}
+                className="min-w-20 rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#172554] transition-colors cursor-pointer"
+              >
+                Yes
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+      </AnimatePresence>
 
       {/* Guest Department Selection Modal */}
       <AnimatePresence>

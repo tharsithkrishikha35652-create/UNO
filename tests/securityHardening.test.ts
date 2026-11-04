@@ -8,6 +8,7 @@ import {
   clearSecurityEvents,
 } from '../src/securityLogger';
 import { FEEDBACK_CATEGORIES } from '../src/firebaseData';
+import { friendlyAuthError } from '../src/components/AuthScreen';
 
 describe('Security Hardening Test Suite', () => {
   beforeEach(() => {
@@ -55,6 +56,11 @@ describe('Security Hardening Test Suite', () => {
     });
 
     it('protects against user enumeration in password reset flow', () => {
+      // Direct verification of real AuthScreen error handler
+      const resetAuthError = friendlyAuthError({ code: 'auth/user-not-found' }, 'email', 'reset');
+      const loginAuthError = friendlyAuthError({ code: 'auth/user-not-found' }, 'email', 'login');
+      expect(resetAuthError).toBe('The email or password is incorrect.');
+      expect(resetAuthError).toBe(loginAuthError);
       const handlePasswordReset = (error: { code: string } | null): string => {
         if (error) {
           if (error.code === 'auth/user-not-found') {

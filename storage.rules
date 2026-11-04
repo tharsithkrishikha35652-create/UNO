@@ -1,0 +1,11 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      // Default-deny: CalCredit does not store user files or media in Cloud Storage.
+      // All academic calculations, preferences, and records reside in Cloud Firestore.
+      allow read, write: if false;
+    }
+  }
+}
+

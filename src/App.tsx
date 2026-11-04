@@ -1157,7 +1157,7 @@ function AuthenticatedApp({
         if (cancelled) return;
         console.error("Unable to load account data:", error);
         setDataError(
-          "Could not load your account data. Check your connection and Firestore rules, then retry."
+          "Could not load your account data. Check your connection, then retry."
         );
         setDataLoading(false);
       });
@@ -1610,6 +1610,36 @@ function AuthenticatedApp({
     setShowCredits(false);
     setShowFeedbackHub(true);
   };
+
+  const handleRestoreTestMaxForTour = useCallback(() => {
+    if (currentSubject && currentSubject.test1Max !== 50) {
+      updateCurrentSubject({ test1Max: 50 });
+    }
+  }, [currentSubject, updateCurrentSubject]);
+
+  const handleOpenCourseCalculatorForTour = useCallback(() => {
+    setIsProfileOpen(false);
+    setShowFeedbackHub(false);
+    setShowCredits(false);
+    setIsMobileCoursesOpen(false);
+    setIsDesktopCoursesOpen(false);
+    setActiveTab("calculator");
+    const currentSem = selectedSemester ?? 1;
+    if (!selectedSemester) {
+      setSelectedSemester(1);
+    }
+    if (!isEditorOpen || !hasSubjectSelected) {
+      const semCourses = deptPresets.filter((course) => course.semester === currentSem && course.group !== "elective");
+      const targetCourse =
+        semCourses.find(
+          (course) =>
+            course.courseType === "theory" || !["project", "project-work", "mini-project"].includes(course.courseType)
+        ) || semCourses[0];
+      if (targetCourse) {
+        handleOpenPresetCourse(targetCourse);
+      }
+    }
+  }, [selectedSemester, isEditorOpen, hasSubjectSelected, deptPresets, handleOpenPresetCourse]);
 
   const handleOpenTargetSimulatorForTour = useCallback(() => {
     setIsProfileOpen(false);
@@ -2750,7 +2780,7 @@ function AuthenticatedApp({
                         )}
 
                         <div className="relative mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-slate-300 bg-white px-3 py-2.5">
-                          <div className="inline-flex items-center gap-1.5">
+                          <div id="tour-estimated-lab-checkbox" data-tour="estimated-lab-checkbox" className="inline-flex items-center gap-1.5">
                             <label className="inline-flex items-center gap-2 text-xs font-semibold text-[#172554] cursor-pointer">
                               <input
                                 type="checkbox"
@@ -3652,6 +3682,8 @@ function AuthenticatedApp({
               closeProfile={() => setIsProfileOpen(false)}
               openFeedbackHub={handleOpenFeedbackHub}
               closeFeedbackHub={() => setShowFeedbackHub(false)}
+              openCourseCalculator={handleOpenCourseCalculatorForTour}
+              restoreTestMax={handleRestoreTestMaxForTour}
               openTargetSimulator={handleOpenTargetSimulatorForTour}
               goToTab={(tab) => {
                 if (tab === "courses") {
