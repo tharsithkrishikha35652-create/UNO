@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { useReducedMotion } from 'motion/react';
 import {
   ArrowRight,
@@ -69,16 +69,6 @@ function safeScrollIntoView(el: HTMLElement, options?: ScrollIntoViewOptions) {
   } catch {
     try {
       el.scrollIntoView(true);
-    } catch {}
-  }
-}
-
-function safeScrollBy(x: number, y: number) {
-  try {
-    window.scrollBy({ left: x, top: y, behavior: 'auto' });
-  } catch {
-    try {
-      window.scrollBy(x, y);
     } catch {}
   }
 }
@@ -220,15 +210,18 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
 
   const cardRef = useRef<HTMLDivElement>(null);
   const [cardHeight, setCardHeight] = useState(150);
+  const [cardPosition, setCardPosition] = useState<CardPosition>(() =>
+    computeCardPosition(null, 'welcome', 150)
+  );
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (cardRef.current) {
       const h = cardRef.current.offsetHeight;
       if (h > 0 && Math.abs(h - cardHeight) > 4) {
         setCardHeight(h);
       }
     }
-  });
+  }, [cardHeight, currentStep, totalMarksBeat]);
 
   // Exact theme-matching pen color
   const isDark =
@@ -419,12 +412,15 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
       const applyTargetMeasurement = (element: HTMLElement, sel: string, st: TourStep) => {
         const finalRect = element.getBoundingClientRect();
         if (finalRect.width > 0 && finalRect.height > 0) {
-          setTargetRect({
+          const nextTargetRect = {
             x: Math.round(finalRect.left),
             y: Math.round(finalRect.top),
             width: Math.round(finalRect.width),
             height: Math.round(finalRect.height),
-          });
+          };
+          const measuredCardHeight = cardRef.current?.offsetHeight || cardHeight;
+          setTargetRect(nextTargetRect);
+          setCardPosition(computeCardPosition(nextTargetRect, st, measuredCardHeight));
 
           // Lock scrolling after element is in position
           lockTourScroll();
@@ -442,12 +438,20 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
               if (refinedEl) {
                 const r = refinedEl.getBoundingClientRect();
                 if (r.width > 0 && r.height > 0) {
-                  setTargetRect({
+                  const refinedTargetRect = {
                     x: Math.round(r.left),
                     y: Math.round(r.top),
                     width: Math.round(r.width),
                     height: Math.round(r.height),
-                  });
+                  };
+                  setTargetRect(refinedTargetRect);
+                  setCardPosition(
+                    computeCardPosition(
+                      refinedTargetRect,
+                      st,
+                      cardRef.current?.offsetHeight || cardHeight
+                    )
+                  );
                 }
               }
             } catch {}
@@ -462,6 +466,10 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
         try {
           const element = findVisibleTarget(selector);
           if (element) {
+            if (step === 'target_simulator') {
+              const details = element.closest('details') || element.querySelector('details');
+              if (details instanceof HTMLDetailsElement) details.open = true;
+            }
             const isHeader = element.closest('header') !== null;
             const curRect = element.getBoundingClientRect();
             const inViewport =
@@ -470,22 +478,10 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
               curRect.left >= 0 &&
               curRect.right <= (window.innerWidth || 400);
 
-            const needsScroll =
-              step === 'target_simulator' ||
-              step === 'grades_of_choice' ||
-              (!isHeader && !inViewport);
+            const needsScroll = !isHeader && !inViewport;
 
             if (needsScroll) {
-              if (step === 'target_simulator') {
-                const details = element.closest('details') || element.querySelector('details');
-                if (details instanceof HTMLDetailsElement) details.open = true;
-                safeScrollIntoView(element, { block: 'center', behavior: 'auto' });
-                safeScrollBy(0, 75);
-              } else if (step === 'grades_of_choice') {
-                safeScrollIntoView(element, { block: 'center', behavior: 'auto' });
-              } else {
-                safeScrollIntoView(element, { block: 'center', behavior: 'auto' });
-              }
+              safeScrollIntoView(element, { block: 'center', behavior: 'auto' });
 
               // Allow browser layout and scroll to settle before measuring
               window.setTimeout(() => {
@@ -518,7 +514,7 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
 
       pollForElement();
     },
-    [getStepTargetSelector]
+    [cardHeight, getStepTargetSelector]
   );
 
   // Navigate to real screens for each step and measure
@@ -766,10 +762,10 @@ export const FirstTimeTour: React.FC<FirstTimeTourProps> = ({
         {currentStep !== 'welcome' && currentStep !== 'finish' && (
           <div
             ref={cardRef}
-            className="pointer-events-auto absolute max-w-xs w-[calc(100%-2rem)] rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-5 shadow-2xl text-left transition-[top,left] duration-200 ease-out"
+            className="pointer-events-auto absolute max-w-xs w-[calc(100%-2rem)] rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1e1e22] p-5 shadow-2xl text-left transition-[top,left] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none"
             style={{
-              top: cardPos.top,
-              left: cardPos.left,
+              top: cardPosition.top,
+              left: cardPosition.left,
             }}
           >
             {/* Visual Pointer Arrow pointing directly into the circled target button */}
