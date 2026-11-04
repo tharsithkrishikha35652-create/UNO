@@ -7,6 +7,7 @@ import { ThemeToggle, type AppTheme } from './ThemeToggle';
 import CalCreditLogo from './CalCreditLogo';
 import { motionVariants, transitions } from '../motion';
 import { CURRENT_APP_VERSION } from '../versionUtils';
+import { acquireOverlayScrollLock } from './TourErrorBoundary';
 
 export interface AcademicProfileFormValues extends AcademicProfileData {
   selectedSemester: SemesterNumber;
@@ -405,9 +406,8 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
     const previouslyFocused = document.activeElement instanceof HTMLElement
       ? document.activeElement
       : null;
-    const previousOverflow = document.body.style.overflow;
+    const releaseScrollLock = acquireOverlayScrollLock();
     closeButtonRef.current?.focus();
-    document.body.style.overflow = 'hidden';
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -438,7 +438,7 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
     document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = previousOverflow;
+      releaseScrollLock();
       previouslyFocused?.focus();
     };
   }, [isOpen, onClose]);

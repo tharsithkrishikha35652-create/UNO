@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Check, BookOpen } from 'lucide-react';
 import { CourseType } from '../types';
+import { acquireOverlayScrollLock } from './TourErrorBoundary';
 
 export type SemesterNumber = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 
@@ -4606,10 +4607,9 @@ export const SubjectSelectionDialog: React.FC<SubjectSelectionDialogProps> = ({
 
   useEffect(() => {
     if (!isOpen) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    const releaseScrollLock = acquireOverlayScrollLock();
     return () => {
-      document.body.style.overflow = previousOverflow;
+      releaseScrollLock();
     };
   }, [isOpen]);
 

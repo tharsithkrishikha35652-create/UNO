@@ -7,14 +7,14 @@ let prevHtmlOverflow = '';
 let prevBodyPaddingRight = '';
 let prevBodyOverscroll = '';
 let isScrollLocked = false;
+let isTourScrollLocked = false;
+const overlayScrollLocks = new Set<symbol>();
 
-/**
- * Locks page scrolling without causing layout shifts by compensating
- * for disappearing scrollbar width with body padding.
- */
-export function lockTourScroll() {
+function syncPageScrollLock() {
   if (typeof document === 'undefined') return;
-  if (!isScrollLocked) {
+
+  const shouldLock = isTourScrollLocked || overlayScrollLocks.size > 0;
+  if (shouldLock && !isScrollLocked) {
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
     prevBodyOverflow = document.body.style.overflow;
     prevHtmlOverflow = document.documentElement.style.overflow;
@@ -28,21 +28,41 @@ export function lockTourScroll() {
     document.documentElement.style.overflow = 'hidden';
     document.body.style.overscrollBehavior = 'none';
     isScrollLocked = true;
-  }
-}
-
-/**
- * Releases the scroll lock and restores previous styles cleanly.
- */
-export function unlockTourScroll() {
-  if (typeof document === 'undefined') return;
-  if (isScrollLocked) {
+  } else if (!shouldLock && isScrollLocked) {
     document.body.style.overflow = prevBodyOverflow;
     document.documentElement.style.overflow = prevHtmlOverflow;
     document.body.style.paddingRight = prevBodyPaddingRight;
     document.body.style.overscrollBehavior = prevBodyOverscroll;
     isScrollLocked = false;
   }
+}
+
+/** Acquires an independent scroll-lock lease for an open overlay. */
+export function acquireOverlayScrollLock() {
+  const lock = Symbol('overlay-scroll-lock');
+  overlayScrollLocks.add(lock);
+  syncPageScrollLock();
+  return () => {
+    overlayScrollLocks.delete(lock);
+    syncPageScrollLock();
+  };
+}
+
+/**
+ * Locks page scrolling without causing layout shifts by compensating
+ * for disappearing scrollbar width with body padding.
+ */
+export function lockTourScroll() {
+  isTourScrollLocked = true;
+  syncPageScrollLock();
+}
+
+/**
+ * Releases the scroll lock and restores previous styles cleanly.
+ */
+export function unlockTourScroll() {
+  isTourScrollLocked = false;
+  syncPageScrollLock();
 }
 
 export function forceUnlockTourScroll() {

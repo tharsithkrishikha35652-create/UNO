@@ -20,6 +20,7 @@ import type {
 } from './SemesterCourseDashboard';
 import { motionVariants, transitions } from '../motion';
 import { acknowledgeInteraction, acknowledgeSelection } from '../haptics';
+import { acquireOverlayScrollLock } from './TourErrorBoundary';
 
 interface MobileCoursesSheetProps {
   isOpen: boolean;
@@ -127,9 +128,8 @@ const MobileCoursesSheetBody: React.FC<MobileCoursesSheetProps> = ({
     const previouslyFocused = document.activeElement instanceof HTMLElement
       ? document.activeElement
       : null;
-    const previousOverflow = document.body.style.overflow;
+    const releaseScrollLock = acquireOverlayScrollLock();
     closeButtonRef.current?.focus();
-    document.body.style.overflow = 'hidden';
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -158,7 +158,7 @@ const MobileCoursesSheetBody: React.FC<MobileCoursesSheetProps> = ({
     document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = previousOverflow;
+      releaseScrollLock();
       if (restoreFocusRef.current) previouslyFocused?.focus();
       restoreFocusRef.current = true;
     };
