@@ -2,8 +2,37 @@ apply plugin: 'com.android.application'
 
 def keystorePropertiesFile = rootProject.file("keystore.properties")
 def keystoreProperties = new Properties()
+
+// Determine if this Gradle invocation builds a release artifact
+def isReleaseBuild = gradle.startParameter.taskNames.any { it.toLowerCase().contains("release") }
+
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+} else if (isReleaseBuild) {
+    throw new GradleException(
+        "\n========================================================================\n" +
+        "[SECURITY ERROR] Release build aborted: 'android/keystore.properties' not found!\n" +
+        "Release builds MUST be cryptographically signed with production credentials.\n" +
+        "Run 'generate-release-keystore.bat' (or .sh) to generate credentials securely.\n" +
+        "========================================================================\n"
+    )
+}
+
+if (isReleaseBuild) {
+    def requiredKeys = ['storeFile', 'storePassword', 'keyAlias', 'keyPassword']
+    for (String key : requiredKeys) {
+        def val = keystoreProperties.getProperty(key)
+        if (!val || val.trim().isEmpty()) {
+            throw new GradleException("[SECURITY ERROR] 'android/keystore.properties' is missing required key: '${key}'")
+        }
+    }
+    def keyFile = rootProject.file(keystoreProperties.getProperty('storeFile'))
+    if (!keyFile.exists()) {
+        throw new GradleException(
+            "\n[SECURITY ERROR] Release keystore file not found at: ${keyFile.absolutePath}\n" +
+            "Please ensure the keystore has been generated with 'generate-release-keystore.bat' (or .sh).\n"
+        )
+    }
 }
 
 android {
@@ -25,18 +54,16 @@ android {
     signingConfigs {
         release {
             if (keystorePropertiesFile.exists()) {
-                storeFile rootProject.file(keystoreProperties['storeFile'])
-                storePassword keystoreProperties['storePassword']
-                keyAlias keystoreProperties['keyAlias']
-                keyPassword keystoreProperties['keyPassword']
+                storeFile rootProject.file(keystoreProperties.getProperty('storeFile'))
+                storePassword keystoreProperties.getProperty('storePassword')
+                keyAlias keystoreProperties.getProperty('keyAlias')
+                keyPassword keystoreProperties.getProperty('keyPassword')
             }
         }
     }
     buildTypes {
         release {
-            if (keystorePropertiesFile.exists()) {
-                signingConfig signingConfigs.release
-            }
+            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
