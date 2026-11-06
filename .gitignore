@@ -34,3 +34,9 @@ firebase-debug.log
 *.patch
 scratch/
 *.zip
+
+# Keystore files and signing credentials
+*.jks
+*.keystore
+keystore.properties
+*.properties.local
