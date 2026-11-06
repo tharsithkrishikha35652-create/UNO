@@ -12,13 +12,19 @@ echo "============================================================"
 echo ""
 
 if [ -f "$KEYSTORE_PATH" ]; then
-    echo "[WARNING] A keystore already exists at $KEYSTORE_PATH!"
-    read -r -p "Do you want to overwrite it with a fresh keystore? (y/N): " OVERWRITE
-    if [[ ! "$OVERWRITE" =~ ^[Yy]$ ]]; then
-        echo "Keystore generation cancelled."
-        exit 0
-    fi
-    rm -f "$KEYSTORE_PATH"
+    echo "[CRITICAL SAFETY CHECK]"
+    echo "A release keystore already exists at: $KEYSTORE_PATH"
+    echo ""
+    echo "To prevent catastrophic loss of your Android app signing identity,"
+    echo "this script will NEVER overwrite or delete an existing keystore."
+    echo ""
+    echo "If you intentionally need to replace this signing identity:"
+    echo "  1. Create a secure, verified offline backup of '$KEYSTORE_PATH'."
+    echo "  2. Manually remove or rename '$KEYSTORE_PATH'."
+    echo "  3. Re-run this generator."
+    echo ""
+    echo "Generation aborted."
+    exit 1
 fi
 
 while true; do
@@ -39,14 +45,16 @@ done
 
 echo ""
 echo "[1/3] Generating 2048-bit RSA Production Release Keystore..."
+export CALCREDIT_KEYPASS="$STOREPASS"
+
 keytool -genkeypair -v \
   -keystore "$KEYSTORE_PATH" \
   -alias "$ALIAS" \
   -keyalg RSA \
   -keysize 2048 \
   -validity 10000 \
-  -storepass "$STOREPASS" \
-  -keypass "$STOREPASS" \
+  -storepass:env CALCREDIT_KEYPASS \
+  -keypass:env CALCREDIT_KEYPASS \
   -dname "$DNAME"
 
 echo ""
@@ -64,7 +72,12 @@ chmod 600 "$PROPERTIES_PATH"
 echo ""
 echo "[3/3] Extracting Certificate Fingerprints for Firebase Console:"
 echo "============================================================"
-keytool -list -v -keystore "$KEYSTORE_PATH" -alias "$ALIAS" -storepass "$STOREPASS" | grep -E "SHA1:|SHA256:"
+keytool -list -v -keystore "$KEYSTORE_PATH" -alias "$ALIAS" -storepass:env CALCREDIT_KEYPASS | grep -E "SHA1:|SHA256:"
 echo "============================================================"
+
+unset CALCREDIT_KEYPASS
+unset STOREPASS
+unset CONFIRMPASS
+
 echo ""
 echo "[SUCCESS] Fresh release keystore and local $PROPERTIES_PATH configured!"

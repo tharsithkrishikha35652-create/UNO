@@ -73,22 +73,61 @@ if not exist "dist\release-apk\CalCredit-v1.0.1.apk" (
 )
 
 echo.
-echo [5/5] Verifying Signature & Computing Checksum...
+echo [5/5] Mandatory Cryptographic Signature Verification...
+set "APKSIGNER_CMD="
+
 where apksigner >nul 2>nul
 if %ERRORLEVEL% equ 0 (
-    echo Verifying cryptographic signature with apksigner:
-    apksigner verify --verbose "dist\release-apk\CalCredit-v1.0.1.apk"
+    set "APKSIGNER_CMD=apksigner"
 ) else (
-    echo [NOTE] 'apksigner' not in PATH. Signature will be verified during device install.
+    if defined ANDROID_HOME (
+        for /f "delims=" %%F in ('dir /b /s /o:-n "%ANDROID_HOME%\build-tools\*apksigner.bat" 2^>nul') do (
+            if not defined APKSIGNER_CMD set "APKSIGNER_CMD=%%F"
+        )
+    )
+    if not defined APKSIGNER_CMD (
+        if exist "%LOCALAPPDATA%\Android\Sdk\build-tools" (
+            for /f "delims=" %%F in ('dir /b /s /o:-n "%LOCALAPPDATA%\Android\Sdk\build-tools\*apksigner.bat" 2^>nul') do (
+                if not defined APKSIGNER_CMD set "APKSIGNER_CMD=%%F"
+            )
+        )
+    )
 )
 
+if not defined APKSIGNER_CMD (
+    echo.
+    echo ============================================================
+    echo [SECURITY ERROR] Mandatory verification tool 'apksigner' NOT found!
+    echo ============================================================
+    echo Release policy strictly forbids declaring an unverified APK as production ready.
+    echo Please install Android SDK Build-Tools and ensure 'apksigner' is on your PATH,
+    echo or set ANDROID_HOME to your Android SDK root.
+    echo.
+    echo Build failed. Distribution halted.
+    exit /b 1
+)
+
+echo Running apksigner verification:
+call "%APKSIGNER_CMD%" verify --verbose --print-certs "dist\release-apk\CalCredit-v1.0.1.apk"
+if %ERRORLEVEL% neq 0 (
+    echo.
+    echo ============================================================
+    echo [SECURITY ERROR] apksigner verification FAILED!
+    echo ============================================================
+    echo The APK signature is missing, invalid, or corrupted.
+    echo Release build aborted. Do NOT distribute this file.
+    exit /b 1
+)
+
+echo.
+echo Cryptographic signature verified successfully (v1/v2/v3).
 echo.
 echo Release APK Checksum (SHA-256):
 certutil -hashfile "dist\release-apk\CalCredit-v1.0.1.apk" SHA256 | findstr /V ":"
 
 echo.
 echo ============================================================
-echo   [SUCCESS] Production Release APK Ready for Distribution!
+echo   [SUCCESS] Production Release APK Verified and Ready!
 echo ============================================================
 echo Output Locations:
 echo   - dist\release-apk\CalCredit-v1.0.1.apk   (included in Firebase deploy)

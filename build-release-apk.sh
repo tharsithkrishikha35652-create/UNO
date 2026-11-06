@@ -52,20 +52,39 @@ cp -f "$APK_SOURCE" "public/release-apk/CalCredit-v1.0.1.apk"
 cp -f "$APK_SOURCE" "release-apk/CalCredit-v1.0.1.apk"
 
 echo ""
-echo "[5/5] Verifying Signature & Computing Checksum..."
+echo "[5/5] Mandatory Cryptographic Signature Verification..."
+APKSIGNER_CMD=""
+
 if command -v apksigner >/dev/null 2>&1; then
-    echo "Verifying cryptographic signature with apksigner:"
-    apksigner verify --verbose "dist/release-apk/CalCredit-v1.0.1.apk"
-else
-    echo "[NOTE] 'apksigner' not found in PATH."
+    APKSIGNER_CMD="apksigner"
+elif [ -n "$ANDROID_HOME" ] && compgen -G "$ANDROID_HOME/build-tools/*/apksigner" >/dev/null; then
+    APKSIGNER_CMD=$(ls -1r "$ANDROID_HOME/build-tools/"*/apksigner 2>/dev/null | head -n 1)
 fi
 
+if [ -z "$APKSIGNER_CMD" ]; then
+    echo ""
+    echo "============================================================"
+    echo "[SECURITY ERROR] Mandatory verification tool 'apksigner' NOT found!"
+    echo "============================================================"
+    echo "Release policy strictly forbids declaring an unverified APK as production ready."
+    echo "Please install Android SDK Build-Tools and ensure 'apksigner' is on your PATH,"
+    echo "or set ANDROID_HOME to your Android SDK root."
+    echo ""
+    echo "Build failed. Distribution halted."
+    exit 1
+fi
+
+echo "Running apksigner verification:"
+"$APKSIGNER_CMD" verify --verbose --print-certs "dist/release-apk/CalCredit-v1.0.1.apk"
+
+echo ""
+echo "Cryptographic signature verified successfully (v1/v2/v3)."
 echo ""
 echo "Release APK Checksum (SHA-256):"
 sha256sum "dist/release-apk/CalCredit-v1.0.1.apk"
 
 echo ""
 echo "============================================================"
-echo "  [SUCCESS] Production Release APK Ready for Distribution!"
+echo "  [SUCCESS] Production Release APK Verified and Ready!"
 echo "  Hosting Path: dist/release-apk/CalCredit-v1.0.1.apk"
 echo "============================================================"
