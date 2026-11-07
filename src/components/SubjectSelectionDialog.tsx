@@ -4605,7 +4605,7 @@ export const SubjectSelectionDialog: React.FC<SubjectSelectionDialogProps> = ({
   const [selectedSemester, setSelectedSemester] = useState<SemesterNumber>(1);
   const activePresets = getPresetCourses(department);
   const activeElectiveSlots = getElectiveSlotsBySemester(department);
-  const [selectedCourse, setSelectedCourse] = useState<PresetCourse>(activePresets[0]);
+  const [selectedCourse, setSelectedCourse] = useState<PresetCourse | null>(null);
   const [selectedElectiveSlot, setSelectedElectiveSlot] = useState<string | null>(null);
 
   useEffect(() => {
@@ -4616,11 +4616,8 @@ export const SubjectSelectionDialog: React.FC<SubjectSelectionDialogProps> = ({
     const slot = initialElectiveSlot && slots.includes(initialElectiveSlot)
       ? initialElectiveSlot
       : slots[0] ?? null;
-    const firstOption = activePresets.find(
-      (course) => course.semester === semester && course.group === 'elective' && course.electiveSlot === slot
-    );
     setSelectedSemester(semester);
-    setSelectedCourse(firstOption ?? activePresets[0]);
+    setSelectedCourse(null);
     setSelectedElectiveSlot(slot);
   }, [isOpen, initialSemester, initialElectiveSlot, department]);
 
@@ -4651,17 +4648,14 @@ export const SubjectSelectionDialog: React.FC<SubjectSelectionDialogProps> = ({
     setSearchQuery('');
     const nextSlots = activeElectiveSlots[nextSemester] ?? [];
     const nextDefaultSlot = nextSlots[0] ?? null;
-    const nextDefaultCourse = activePresets.find(
-      (course) => course.semester === nextSemester && course.group === 'elective' && course.electiveSlot === nextDefaultSlot
-    );
-    const fallbackCourse = nextDefaultCourse ?? activePresets[0];
-    setSelectedCourse(fallbackCourse);
+    setSelectedCourse(null);
     setSelectedElectiveSlot(nextDefaultSlot);
   };
 
   if (!isOpen) return null;
 
   const handleConfirm = () => {
+    if (!selectedCourse) return;
     if (!filteredCourses.some((course) => course.id === selectedCourse.id)) return;
     onSelectCourse(selectedCourse);
     onClose();
@@ -4739,10 +4733,7 @@ export const SubjectSelectionDialog: React.FC<SubjectSelectionDialogProps> = ({
                     onClick={() => {
                       setSelectedElectiveSlot(slot);
                       setSearchQuery('');
-                      const firstOption = activePresets.find(
-                        (course) => course.semester === selectedSemester && course.group === 'elective' && course.electiveSlot === slot
-                      );
-                      if (firstOption) setSelectedCourse(firstOption);
+                      setSelectedCourse(null);
                     }}
                     className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all cursor-pointer border ${
                       isSlotSelected
@@ -4803,7 +4794,7 @@ export const SubjectSelectionDialog: React.FC<SubjectSelectionDialogProps> = ({
             </div>
           ) : (
             filteredCourses.map((course) => {
-              const isSelected = selectedCourse.id === course.id;
+              const isSelected = selectedCourse ? selectedCourse.id === course.id : false;
               return (
                 <button
                   key={course.id}
@@ -4849,7 +4840,7 @@ export const SubjectSelectionDialog: React.FC<SubjectSelectionDialogProps> = ({
           <button
             type="button"
             onClick={handleConfirm}
-            disabled={!filteredCourses.some((course) => course.id === selectedCourse.id)}
+            disabled={!selectedCourse || !filteredCourses.some((course) => course.id === selectedCourse.id)}
             className="min-h-10 rounded-xl bg-[#172554] dark:bg-[#e08564] px-5 py-2 text-xs font-bold text-white dark:text-[#161618] hover:bg-[#1e3a8a] dark:hover:bg-[#e89475] transition-colors disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer shadow-xs"
           >
             Select course

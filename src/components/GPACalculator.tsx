@@ -47,13 +47,23 @@ const getDepartmentShortName = (dept?: string): string => {
   return 'CSE';
 };
 
-const matchesPresetSubject = (subject: SubjectData, course: (typeof PRESET_COURSES)[number]) =>
-  (Boolean(course.code) && subject.code === course.code) ||
-  subject.name.trim().toLowerCase() === course.name.trim().toLowerCase();
+const matchesPresetSubject = (subject: SubjectData, course: (typeof PRESET_COURSES)[number]) => {
+  if (subject.id === `course_${course.id}` || subject.id === course.id) return true;
+  if (course.code && subject.code) {
+    return subject.code.trim().toUpperCase() === course.code.trim().toUpperCase();
+  }
+  if (subject.electiveSlot && course.electiveSlot) {
+    return subject.electiveSlot === course.electiveSlot && subject.name.trim().toLowerCase() === course.name.trim().toLowerCase();
+  }
+  return subject.name.trim().toLowerCase() === course.name.trim().toLowerCase();
+};
 
 const findCourseSubject = (subjects: SubjectData[], course: GpaCourse, presets: PresetCourse[] = PRESET_COURSES as PresetCourse[]) =>
   [...subjects].reverse().find((subject) => {
     if (course.electiveSlot) {
+      if (subject.electiveSlot) {
+        return subject.electiveSlot === course.electiveSlot && (subject.semester === undefined || subject.semester === course.semester);
+      }
       return presets.some((preset) =>
         preset.semester === course.semester &&
         preset.electiveSlot === course.electiveSlot &&

@@ -101,6 +101,7 @@ const MobileCoursesSheetBody: React.FC<MobileCoursesSheetProps> = ({
   const restoreFocusRef = useRef(true);
   const [expandedElectiveSlot, setExpandedElectiveSlot] = useState<string | null>(null);
   const [courseQuery, setCourseQuery] = useState('');
+  const [electiveQuery, setElectiveQuery] = useState('');
   const [sheetHeight, setSheetHeight] = useState(0);
 
   const dragY = useMotionValue(0);
@@ -163,6 +164,10 @@ const MobileCoursesSheetBody: React.FC<MobileCoursesSheetProps> = ({
       restoreFocusRef.current = true;
     };
   }, [isOpen, onClose]);
+
+  useEffect(() => {
+    setElectiveQuery('');
+  }, [expandedElectiveSlot, isOpen]);
 
   // Touch and mouse drag-to-minimize gesture coordination across the entire tab and courses list
   useEffect(() => {
@@ -389,6 +394,10 @@ const MobileCoursesSheetBody: React.FC<MobileCoursesSheetProps> = ({
   const renderElectiveSlotRow = ({ slot, course, subject, progress }: SemesterElectiveRow) => {
     const isExpanded = expandedElectiveSlot === slot;
     const options = electiveOptions[slot] ?? [];
+    const filteredOptions = options.filter((option) => {
+      if (!electiveQuery.trim()) return true;
+      return option.name.toLowerCase().includes(electiveQuery.trim().toLowerCase());
+    });
 
     return (
       <li
@@ -445,64 +454,101 @@ const MobileCoursesSheetBody: React.FC<MobileCoursesSheetProps> = ({
 
         {isExpanded && (
           <div className="elective-options-expansion border-t border-slate-200 dark:border-slate-700 p-3 pt-2">
-            <div className="mb-2">
-              <p className="text-[10px] font-black text-slate-500 dark:text-slate-400">
-                Available in Semester {semester}
-              </p>
-              <p className="mt-0.5 text-[10px] text-slate-500 dark:text-slate-400">
-                Only choices for this semester and slot are shown.
-              </p>
+            {/* Elective Search Input */}
+            <div className="mb-2.5">
+              <div className="relative">
+                <Search
+                  className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+                  aria-hidden="true"
+                />
+                <input
+                  type="text"
+                  value={electiveQuery}
+                  onChange={(e) => setElectiveQuery(e.target.value)}
+                  placeholder="Search electives…"
+                  className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#161618] py-1.5 pl-8 pr-8 text-xs font-medium text-[#172554] dark:text-[#f1f1f3] placeholder:text-slate-400 focus:border-[#172554] dark:focus:border-[#e08564] focus:outline-none focus:ring-1 focus:ring-[#172554] dark:focus:ring-[#e08564] transition-colors"
+                />
+                {electiveQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setElectiveQuery('')}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer rounded-full"
+                    aria-label="Clear elective search"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                )}
+              </div>
             </div>
 
             <ul
               id={`elective-options-${slot.replace(/\s+/g, '-').toLowerCase()}`}
               className="max-h-64 space-y-1.5 overflow-y-auto pr-1"
             >
-              {options.map((option) => {
-                const isSelectedInThisSlot = option.id === course?.id || option.code === course?.code;
-                const isChosenInOtherSlot = electiveSlots.some(
-                  (s) => s.slot !== slot && s.course && (s.course.id === option.id || (Boolean(s.course.code) && s.course.code === option.code))
-                );
-
-                return (
-                  <li key={option.id}>
+              {filteredOptions.length === 0 ? (
+                <li className="py-4 text-center">
+                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                    {electiveQuery.trim()
+                      ? `No electives found matching "${electiveQuery.trim()}".`
+                      : 'No choices available for this slot.'}
+                  </p>
+                  {electiveQuery.trim() && (
                     <button
                       type="button"
-                      disabled={isChosenInOtherSlot}
-                      onClick={() => {
-                        acknowledgeSelection();
-                        onSelectCourse(option);
-                        setExpandedElectiveSlot(null);
-                      }}
-                      className={`flex min-h-12 w-full items-center justify-between gap-3 rounded-lg border px-3 py-2 text-left transition-colors focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[#172554] dark:focus-visible:outline-[#e08564] ${
-                        isSelectedInThisSlot
-                          ? 'border-[#172554] dark:border-[#e08564] bg-blue-50/80 dark:bg-blue-950/40'
-                          : isChosenInOtherSlot
-                            ? 'cursor-not-allowed border-slate-200 dark:border-slate-800 bg-slate-100/60 dark:bg-slate-900/40 opacity-60'
-                            : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-[#161618] hover:bg-slate-50 dark:hover:bg-[#202024]'
-                      }`}
+                      onClick={() => setElectiveQuery('')}
+                      className="mt-1.5 text-xs font-bold text-[#172554] dark:text-[#e08564] hover:underline cursor-pointer"
                     >
-                      <span className="min-w-0">
-                        <span className="block truncate text-xs font-bold text-[#172554] dark:text-[#f1f1f3]">
-                          {option.name}
-                        </span>
-                      </span>
-
-                      {isSelectedInThisSlot ? (
-                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#172554] dark:bg-[#e08564] text-white">
-                          <Check className="h-3 w-3 stroke-[3]" aria-label="Selected" />
-                        </span>
-                      ) : isChosenInOtherSlot ? (
-                        <span className="shrink-0 text-[10px] font-bold text-slate-400">
-                          Already selected
-                        </span>
-                      ) : (
-                        <span className="h-4 w-4 shrink-0 rounded-full border-2 border-slate-300 dark:border-slate-600" aria-hidden="true" />
-                      )}
+                      Clear search
                     </button>
-                  </li>
-                );
-              })}
+                  )}
+                </li>
+              ) : (
+                filteredOptions.map((option) => {
+                  const isSelectedInThisSlot = option.id === course?.id || option.code === course?.code;
+                  const isChosenInOtherSlot = electiveSlots.some(
+                    (s) => s.slot !== slot && s.course && (s.course.id === option.id || (Boolean(s.course.code) && s.course.code === option.code))
+                  );
+
+                  return (
+                    <li key={option.id}>
+                      <button
+                        type="button"
+                        disabled={isChosenInOtherSlot}
+                        onClick={() => {
+                          acknowledgeSelection();
+                          onSelectCourse(option);
+                          setExpandedElectiveSlot(null);
+                        }}
+                        className={`flex min-h-12 w-full items-center justify-between gap-3 rounded-lg border px-3 py-2 text-left transition-colors focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[#172554] dark:focus-visible:outline-[#e08564] ${
+                          isSelectedInThisSlot
+                            ? 'border-[#172554] dark:border-[#e08564] bg-blue-50/80 dark:bg-blue-950/40'
+                            : isChosenInOtherSlot
+                              ? 'cursor-not-allowed border-slate-200 dark:border-slate-800 bg-slate-100/60 dark:bg-slate-900/40 opacity-60'
+                              : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-[#161618] hover:bg-slate-50 dark:hover:bg-[#202024]'
+                        }`}
+                      >
+                        <span className="min-w-0">
+                          <span className="block truncate text-xs font-bold text-[#172554] dark:text-[#f1f1f3]">
+                            {option.name}
+                          </span>
+                        </span>
+
+                        {isSelectedInThisSlot ? (
+                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#172554] dark:bg-[#e08564] text-white">
+                            <Check className="h-3 w-3 stroke-[3]" aria-label="Selected" />
+                          </span>
+                        ) : isChosenInOtherSlot ? (
+                          <span className="shrink-0 text-[10px] font-bold text-slate-400">
+                            Already selected
+                          </span>
+                        ) : (
+                          <span className="h-4 w-4 shrink-0 rounded-full border-2 border-slate-300 dark:border-slate-600" aria-hidden="true" />
+                        )}
+                      </button>
+                    </li>
+                  );
+                })
+              )}
             </ul>
           </div>
         )}
@@ -598,7 +644,7 @@ const MobileCoursesSheetBody: React.FC<MobileCoursesSheetProps> = ({
                 type="text"
                 value={courseQuery}
                 onChange={(e) => setCourseQuery(e.target.value)}
-                placeholder="Search course name or code..."
+                placeholder="Search courses..."
                 className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#161618] text-[#172554] dark:text-[#f1f1f3] placeholder:text-slate-400 focus:outline-2 focus:outline-[#172554] dark:focus:outline-[#e08564]"
               />
             </div>
@@ -641,11 +687,6 @@ const MobileCoursesSheetBody: React.FC<MobileCoursesSheetProps> = ({
                               <span className="block truncate text-sm font-bold text-[#172554] dark:text-[#f1f1f3]">
                                 {course.name}
                               </span>
-                              {(course.code || course.type) && (
-                                <span className="mt-0.5 block truncate text-[11px] text-slate-500 dark:text-slate-400">
-                                  {course.code}{course.code && course.type ? ' · ' : ''}{course.type}
-                                </span>
-                              )}
                             </span>
                             <ProgressIndicator progress={progress} />
                           </button>
@@ -705,11 +746,6 @@ const MobileCoursesSheetBody: React.FC<MobileCoursesSheetProps> = ({
                               <span className="block truncate text-sm font-bold text-[#172554] dark:text-[#f1f1f3]">
                                 {subject.name}
                               </span>
-                              {subject.code && (
-                                <span className="mt-0.5 block truncate text-[11px] text-slate-500 dark:text-slate-400">
-                                  {subject.code}
-                                </span>
-                              )}
                             </span>
                             <ProgressIndicator progress={progress} />
                           </button>
@@ -722,7 +758,7 @@ const MobileCoursesSheetBody: React.FC<MobileCoursesSheetProps> = ({
                 {normalizedQuery && visibleCourses.length === 0 && visibleOtherCourses.length === 0 &&
                   electiveSlots.every(({ course, slot }) => !matchesCourseQuery(course ?? undefined, slot)) && (
                   <p className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#161618] p-4 text-sm text-slate-700 dark:text-slate-300" role="status">
-                    No courses match “{courseQuery.trim()}”. Try a course name or code.
+                    No courses match “{courseQuery.trim()}”.
                   </p>
                 )}
               </>

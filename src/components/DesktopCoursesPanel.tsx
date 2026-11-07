@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { transitions } from '../motion';
-import { AlertCircle, BookOpen, Check, CheckCircle2, Circle, GraduationCap, PencilLine } from 'lucide-react';
+import { AlertCircle, BookOpen, Check, CheckCircle2, Circle, GraduationCap, PencilLine, Search, X } from 'lucide-react';
 import { acknowledgeSelection } from '../haptics';
 import type { SubjectData } from '../types';
 import type { PresetCourse, SemesterNumber } from './SubjectSelectionDialog';
@@ -77,6 +77,11 @@ export const DesktopCoursesPanel: React.FC<DesktopCoursesPanelProps> = ({
   onCalculateGpa,
 }) => {
   const [expandedElectiveSlot, setExpandedElectiveSlot] = useState<string | null>(null);
+  const [electiveQuery, setElectiveQuery] = useState('');
+
+  useEffect(() => {
+    setElectiveQuery('');
+  }, [expandedElectiveSlot, semester]);
 
   if (semester === null) {
     return (
@@ -100,6 +105,10 @@ export const DesktopCoursesPanel: React.FC<DesktopCoursesPanelProps> = ({
   const renderElectiveSlot = ({ slot, course, subject, progress }: SemesterElectiveRow) => {
     const expanded = expandedElectiveSlot === slot;
     const options = electiveOptions[slot] ?? [];
+    const filteredOptions = options.filter((option) => {
+      if (!electiveQuery.trim()) return true;
+      return option.name.toLowerCase().includes(electiveQuery.trim().toLowerCase());
+    });
 
     return (
       <li
@@ -144,56 +153,94 @@ export const DesktopCoursesPanel: React.FC<DesktopCoursesPanelProps> = ({
 
         {expanded && (
           <div className="border-t border-slate-200 p-4 pt-3">
-            <div className="mb-2.5">
-              <p className="text-[10px] font-black text-slate-500">
-                Available choices in Semester {semester}
-              </p>
-              <p className="mt-0.5 text-xs text-slate-500">
-                Only choices for this semester and slot are shown.
-              </p>
+            {/* Elective Search Input */}
+            <div className="mb-3">
+              <div className="relative">
+                <Search
+                  className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400"
+                  aria-hidden="true"
+                />
+                <input
+                  type="text"
+                  value={electiveQuery}
+                  onChange={(e) => setElectiveQuery(e.target.value)}
+                  placeholder="Search electives…"
+                  className="w-full rounded-lg border border-slate-300 bg-white py-1.5 pl-8 pr-8 text-xs font-medium text-[#172554] placeholder:text-slate-400 focus:border-[#172554] focus:outline-none focus:ring-1 focus:ring-[#172554] transition-colors"
+                />
+                {electiveQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setElectiveQuery('')}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 cursor-pointer rounded-full"
+                    aria-label="Clear elective search"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                )}
+              </div>
             </div>
-            <ul className="grid gap-2 sm:grid-cols-2" aria-label={`Available choices for ${slot}`}>
-              {options.map((option) => {
-                const isSelectedInThisSlot = option.id === course?.id || option.code === course?.code;
-                const isChosenInOtherSlot = electiveSlots.some(
-                  (s) => s.slot !== slot && s.course && (s.course.id === option.id || (Boolean(s.course.code) && s.course.code === option.code))
-                );
 
-                return (
-                  <li key={option.id}>
+            <ul className="grid gap-2 sm:grid-cols-2" aria-label={`Available choices for ${slot}`}>
+              {filteredOptions.length === 0 ? (
+                <li className="col-span-2 py-4 text-center">
+                  <p className="text-xs font-semibold text-slate-500">
+                    {electiveQuery.trim()
+                      ? `No electives found matching "${electiveQuery.trim()}".`
+                      : 'No choices available for this slot.'}
+                  </p>
+                  {electiveQuery.trim() && (
                     <button
                       type="button"
-                      disabled={isChosenInOtherSlot}
-                      onClick={() => {
-                        onSelectCourse(option);
-                        setExpandedElectiveSlot(null);
-                      }}
-                      className={`flex min-h-12 w-full items-center justify-between gap-3 rounded-lg border px-3 py-2 text-left transition-colors focus-visible:outline-2 focus-visible:outline-[#172554] ${
-                        isSelectedInThisSlot
-                          ? 'border-[#172554] bg-blue-50/80'
-                          : isChosenInOtherSlot
-                            ? 'cursor-not-allowed border-slate-200 bg-slate-100/60 opacity-60'
-                            : 'border-slate-300 bg-white hover:bg-slate-50'
-                      }`}
+                      onClick={() => setElectiveQuery('')}
+                      className="mt-1.5 text-xs font-bold text-[#172554] hover:underline cursor-pointer"
                     >
-                      <span className="min-w-0">
-                        <span className="block truncate text-sm font-semibold text-[#172554]">{option.name}</span>
-                      </span>
-                      {isSelectedInThisSlot ? (
-                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#172554] text-white">
-                          <Check className="h-3 w-3 stroke-[3]" aria-label="Selected" />
-                        </span>
-                      ) : isChosenInOtherSlot ? (
-                        <span className="shrink-0 text-[10px] font-bold text-slate-400">
-                          Already selected
-                        </span>
-                      ) : (
-                        <span className="h-4 w-4 shrink-0 rounded-full border-2 border-slate-300" aria-hidden="true" />
-                      )}
+                      Clear search
                     </button>
-                  </li>
-                );
-              })}
+                  )}
+                </li>
+              ) : (
+                filteredOptions.map((option) => {
+                  const isSelectedInThisSlot = option.id === course?.id || option.code === course?.code;
+                  const isChosenInOtherSlot = electiveSlots.some(
+                    (s) => s.slot !== slot && s.course && (s.course.id === option.id || (Boolean(s.course.code) && s.course.code === option.code))
+                  );
+
+                  return (
+                    <li key={option.id}>
+                      <button
+                        type="button"
+                        disabled={isChosenInOtherSlot}
+                        onClick={() => {
+                          onSelectCourse(option);
+                          setExpandedElectiveSlot(null);
+                        }}
+                        className={`flex min-h-12 w-full items-center justify-between gap-3 rounded-lg border px-3 py-2 text-left transition-colors focus-visible:outline-2 focus-visible:outline-[#172554] ${
+                          isSelectedInThisSlot
+                            ? 'border-[#172554] bg-blue-50/80'
+                            : isChosenInOtherSlot
+                              ? 'cursor-not-allowed border-slate-200 bg-slate-100/60 opacity-60'
+                              : 'border-slate-300 bg-white hover:bg-slate-50'
+                        }`}
+                      >
+                        <span className="min-w-0">
+                          <span className="block truncate text-sm font-semibold text-[#172554]">{option.name}</span>
+                        </span>
+                        {isSelectedInThisSlot ? (
+                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#172554] text-white">
+                            <Check className="h-3 w-3 stroke-[3]" aria-label="Selected" />
+                          </span>
+                        ) : isChosenInOtherSlot ? (
+                          <span className="shrink-0 text-[10px] font-bold text-slate-400">
+                            Already selected
+                          </span>
+                        ) : (
+                          <span className="h-4 w-4 shrink-0 rounded-full border-2 border-slate-300" aria-hidden="true" />
+                        )}
+                      </button>
+                    </li>
+                  );
+                })
+              )}
             </ul>
           </div>
         )}
@@ -234,11 +281,6 @@ export const DesktopCoursesPanel: React.FC<DesktopCoursesPanelProps> = ({
                 >
                   <span className="min-w-0">
                     <span className="block truncate text-sm font-bold text-[#172554]">{course.name}</span>
-                    {(course.code || course.type) && (
-                      <span className="mt-1 block truncate text-xs text-slate-500">
-                        {course.code}{course.code && course.type ? ' · ' : ''}{course.type}
-                      </span>
-                    )}
                   </span>
                   <CourseProgressStatus progress={progress} />
                 </button>
@@ -290,7 +332,6 @@ export const DesktopCoursesPanel: React.FC<DesktopCoursesPanelProps> = ({
                   >
                     <span className="min-w-0">
                       <span className="block truncate text-sm font-bold text-[#172554]">{subject.name || 'Other course'}</span>
-                      {subject.code && <span className="mt-1 block truncate text-xs text-slate-500">{subject.code}</span>}
                     </span>
                     <CourseProgressStatus progress={progress} />
                   </button>

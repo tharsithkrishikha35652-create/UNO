@@ -45,6 +45,7 @@ export interface SubjectData {
   name: string;
   code: string;
   semester?: number;
+  electiveSlot?: string;
   courseType?: CourseType;
   projectWorkMarks?: ProjectWorkMarks;
   miniProjectMarks?: MiniProjectMarks;

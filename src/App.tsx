@@ -149,18 +149,53 @@ function findSubjectForCourse(
   subjects: SubjectData[],
   course: PresetCourse
 ): SubjectData | undefined {
-  return subjects.find((subject) => {
-    if (subject.id === `course_${course.id}` || subject.id === course.id)
+  // 1. Highest priority: Exact ID match
+  const byId = subjects.find(
+    (subject) => subject.id === `course_${course.id}` || subject.id === course.id
+  );
+  if (byId) return byId;
+
+  // 2. Exact code match
+  if (course.code && course.code.trim()) {
+    const cleanCourseCode = course.code.trim().toUpperCase();
+    const byCode = subjects.find((subject) => {
+      if (!subject.code || !subject.code.trim()) return false;
+      if (subject.code.trim().toUpperCase() !== cleanCourseCode) return false;
+      if (course.semester && subject.semester && subject.semester !== course.semester) return false;
+      if (course.electiveSlot && subject.electiveSlot && subject.electiveSlot !== course.electiveSlot) return false;
       return true;
-    if (
-      course.code &&
-      subject.code &&
-      subject.code.trim().toUpperCase() === course.code.trim().toUpperCase()
-    )
-      return true;
-    return (
-      subject.name.trim().toLowerCase() === course.name.trim().toLowerCase()
+    });
+    if (byCode) return byCode;
+  }
+
+  // 3. Match by electiveSlot + name
+  const cleanCourseName = course.name.trim().toLowerCase();
+  if (course.electiveSlot) {
+    const bySlot = subjects.find(
+      (subject) =>
+        subject.electiveSlot === course.electiveSlot &&
+        subject.name.trim().toLowerCase() === cleanCourseName &&
+        (!course.semester || !subject.semester || subject.semester === course.semester)
     );
+    if (bySlot) return bySlot;
+  }
+
+  // 4. Match by semester + name (ensuring codes don't conflict)
+  if (course.semester) {
+    const bySem = subjects.find((subject) => {
+      if (subject.semester && subject.semester !== course.semester) return false;
+      if (course.code && subject.code && course.code.trim().toUpperCase() !== subject.code.trim().toUpperCase()) return false;
+      if (course.electiveSlot && subject.electiveSlot && course.electiveSlot !== subject.electiveSlot) return false;
+      return subject.name.trim().toLowerCase() === cleanCourseName;
+    });
+    if (bySem) return bySem;
+  }
+
+  // 5. Fallback name match (only if codes don't conflict and slots don't conflict)
+  return subjects.find((subject) => {
+    if (course.code && subject.code && course.code.trim().toUpperCase() !== subject.code.trim().toUpperCase()) return false;
+    if (course.electiveSlot && subject.electiveSlot && course.electiveSlot !== subject.electiveSlot) return false;
+    return subject.name.trim().toLowerCase() === cleanCourseName;
   });
 }
 
@@ -170,18 +205,62 @@ function findPresetForSubject(
 ): PresetCourse | undefined {
   const dept = typeof department === "string" ? department : undefined;
   const presets = dept ? getPresetCourses(dept) : getAllPresetCourses();
-  return presets.find((course) => {
-    if (subject.id === `course_${course.id}` || subject.id === course.id)
-      return true;
-    if (
-      course.code &&
-      subject.code &&
-      subject.code.trim().toUpperCase() === course.code.trim().toUpperCase()
-    )
-      return true;
-    return (
-      subject.name.trim().toLowerCase() === course.name.trim().toLowerCase()
+
+  // 1. Highest priority: Exact ID match
+  const byId = presets.find(
+    (course) => subject.id === `course_${course.id}` || subject.id === course.id
+  );
+  if (byId) return byId;
+
+  // 2. Exact code match
+  if (subject.code && subject.code.trim()) {
+    const cleanSubjectCode = subject.code.trim().toUpperCase();
+    // Prefer matching code + same slot & semester
+    const byCodeAndSlot = presets.find(
+      (course) =>
+        course.code &&
+        course.code.trim().toUpperCase() === cleanSubjectCode &&
+        (!subject.semester || course.semester === subject.semester) &&
+        (!subject.electiveSlot || course.electiveSlot === subject.electiveSlot)
     );
+    if (byCodeAndSlot) return byCodeAndSlot;
+
+    const byCode = presets.find(
+      (course) =>
+        course.code &&
+        course.code.trim().toUpperCase() === cleanSubjectCode
+    );
+    if (byCode) return byCode;
+  }
+
+  // 3. Match by electiveSlot + name
+  const cleanSubjectName = subject.name.trim().toLowerCase();
+  if (subject.electiveSlot) {
+    const bySlot = presets.find(
+      (course) =>
+        course.electiveSlot === subject.electiveSlot &&
+        course.name.trim().toLowerCase() === cleanSubjectName &&
+        (!subject.semester || course.semester === subject.semester)
+    );
+    if (bySlot) return bySlot;
+  }
+
+  // 4. Match by semester + name (ensuring codes don't conflict)
+  if (subject.semester) {
+    const bySem = presets.find((course) => {
+      if (course.semester && course.semester !== subject.semester) return false;
+      if (subject.code && course.code && subject.code.trim().toUpperCase() !== course.code.trim().toUpperCase()) return false;
+      if (subject.electiveSlot && course.electiveSlot && subject.electiveSlot !== course.electiveSlot) return false;
+      return course.name.trim().toLowerCase() === cleanSubjectName;
+    });
+    if (bySem) return bySem;
+  }
+
+  // 5. Fallback name match (only if codes don't conflict and slots don't conflict)
+  return presets.find((course) => {
+    if (subject.code && course.code && subject.code.trim().toUpperCase() !== course.code.trim().toUpperCase()) return false;
+    if (subject.electiveSlot && course.electiveSlot && subject.electiveSlot !== course.electiveSlot) return false;
+    return course.name.trim().toLowerCase() === cleanSubjectName;
   });
 }
 
@@ -1527,21 +1606,29 @@ function AuthenticatedApp({
               act1Scores: syncScoresArray(subject.act1Scores, act1Count),
               act2No: act2Count,
               act2Scores: syncScoresArray(subject.act2Scores, act2Count),
+              ...(course.electiveSlot ? { electiveSlot: course.electiveSlot } : {}),
             };
           });
         }
         if (course.electiveSlot) {
-          const selected = previous.find(
-            (subject) => subject.id === existing.id
+          return previous.map((subject) =>
+            subject.id === existing.id
+              ? { ...subject, electiveSlot: course.electiveSlot }
+              : subject
           );
-          return selected
-            ? [
-                ...previous.filter((subject) => subject.id !== selected.id),
-                selected,
-              ]
-            : previous;
         }
         return previous;
+      }
+
+      // If choosing an elective for a specific slot, replace any previous elective subject in that same slot for this semester
+      let filteredPrevious = previous;
+      if (course.electiveSlot && course.semester) {
+        filteredPrevious = previous.filter((s) => {
+          const sPreset = findPresetForSubject(s, currentDepartment);
+          const sSlot = s.electiveSlot || sPreset?.electiveSlot;
+          const sSem = s.semester ?? sPreset?.semester;
+          return !(sSlot === course.electiveSlot && sSem === course.semester);
+        });
       }
 
       const newSubject: SubjectData = {
@@ -1551,6 +1638,7 @@ function AuthenticatedApp({
         code: course.code,
         semester: course.semester,
         courseType: isHeritageCourse ? "heritage-course" : course.courseType,
+        electiveSlot: course.electiveSlot,
         ...(course.courseType === "universal-human-values"
           ? { act1No: 1, act1Scores: [""], act2No: 1, act2Scores: [""] }
           : {}),
@@ -1562,7 +1650,7 @@ function AuthenticatedApp({
           : {}),
       };
       targetSubjectId = newSubject.id;
-      return [...previous, newSubject];
+      return [...filteredPrevious, newSubject];
     });
 
     setCurrentSubjectId(targetSubjectId);
@@ -2069,14 +2157,25 @@ function AuthenticatedApp({
           subject,
           course: findPresetForSubject(subject, currentDepartment),
         }))
-        .filter(
-          (entry) =>
-            entry.course?.semester === selectedSemester &&
-            entry.course.group === "elective" &&
-            entry.course.electiveSlot === slot
-        )
+        .filter((entry) => {
+          const entrySem = entry.subject.semester ?? entry.course?.semester;
+          if (entrySem !== selectedSemester) return false;
+          const isElective = entry.course?.group === "elective" || Boolean(entry.subject.electiveSlot);
+          if (!isElective) return false;
+          const assignedSlot = entry.subject.electiveSlot || entry.course?.electiveSlot;
+          return assignedSlot === slot;
+        })
         .at(-1);
-      const course = existingOption?.course ?? null;
+      const course = existingOption?.course ?? (existingOption?.subject ? {
+        id: existingOption.subject.id.replace(/^course_/, ''),
+        name: existingOption.subject.name,
+        code: existingOption.subject.code,
+        type: existingOption.subject.courseType ?? 'theory',
+        courseType: existingOption.subject.courseType ?? 'theory',
+        semester: selectedSemester,
+        group: 'elective' as const,
+        electiveSlot: slot,
+      } : null);
       const subject = existingOption?.subject ?? null;
       return {
         slot,
