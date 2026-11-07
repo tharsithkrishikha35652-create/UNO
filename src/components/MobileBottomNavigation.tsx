@@ -5,6 +5,7 @@ import {
   Calculator,
   ChartColumnIncreasing,
   GraduationCap,
+  LogOut,
 } from 'lucide-react';
 import { transitions } from '../motion';
 
@@ -15,6 +16,7 @@ interface MobileBottomNavigationProps {
   coursesOpen: boolean;
   onNavigate: (tab: WorkspaceTab) => void;
   onToggleCourses: () => void;
+  onLogout: () => void;
   coursesButtonRef: React.Ref<HTMLButtonElement>;
   swipeOffset?: number;
 }
@@ -31,6 +33,7 @@ export const MobileBottomNavigation: React.FC<MobileBottomNavigationProps> = ({
   coursesOpen,
   onNavigate,
   onToggleCourses,
+  onLogout,
   coursesButtonRef,
   swipeOffset = 0,
 }) => (
@@ -39,6 +42,7 @@ export const MobileBottomNavigation: React.FC<MobileBottomNavigationProps> = ({
     coursesOpen={coursesOpen}
     onNavigate={onNavigate}
     onToggleCourses={onToggleCourses}
+    onLogout={onLogout}
     coursesButtonRef={coursesButtonRef}
     swipeOffset={swipeOffset}
   />
@@ -49,6 +53,7 @@ const MobileNavigationContent: React.FC<MobileBottomNavigationProps> = ({
   coursesOpen,
   onNavigate,
   onToggleCourses,
+  onLogout,
   coursesButtonRef,
   swipeOffset = 0,
 }) => {
@@ -71,12 +76,12 @@ const MobileNavigationContent: React.FC<MobileBottomNavigationProps> = ({
   return (
     <nav
       aria-label="Mobile navigation"
-      className="fixed inset-x-3 bottom-[calc(0.75rem+var(--safe-area-bottom))] z-40 grid grid-cols-4 overflow-hidden rounded-2xl border border-slate-300 dark:border-slate-700 bg-white/95 dark:bg-[#202024]/95 shadow-sm backdrop-blur-sm md:hidden"
+      className="fixed inset-x-3 bottom-[calc(0.75rem+var(--safe-area-bottom))] z-40 grid grid-cols-5 overflow-hidden rounded-2xl border border-slate-300 dark:border-slate-700 bg-white/95 dark:bg-[#202024]/95 shadow-sm backdrop-blur-sm md:hidden"
     >
       {effectiveCol >= 0 && (
         <motion.div
           className="pointer-events-none absolute top-0 h-0.5"
-          style={{ width: '25%' }}
+          style={{ width: '20%' }}
           animate={{
             x: `${effectiveCol * 100}%`,
             opacity: 1,
@@ -124,6 +129,16 @@ const MobileNavigationContent: React.FC<MobileBottomNavigationProps> = ({
           </button>
         );
       })}
+
+      <button
+        type="button"
+        onClick={onLogout}
+        aria-label="Log out"
+        className="relative flex min-h-[4.25rem] flex-col items-center justify-center gap-1 border-t-2 border-transparent px-1 py-2 text-[9px] font-bold text-slate-600 transition-colors hover:bg-slate-50 hover:text-[#172554] focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[#d97757] dark:text-slate-400 dark:hover:bg-[#2a2a30] dark:hover:text-[#f1f1f3] dark:focus-visible:outline-[#e08564]"
+      >
+        <LogOut className="h-[18px] w-[18px]" aria-hidden="true" />
+        <span className="whitespace-nowrap">Logout</span>
+      </button>
     </nav>
   );
 };

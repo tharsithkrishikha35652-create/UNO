@@ -538,6 +538,7 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [guestMode, setGuestMode] = useState(false);
   const [guestDepartment, setGuestDepartment] = useState<Department>('CSE');
+  const GUEST_LOGIN_DISABLED = true;
   const [theme, setTheme] = useState<AppTheme>(getInitialTheme);
   const [authResolved, setAuthResolved] = useState(false);
   const [authError, setAuthError] = useState("");
@@ -659,6 +660,9 @@ export default function App() {
   };
 
   const handleContinueAsGuest = (dept: Department = 'CSE') => {
+    if (GUEST_LOGIN_DISABLED) {
+      return;
+    }
     setAuthError("");
     setGuestDepartment(dept);
     setGuestMode(true);
@@ -702,8 +706,8 @@ export default function App() {
       <AuthScreen
         configurationError={
           firebaseValidationError
-            ? `Configuration error: ${firebaseValidationError}. Sign-in is unavailable, but you can continue as a guest.`
-            : "Firebase is not configured. Account sign-in is unavailable, but you can continue as a guest."
+            ? `Configuration error: ${firebaseValidationError}. Sign-in is unavailable.`
+            : "Firebase is not configured. Account sign-in is unavailable."
         }
         forceGoogleAccountSelection={forceGoogleAccountSelection}
         onContinueAsGuest={handleContinueAsGuest}
@@ -2555,6 +2559,7 @@ function AuthenticatedApp({
           setShowCredits(false);
           setIsMobileCoursesOpen((open) => !open);
         }}
+        onLogout={handleProfileLogout}
         coursesButtonRef={mobileCoursesButtonRef}
         swipeOffset={swipeColOffset}
       />
