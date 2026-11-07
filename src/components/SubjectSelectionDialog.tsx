@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Check, BookOpen } from 'lucide-react';
+import { X, Check, BookOpen, Search } from 'lucide-react';
 import { CourseType } from '../types';
 import { acquireOverlayScrollLock } from './TourErrorBoundary';
 
@@ -4626,21 +4626,29 @@ export const SubjectSelectionDialog: React.FC<SubjectSelectionDialogProps> = ({
 
   useEffect(() => {
     if (!isOpen) return;
+    setSearchQuery('');
     const releaseScrollLock = acquireOverlayScrollLock();
     return () => {
       releaseScrollLock();
     };
   }, [isOpen]);
 
+  const [searchQuery, setSearchQuery] = useState('');
+
   const electiveSlots = activeElectiveSlots[selectedSemester] ?? [];
-  const filteredCourses = activePresets.filter((course) =>
+  const slotCourses = activePresets.filter((course) =>
     course.semester === selectedSemester &&
     course.group === 'elective' &&
     course.electiveSlot === selectedElectiveSlot
   );
+  const filteredCourses = slotCourses.filter((course) => {
+    if (!searchQuery.trim()) return true;
+    return course.name.toLowerCase().includes(searchQuery.trim().toLowerCase());
+  });
 
   const handleSemesterChange = (nextSemester: SemesterNumber) => {
     setSelectedSemester(nextSemester);
+    setSearchQuery('');
     const nextSlots = activeElectiveSlots[nextSemester] ?? [];
     const nextDefaultSlot = nextSlots[0] ?? null;
     const nextDefaultCourse = activePresets.find(
@@ -4730,6 +4738,7 @@ export const SubjectSelectionDialog: React.FC<SubjectSelectionDialogProps> = ({
                     type="button"
                     onClick={() => {
                       setSelectedElectiveSlot(slot);
+                      setSearchQuery('');
                       const firstOption = activePresets.find(
                         (course) => course.semester === selectedSemester && course.group === 'elective' && course.electiveSlot === slot
                       );
@@ -4749,13 +4758,48 @@ export const SubjectSelectionDialog: React.FC<SubjectSelectionDialogProps> = ({
           </div>
         )}
 
+        {/* Search Input for Electives */}
+        <div className="border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-[#1c1c20] px-4 sm:px-5 py-2.5">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" aria-hidden="true" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search electives…"
+              className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#161618] py-2 pl-9 pr-9 text-xs sm:text-sm font-medium text-[#172554] dark:text-[#f1f1f3] placeholder:text-slate-400 focus:border-[#172554] dark:focus:border-[#e08564] focus:outline-none focus:ring-1 focus:ring-[#172554] dark:focus:ring-[#e08564] transition-colors"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer rounded-full"
+                aria-label="Clear search"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+        </div>
+
         {/* Dialog Body - Modern course selection cards */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-2">
           {filteredCourses.length === 0 ? (
             <div className="py-10 text-center">
               <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                No elective courses found for {selectedElectiveSlot || `Semester ${selectedSemester}`}.
+                {searchQuery.trim()
+                  ? `No electives found matching "${searchQuery.trim()}".`
+                  : `No elective courses found for ${selectedElectiveSlot || `Semester ${selectedSemester}`}.`}
               </p>
+              {searchQuery.trim() && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="mt-2 text-xs font-bold text-[#172554] dark:text-[#e08564] hover:underline cursor-pointer"
+                >
+                  Clear search
+                </button>
+              )}
             </div>
           ) : (
             filteredCourses.map((course) => {
@@ -4776,16 +4820,6 @@ export const SubjectSelectionDialog: React.FC<SubjectSelectionDialogProps> = ({
                     <span className="block text-xs sm:text-sm font-bold text-[#172554] dark:text-[#f1f1f3] leading-snug break-words">
                       {course.name}
                     </span>
-                    <div className="mt-1 flex items-center gap-1.5 flex-wrap">
-                      {course.code && (
-                        <span className="rounded bg-slate-100 dark:bg-[#29292e] px-1.5 py-0.5 text-[10px] font-bold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-mono">
-                          {course.code}
-                        </span>
-                      )}
-                      <span className="rounded bg-blue-100/70 dark:bg-[#29292e] px-1.5 py-0.5 text-[10px] font-bold text-blue-900 dark:text-slate-300 border border-blue-200/50 dark:border-slate-700 font-numeric tabular-nums">
-                        {course.type}
-                      </span>
-                    </div>
                   </div>
 
                   <div

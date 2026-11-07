@@ -422,11 +422,6 @@ const MobileCoursesSheetBody: React.FC<MobileCoursesSheetProps> = ({
               <span className="mt-0.5 block truncate text-sm font-bold text-[#172554] dark:text-[#f1f1f3]">
                 {course?.name ?? 'Choose elective'}
               </span>
-              {course && (course.code || course.type) && (
-                <span className="mt-0.5 block text-[11px] text-slate-500 dark:text-slate-400">
-                  {course.code}{course.code && course.type ? ' · ' : ''}{course.type}
-                </span>
-              )}
             </span>
             {course ? (
               <ProgressIndicator progress={progress} />
@@ -490,9 +485,6 @@ const MobileCoursesSheetBody: React.FC<MobileCoursesSheetProps> = ({
                       <span className="min-w-0">
                         <span className="block truncate text-xs font-bold text-[#172554] dark:text-[#f1f1f3]">
                           {option.name}
-                        </span>
-                        <span className="block text-[10px] text-slate-500 dark:text-slate-400">
-                          {option.code} · {option.type}
                         </span>
                       </span>
 

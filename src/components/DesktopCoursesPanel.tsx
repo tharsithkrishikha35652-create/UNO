@@ -124,11 +124,6 @@ export const DesktopCoursesPanel: React.FC<DesktopCoursesPanelProps> = ({
               <span className="mt-0.5 block truncate text-sm font-bold text-[#172554]">
                 {course?.name ?? 'Choose elective'}
               </span>
-              {course && (course.code || course.type) && (
-                <span className="mt-1 block truncate text-xs text-slate-500">
-                  {course.code}{course.code && course.type ? ' · ' : ''}{course.type}
-                </span>
-              )}
             </span>
             {course ? (
               <CourseProgressStatus progress={progress} />
@@ -183,7 +178,6 @@ export const DesktopCoursesPanel: React.FC<DesktopCoursesPanelProps> = ({
                     >
                       <span className="min-w-0">
                         <span className="block truncate text-sm font-semibold text-[#172554]">{option.name}</span>
-                        <span className="mt-0.5 block text-xs text-slate-500">{option.code} · {option.type}</span>
                       </span>
                       {isSelectedInThisSlot ? (
                         <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#172554] text-white">

@@ -5,7 +5,7 @@ import React, {
   useRef,
   useCallback,
 } from "react";
-import { getRedirectResult, onAuthStateChanged, signOut, type User } from "firebase/auth";
+import { onAuthStateChanged, signOut, type User } from "firebase/auth";
 import { Capacitor } from "@capacitor/core";
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
 import { App as CapacitorApp } from "@capacitor/app";
@@ -72,7 +72,7 @@ import darkScholarBg from "./assets/dark-scholar-bg.png";
 import warmScholarBg from "./assets/warm-scholar-bg.png";
 import { CGPAHub } from "./components/CGPAHub";
 import { GPA_COURSES, getGpaCourses, getAllGpaCourses } from "./gpaCourses";
-import { AuthScreen } from "./components/AuthScreen";
+import { AuthScreen, GOOGLE_REDIRECT_PENDING_KEY } from "./components/AuthScreen";
 import { FeedbackHub } from "./components/FeedbackHub";
 import { CreditsScreen } from "./components/CreditsScreen";
 import { ForceUpdateScreen } from "./components/ForceUpdateScreen";
@@ -592,14 +592,21 @@ export default function App() {
       setAuthResolved(true);
       return;
     }
-    getRedirectResult(auth).catch((error) => {
-      console.warn("Unable to process redirect sign-in result:", error);
-    });
-    return onAuthStateChanged(
+    const authResolutionTimeout = window.setTimeout(() => {
+      console.warn(
+        "Firebase authentication state did not resolve in time; showing the sign-in screen."
+      );
+      setAuthResolved(true);
+    }, 10000);
+    const unsubscribe = onAuthStateChanged(
       auth,
       (nextUser) => {
+        window.clearTimeout(authResolutionTimeout);
         setUser(nextUser);
         if (nextUser) {
+          try {
+            window.sessionStorage.removeItem(GOOGLE_REDIRECT_PENDING_KEY);
+          } catch {}
           setForceGoogleAccountSelection(false);
           try {
             window.localStorage.removeItem(GOOGLE_ACCOUNT_SELECTION_STORE_ID);
@@ -615,6 +622,7 @@ export default function App() {
         setSignOutPending(false);
       },
       (error) => {
+        window.clearTimeout(authResolutionTimeout);
         console.error("Unable to resolve authentication state:", error);
         setAuthError(
           "Could not verify your sign-in state. Check your connection and reload the page."
@@ -622,6 +630,10 @@ export default function App() {
         setAuthResolved(true);
       }
     );
+    return () => {
+      window.clearTimeout(authResolutionTimeout);
+      unsubscribe();
+    };
   }, []);
 
   const handleSignOut = async () => {
@@ -2103,8 +2115,23 @@ function AuthenticatedApp({
     if (selectedSemester === null) return [];
     return subjects
       .filter((subject) => {
-        if (!subject.name.trim() || findPresetForSubject(subject)) return false;
-        const courseSemester = getSubjectSemester(subject);
+        if (
+          !subject.name.trim() ||
+          findPresetForSubject(subject, currentDepartment)
+        ) {
+          return false;
+        }
+        const isElectivePlaceholder = deptGpaCourses.some((course) => {
+          if (!course.electiveSlot) return false;
+          const matchesCode = Boolean(course.code) &&
+            subject.code.trim().toUpperCase() === course.code.trim().toUpperCase();
+          const matchesName =
+            subject.name.trim().toLowerCase() === course.name.trim().toLowerCase();
+          return matchesCode || matchesName;
+        });
+        if (isElectivePlaceholder) return false;
+
+        const courseSemester = getSubjectSemester(subject, currentDepartment);
         if (courseSemester !== null) {
           return courseSemester === selectedSemester;
         }
@@ -2114,7 +2141,13 @@ function AuthenticatedApp({
         subject,
         progress: getCourseProgress(subject, calculatedSignatures),
       }));
-  }, [subjects, calculatedSignatures, selectedSemester]);
+  }, [
+    subjects,
+    calculatedSignatures,
+    selectedSemester,
+    currentDepartment,
+    deptGpaCourses,
+  ]);
 
   const courseFlow = useMemo(
     () => [
@@ -2559,7 +2592,6 @@ function AuthenticatedApp({
           setShowCredits(false);
           setIsMobileCoursesOpen((open) => !open);
         }}
-        onLogout={handleProfileLogout}
         coursesButtonRef={mobileCoursesButtonRef}
         swipeOffset={swipeColOffset}
       />

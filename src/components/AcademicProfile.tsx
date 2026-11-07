@@ -502,7 +502,7 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
           </div>
         </header>
 
-        <div className="min-h-0 flex-1 overflow-y-auto custom-department-scrollbar p-4 sm:p-5 space-y-4 pb-[calc(1.5rem+var(--safe-area-bottom))]">
+        <div className="min-h-0 flex-1 overflow-y-auto custom-department-scrollbar p-4 sm:p-5 space-y-4 pb-[calc(1.5rem+max(var(--safe-area-bottom),3.5rem))] sm:pb-6">
           {editing ? (
             <AcademicProfileForm
               profile={profile}
@@ -689,14 +689,14 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
           )}
         </div>
 
-        {/* 10. Logout at the bottom with subtle red styling */}
+        {/* 10. Logout at the bottom with safe-area spacing above mobile 3-button navigation */}
         {!editing && (
-          <footer className="shrink-0 border-t border-slate-200 bg-white p-4">
+          <footer className="shrink-0 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#161618] p-4 pb-[calc(1rem+max(var(--safe-area-bottom),3.5rem))] sm:pb-4">
             <button
               type="button"
               onClick={onLogout}
               disabled={logoutPending}
-              className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-rose-300 bg-rose-50/70 px-4 py-2.5 text-xs font-bold text-rose-600 hover:bg-rose-100 transition-colors disabled:cursor-wait disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-rose-500"
+              className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-rose-300 dark:border-rose-900/60 bg-rose-50/70 dark:bg-rose-950/30 px-4 py-2.5 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors disabled:cursor-wait disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-rose-500 cursor-pointer"
             >
               {logoutPending
                 ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" />

@@ -217,10 +217,10 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
               layout="position"
             >
               <div
-                className={`group flex min-h-[3.25rem] w-full items-center justify-between gap-3 rounded-xl border p-3 text-left transition-all shadow-xs ${
+                className={`group flex min-h-[3.25rem] w-full items-center justify-between gap-2.5 rounded-xl border p-2 sm:p-2.5 text-left transition-all shadow-xs ${
                   isSelected
                     ? 'border-[#172554] bg-[#172554] text-white shadow-sm'
-                    : 'border-slate-300 bg-white text-[#172554] hover:border-[#172554]'
+                    : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-[#161618] text-[#172554] dark:text-[#f1f1f3] hover:border-[#172554]'
                 }`}
               >
                 <button
@@ -229,35 +229,33 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
                   aria-pressed={isSelected}
                   aria-label={`${slot}${course ? `: ${course.name}` : ', choose course'}${course ? `, ${progress}` : ''}`}
                   title={course ? `${slot}: ${course.name} — ${progress}` : `${slot}: choose an option`}
-                  className="min-w-0 flex-1 text-left cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#172554]"
+                  className={`min-w-0 flex-1 rounded-xl px-3 py-2 text-left cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#172554] ${
+                    isSelected
+                      ? 'bg-white/10 text-white'
+                      : 'bg-slate-100/80 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800/80 text-[#172554] dark:text-[#f1f1f3]'
+                  }`}
                 >
-                  <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                  <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
                     <span
-                      className={`inline-block text-[10px] font-bold tracking-wide uppercase ${
-                        isSelected ? 'text-blue-100/90' : 'text-slate-500'
+                      className={`inline-block text-[10px] font-bold tracking-wider uppercase ${
+                        isSelected ? 'text-blue-100/90' : 'text-slate-500 dark:text-slate-400'
                       }`}
                     >
                       {slot}
                     </span>
-                    {course?.code && (
-                      <span
-                        className={`inline-block text-[10px] font-bold font-mono ${
-                          isSelected ? 'text-blue-200/80' : 'text-slate-400'
-                        }`}
-                      >
-                        · {course.code}
-                      </span>
-                    )}
                   </div>
                   <span
-                    className={`block text-xs sm:text-sm font-bold leading-snug break-words whitespace-normal ${
-                      !course ? 'italic font-medium text-slate-500' : ''
+                    className={`block text-xs sm:text-sm leading-snug break-words whitespace-normal ${
+                      !course
+                        ? 'italic font-medium text-slate-500 dark:text-slate-400'
+                        : 'font-bold'
                     }`}
                   >
                     {course ? course.name : 'Choose elective course…'}
                   </span>
                 </button>
-                <div className="shrink-0 flex items-center gap-2 pl-1.5">
+
+                <div className="shrink-0 flex items-center gap-2 pl-1 pr-0.5">
                   {course ? (
                     <>
                       <ProgressMark progress={progress} isSelected={isSelected} />
@@ -271,8 +269,8 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
                         title={`Change ${slot} course`}
                         className={`flex h-8 w-8 items-center justify-center rounded-lg border transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-[#172554] ${
                           isSelected
-                            ? 'border-white/30 text-white/90 hover:bg-white/15'
-                            : 'border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-[#172554]'
+                            ? 'border-white/30 bg-white/10 text-white/90 hover:bg-white/20'
+                            : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-[#172554] hover:text-[#172554] shadow-xs'
                         }`}
                       >
                         <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
@@ -284,14 +282,14 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
                       onClick={() => onSelectElective(slot)}
                       aria-label={`Choose course for ${slot}`}
                       title={`Choose course for ${slot}`}
-                      className={`flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-bold transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-[#172554] ${
+                      className={`inline-flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-bold transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-[#172554] ${
                         isSelected
-                          ? 'border-white/30 text-white hover:bg-white/15'
-                          : 'border-slate-300 text-slate-700 hover:bg-slate-50'
+                          ? 'border-white/30 bg-white/10 text-white hover:bg-white/20'
+                          : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 shadow-xs'
                       }`}
                     >
-                      <BookOpen className="h-3.5 w-3.5 text-slate-400" aria-hidden="true" />
-                      <span className="text-[11px]">Choose</span>
+                      <BookOpen className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" aria-hidden="true" />
+                      <span className="text-[11px] font-bold">Choose</span>
                     </button>
                   )}
                 </div>

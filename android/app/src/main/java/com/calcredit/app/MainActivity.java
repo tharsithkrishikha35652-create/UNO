@@ -58,6 +58,12 @@ public class MainActivity extends BridgeActivity {
             statusBarHeight = getResources().getDimensionPixelSize(resourceId);
         }
 
+        int navBarHeight = 0;
+        int navResourceId = getResources().getIdentifier("navigation_bar_height", "dimen", "android");
+        if (navResourceId > 0) {
+            navBarHeight = getResources().getDimensionPixelSize(navResourceId);
+        }
+
         View decorView = getWindow().getDecorView();
         WindowInsetsCompat rootInsets = ViewCompat.getRootWindowInsets(decorView);
         if (rootInsets != null) {
@@ -67,12 +73,20 @@ public class MainActivity extends BridgeActivity {
             if (insetsTop > 0) {
                 statusBarHeight = insetsTop;
             }
+            int insetsBottom = rootInsets.getInsets(
+                WindowInsetsCompat.Type.navigationBars() | WindowInsetsCompat.Type.displayCutout()
+            ).bottom;
+            if (insetsBottom > 0) {
+                navBarHeight = insetsBottom;
+            }
         }
 
         float density = getResources().getDisplayMetrics().density;
         int topDp = density > 0 && statusBarHeight > 0 ? Math.round(statusBarHeight / density) : 24;
+        int bottomDp = density > 0 && navBarHeight > 0 ? Math.round(navBarHeight / density) : 48;
 
-        String js = "document.documentElement.style.setProperty('--safe-area-inset-top', '" + topDp + "px');";
+        String js = "document.documentElement.style.setProperty('--safe-area-inset-top', '" + topDp + "px');" +
+                    "document.documentElement.style.setProperty('--safe-area-inset-bottom', '" + bottomDp + "px');";
         getBridge().getWebView().evaluateJavascript(js, null);
     }
 }

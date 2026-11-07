@@ -289,6 +289,17 @@ export default function LaunchSequence({ onDone, ready = true, forceFull = false
     else if (seen && !forceFull) play(1.6, D * Q); // returning user: quick cut (about 1.8 s)
     else play(1, 0);                               // first launch: full cut (3.8 s)
 
+    // A backgrounded WebView can throttle animation frames and leave the app
+    // hidden after the logo has finished. Never let the splash block sign-in.
+    timers.push(window.setTimeout(() => {
+      if (dead || closing) return;
+      cancelAnimationFrame(raf);
+      cur = T;
+      R(T);
+      finish();
+      close();
+    }, 8000));
+
     return () => {
       dead = true;
       restoreNow();

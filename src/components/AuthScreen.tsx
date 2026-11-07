@@ -30,7 +30,31 @@ interface AuthScreenProps {
 
 type AuthMode = 'login' | 'signup' | 'reset';
 
+export const GOOGLE_REDIRECT_PENDING_KEY = 'calcredit_google_redirect_pending';
+
 const GUEST_LOGIN_DISABLED = true;
+
+async function redirectWithGoogle(
+  authInstance: NonNullable<typeof auth>,
+  provider: GoogleAuthProvider
+) {
+  try {
+    window.sessionStorage.setItem(GOOGLE_REDIRECT_PENDING_KEY, 'true');
+  } catch {
+    // Redirect sign-in can still proceed when session storage is unavailable.
+  }
+
+  try {
+    await signInWithRedirect(authInstance, provider);
+  } catch (error) {
+    try {
+      window.sessionStorage.removeItem(GOOGLE_REDIRECT_PENDING_KEY);
+    } catch {
+      // Ignore storage cleanup failures.
+    }
+    throw error;
+  }
+}
 
 export function friendlyAuthError(error: unknown, provider: 'email' | 'google' = 'email', mode?: AuthMode): string {
   const code = typeof error === 'object' && error !== null && 'code' in error
@@ -188,15 +212,44 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
   }, [showGuestConfirmation, showGuestDeptModal]);
 
   useEffect(() => {
-    if (!auth) return;
-    getRedirectResult(auth).catch((redirectError) => {
-      const code = typeof redirectError === 'object' && redirectError !== null && 'code' in redirectError
-        ? String(redirectError.code)
-        : '';
-      if (code && code !== 'auth/null-user') {
-        setError(friendlyAuthError(redirectError, 'google'));
-      }
-    });
+    const authInstance = auth;
+    if (!authInstance) return;
+    let redirectPending = false;
+    try {
+      redirectPending =
+        window.sessionStorage.getItem(GOOGLE_REDIRECT_PENDING_KEY) === 'true';
+    } catch {
+      // A regular sign-in can continue when session storage is unavailable.
+    }
+
+    void getRedirectResult(authInstance)
+      .then((result) => {
+        if (!redirectPending) return;
+        if (result?.user || authInstance.currentUser) {
+          setError('');
+          setNotice('Google sign-in complete. Loading your account…');
+        } else {
+          setError(
+            'Google returned to CalCredit without completing sign-in. Please try again; if it repeats, check the Firebase authorized domain and Google provider settings.'
+          );
+        }
+      })
+      .catch((redirectError) => {
+        const code = typeof redirectError === 'object' && redirectError !== null && 'code' in redirectError
+          ? String(redirectError.code)
+          : '';
+        if (redirectPending || (code && code !== 'auth/null-user')) {
+          setError(friendlyAuthError(redirectError, 'google'));
+        }
+      })
+      .finally(() => {
+        if (!redirectPending) return;
+        try {
+          window.sessionStorage.removeItem(GOOGLE_REDIRECT_PENDING_KEY);
+        } catch {
+          // Ignore storage cleanup failures.
+        }
+      });
   }, []);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -280,7 +333,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
         }
         const isMobileWeb = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
         if (isMobileWeb) {
-          await signInWithRedirect(auth, provider);
+          await redirectWithGoogle(auth, provider);
           return;
         }
         try {
@@ -292,7 +345,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
               ? String(popupError.code)
               : '';
           if (popupCode === 'auth/popup-blocked') {
-            await signInWithRedirect(auth, provider);
+            await redirectWithGoogle(auth, provider);
             return;
           }
           throw popupError;
@@ -312,7 +365,17 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
         message.toLowerCase().includes('cancel') ||
         message.toLowerCase().includes('12501');
 
-      if (!isCancellation) {
+      logSecurityEvent('AUTH_LOGIN_FAILURE', 'warn', {
+        provider: 'google',
+        code,
+        platform: Capacitor.isNativePlatform() ? 'native' : 'web',
+      });
+
+      if (isCancellation) {
+        setError(
+          'Google sign-in ended before it completed. Try again and keep the sign-in window open.'
+        );
+      } else {
         setError(friendlyAuthError(authError, 'google'));
       }
     } finally {
