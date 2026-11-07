@@ -24,12 +24,10 @@ interface SemesterCourseDashboardProps {
   semester: number;
   courses: SemesterCourseRow[];
   electiveSlots: SemesterElectiveRow[];
-  otherCourses: Array<{ subject: SubjectData; progress: CourseProgress }>;
   selectedSubjectId: string;
   allCoursesCalculated: boolean;
   onSelectCourse: (course: PresetCourse) => void;
   onSelectElective: (slot: string) => void;
-  onSelectOtherCourse: (subject: SubjectData) => void;
   onCalculateGpa: () => void;
   estimatedGpa?: {
     gpa: number | null;
@@ -81,12 +79,10 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
   semester,
   courses,
   electiveSlots,
-  otherCourses,
   selectedSubjectId,
   allCoursesCalculated,
   onSelectCourse,
   onSelectElective,
-  onSelectOtherCourse,
   onCalculateGpa,
   estimatedGpa,
 }) => {
@@ -95,7 +91,6 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
   const courseProgress = [
     ...courses.map(({ progress }) => progress),
     ...electiveSlots.map(({ progress }) => progress),
-    ...otherCourses.map(({ progress }) => progress),
   ];
   const calculatedCount = courseProgress.filter((p) => p === 'Calculated' || p === 'Marks completed').length;
   const inProgressCount = courseProgress.filter((p) => p === 'Marks entered' || p === 'In progress' || p === 'Missing information').length;
@@ -294,54 +289,6 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
                   )}
                 </div>
               </div>
-            </motion.li>
-          );
-        })}
-
-        {otherCourses.map(({ subject, progress }, idx) => {
-          const isSelected = subject.id === selectedSubjectId;
-          const globalIdx = courses.length + electiveSlots.length + idx;
-          const isEven = globalIdx % 2 === 0;
-
-          return (
-            <motion.li
-              key={subject.id}
-              className={`w-[89%] ${isEven ? 'self-start mr-auto ml-0' : 'self-end ml-auto mr-0'} sm:w-full sm:m-0 sm:self-auto`}
-              variants={courseItemMotion}
-              layout="position"
-            >
-              <motion.button
-                type="button"
-                onClick={() => onSelectOtherCourse(subject)}
-                aria-pressed={isSelected}
-                aria-label={`${subject.name || 'Other course'}, ${progress}`}
-                title={`${subject.name || 'Other course'}${subject.code ? ` · ${subject.code}` : ''} — ${progress}`}
-                className={`flex min-h-[3.25rem] w-full items-center justify-between gap-3 rounded-xl border p-3 text-left transition-all focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#172554] cursor-pointer shadow-xs ${
-                  isSelected
-                    ? 'border-[#172554] bg-[#172554] text-white shadow-sm'
-                    : 'border-slate-300 bg-white text-[#172554] hover:border-[#172554] hover:bg-slate-50'
-                }`}
-                animate={{ scale: isSelected && !reduceMotion ? 1.01 : 1 }}
-                transition={transitions.feedback}
-              >
-                <div className="min-w-0 flex-1">
-                  {subject.code && (
-                    <span
-                      className={`block text-[10px] font-bold font-mono mb-0.5 ${
-                        isSelected ? 'text-blue-100/80' : 'text-slate-500'
-                      }`}
-                    >
-                      {subject.code}
-                    </span>
-                  )}
-                  <span className="block text-xs sm:text-sm font-bold leading-snug break-words whitespace-normal">
-                    {subject.name || 'Other course'}
-                  </span>
-                </div>
-                <div className="shrink-0 flex items-center gap-1.5 pl-2">
-                  <ProgressMark progress={progress} isSelected={isSelected} />
-                </div>
-              </motion.button>
             </motion.li>
           );
         })}

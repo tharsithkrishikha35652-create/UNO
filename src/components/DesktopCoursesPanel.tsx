@@ -3,7 +3,6 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { transitions } from '../motion';
 import { AlertCircle, BookOpen, Check, CheckCircle2, Circle, GraduationCap, PencilLine, Search, X } from 'lucide-react';
 import { acknowledgeSelection } from '../haptics';
-import type { SubjectData } from '../types';
 import type { PresetCourse, SemesterNumber } from './SubjectSelectionDialog';
 import type {
   CourseProgress,
@@ -16,12 +15,10 @@ interface DesktopCoursesPanelProps {
   courses: SemesterCourseRow[];
   electiveSlots: SemesterElectiveRow[];
   electiveOptions: Record<string, PresetCourse[]>;
-  otherCourses: Array<{ subject: SubjectData; progress: CourseProgress }>;
   selectedSubjectId: string;
   allCoursesCalculated: boolean;
   onSelectCourse: (course: PresetCourse) => void;
   onSelectElective: (slot: string) => void;
-  onSelectOtherCourse: (subject: SubjectData) => void;
   onCalculateGpa: () => void;
 }
 
@@ -68,12 +65,10 @@ export const DesktopCoursesPanel: React.FC<DesktopCoursesPanelProps> = ({
   courses,
   electiveSlots,
   electiveOptions,
-  otherCourses,
   selectedSubjectId,
   allCoursesCalculated,
   onSelectCourse,
   onSelectElective,
-  onSelectOtherCourse,
   onCalculateGpa,
 }) => {
   const [expandedElectiveSlot, setExpandedElectiveSlot] = useState<string | null>(null);
@@ -94,7 +89,7 @@ export const DesktopCoursesPanel: React.FC<DesktopCoursesPanelProps> = ({
     );
   }
 
-  const courseCount = courses.length + electiveSlots.length + otherCourses.length;
+  const courseCount = courses.length + electiveSlots.length;
   const professionalElectiveSlots = electiveSlots.filter(
     (entry) => !entry.slot.toLowerCase().includes('open')
   );
@@ -313,33 +308,6 @@ export const DesktopCoursesPanel: React.FC<DesktopCoursesPanelProps> = ({
           </section>
         )}
 
-        {/* Other courses */}
-        {otherCourses.length > 0 && (
-          <section aria-labelledby="desktop-other-courses-title">
-            <h2 id="desktop-other-courses-title" className="mb-2 text-xs font-black text-slate-600">
-              Other Courses
-            </h2>
-            <ul className="divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white overflow-hidden">
-              {otherCourses.map(({ subject, progress }) => (
-                <li key={subject.id}>
-                  <button
-                    type="button"
-                    onClick={() => { acknowledgeSelection(); onSelectOtherCourse(subject); }}
-                    aria-pressed={subject.id === selectedSubjectId}
-                    className={`flex min-h-14 w-full items-center justify-between gap-4 px-4 py-3 text-left transition-colors focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[#172554] ${
-                      subject.id === selectedSubjectId ? 'bg-blue-50/80' : 'hover:bg-slate-50'
-                    }`}
-                  >
-                    <span className="min-w-0">
-                      <span className="block truncate text-sm font-bold text-[#172554]">{subject.name || 'Other course'}</span>
-                    </span>
-                    <CourseProgressStatus progress={progress} />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
       </div>
 
       {allCoursesCalculated && (

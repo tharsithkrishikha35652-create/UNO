@@ -11,7 +11,6 @@ import {
   Search,
   X,
 } from 'lucide-react';
-import type { SubjectData } from '../types';
 import type { PresetCourse, SemesterNumber } from './SubjectSelectionDialog';
 import type {
   CourseProgress,
@@ -28,12 +27,10 @@ interface MobileCoursesSheetProps {
   courses: SemesterCourseRow[];
   electiveSlots: SemesterElectiveRow[];
   electiveOptions: Record<string, PresetCourse[]>;
-  otherCourses: Array<{ subject: SubjectData; progress: CourseProgress }>;
   selectedSubjectId: string;
   allCoursesCalculated: boolean;
   onClose: () => void;
   onSelectCourse: (course: PresetCourse) => void;
-  onSelectOtherCourse: (subject: SubjectData) => void;
   onCalculateGpa: () => void;
 }
 
@@ -87,11 +84,9 @@ const MobileCoursesSheetBody: React.FC<MobileCoursesSheetProps> = ({
   courses,
   electiveSlots,
   electiveOptions,
-  otherCourses,
   selectedSubjectId,
   onClose,
   onSelectCourse,
-  onSelectOtherCourse,
 }) => {
   const reduceMotion = useReducedMotion();
   const dialogRef = useRef<HTMLElement>(null);
@@ -377,12 +372,11 @@ const MobileCoursesSheetBody: React.FC<MobileCoursesSheetProps> = ({
     };
   }, [onClose, reduceMotion, sheetHeight, dragY]);
 
-  const courseCount = courses.length + electiveSlots.length + otherCourses.length;
+  const courseCount = courses.length + electiveSlots.length;
   const normalizedQuery = courseQuery.trim().toLowerCase();
   const matchesCourseQuery = (course?: { name?: string; code?: string }, label = '') =>
     !normalizedQuery || `${course?.name ?? ''} ${course?.code ?? ''} ${label}`.toLowerCase().includes(normalizedQuery);
   const visibleCourses = courses.filter(({ course }) => matchesCourseQuery(course));
-  const visibleOtherCourses = otherCourses.filter(({ subject }) => matchesCourseQuery(subject));
 
   const professionalElectiveSlots = electiveSlots.filter(
     (entry) => !entry.slot.toLowerCase().includes('open')
@@ -720,42 +714,7 @@ const MobileCoursesSheetBody: React.FC<MobileCoursesSheetProps> = ({
                   </section>
                 )}
 
-                {/* 4. Other courses */}
-                {visibleOtherCourses.length > 0 && (
-                  <section aria-labelledby="mobile-other-courses-heading">
-                    <h3 id="mobile-other-courses-heading" className="mb-2 text-xs font-black text-slate-600 dark:text-slate-400">
-                      Other Courses
-                    </h3>
-                    <ul className="divide-y divide-slate-200 dark:divide-slate-700 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#161618]">
-                      {visibleOtherCourses.map(({ subject, progress }) => (
-                        <li key={subject.id}>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              acknowledgeSelection();
-                              onSelectOtherCourse(subject);
-                            }}
-                            aria-pressed={subject.id === selectedSubjectId}
-                            className={`flex min-h-14 w-full items-center justify-between gap-3 px-3 py-2.5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[#172554] dark:focus-visible:outline-[#e08564] ${
-                              subject.id === selectedSubjectId
-                                ? 'bg-blue-50/80 dark:bg-blue-950/40'
-                                : 'hover:bg-slate-50 dark:hover:bg-[#202024]'
-                            }`}
-                          >
-                            <span className="min-w-0">
-                              <span className="block truncate text-sm font-bold text-[#172554] dark:text-[#f1f1f3]">
-                                {subject.name}
-                              </span>
-                            </span>
-                            <ProgressIndicator progress={progress} />
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  </section>
-                )}
-
-                {normalizedQuery && visibleCourses.length === 0 && visibleOtherCourses.length === 0 &&
+                {normalizedQuery && visibleCourses.length === 0 &&
                   electiveSlots.every(({ course, slot }) => !matchesCourseQuery(course ?? undefined, slot)) && (
                   <p className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#161618] p-4 text-sm text-slate-700 dark:text-slate-300" role="status">
                     No courses match “{courseQuery.trim()}”.

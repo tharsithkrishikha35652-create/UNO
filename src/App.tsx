@@ -1665,26 +1665,6 @@ function AuthenticatedApp({
     document.body.scrollTop = 0;
   };
 
-  const handleOpenOtherCourse = (subject: SubjectData) => {
-    if (undoToast) {
-      setUndoToast(null);
-      if (undoTimeoutRef.current) window.clearTimeout(undoTimeoutRef.current);
-    }
-    acknowledgeSelection();
-    setCurrentSubjectId(subject.id);
-    const subSem = getSubjectSemester(subject, currentDepartment);
-    if (subSem !== null) {
-      setSelectedSemester(subSem as SemesterNumber);
-    }
-    setActiveTab("calculator");
-    setIsDesktopCoursesOpen(false);
-    setShowFeedbackHub(false);
-    setIsEditorOpen(true);
-    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
-  };
-
   const handleOpenElectivePicker = (slot: string) => {
     const activeElement = document.activeElement;
     dialogReturnFocusRef.current =
@@ -2210,44 +2190,6 @@ function AuthenticatedApp({
     [selectedSemester, deptElectiveSlots, deptPresets]
   );
 
-  const otherCourseRows = useMemo(() => {
-    if (selectedSemester === null) return [];
-    return subjects
-      .filter((subject) => {
-        if (
-          !subject.name.trim() ||
-          findPresetForSubject(subject, currentDepartment)
-        ) {
-          return false;
-        }
-        const isElectivePlaceholder = deptGpaCourses.some((course) => {
-          if (!course.electiveSlot) return false;
-          const matchesCode = Boolean(course.code) &&
-            subject.code.trim().toUpperCase() === course.code.trim().toUpperCase();
-          const matchesName =
-            subject.name.trim().toLowerCase() === course.name.trim().toLowerCase();
-          return matchesCode || matchesName;
-        });
-        if (isElectivePlaceholder) return false;
-
-        const courseSemester = getSubjectSemester(subject, currentDepartment);
-        if (courseSemester !== null) {
-          return courseSemester === selectedSemester;
-        }
-        return false;
-      })
-      .map((subject) => ({
-        subject,
-        progress: getCourseProgress(subject, calculatedSignatures),
-      }));
-  }, [
-    subjects,
-    calculatedSignatures,
-    selectedSemester,
-    currentDepartment,
-    deptGpaCourses,
-  ]);
-
   const courseFlow = useMemo(
     () => [
       ...semesterCourseRows.map((row) => ({
@@ -2261,12 +2203,8 @@ function AuthenticatedApp({
         subject: row.subject,
         slot: row.slot,
       })),
-      ...otherCourseRows.map((row) => ({
-        kind: "other" as const,
-        subject: row.subject,
-      })),
     ],
-    [semesterCourseRows, semesterElectiveRows, otherCourseRows]
+    [semesterCourseRows, semesterElectiveRows]
   );
   const currentCourseFlowIndex = courseFlow.findIndex(
     (item) => item.subject?.id === currentSubjectId
@@ -2296,8 +2234,6 @@ function AuthenticatedApp({
     if (nextCourseFlowItem.kind === "elective" && !nextCourseFlowItem.course) {
       setIsMobileCoursesOpen(false);
       handleOpenElectivePicker(nextCourseFlowItem.slot);
-    } else if (nextCourseFlowItem.kind === "other") {
-      handleOpenOtherCourse(nextCourseFlowItem.subject);
     } else if (nextCourseFlowItem.course) {
       handleOpenPresetCourse(nextCourseFlowItem.course);
     }
@@ -2848,12 +2784,10 @@ function AuthenticatedApp({
                       courses={semesterCourseRows}
                       electiveSlots={semesterElectiveRows}
                       electiveOptions={mobileElectiveOptions}
-                      otherCourses={otherCourseRows}
                       selectedSubjectId={isEditorOpen ? currentSubjectId : ""}
                       allCoursesCalculated={allSemesterCoursesCalculated}
                       onSelectCourse={handleOpenPresetCourse}
                       onSelectElective={handleOpenElectivePicker}
-                      onSelectOtherCourse={handleOpenOtherCourse}
                       onCalculateGpa={() => {
                         setIsDesktopCoursesOpen(false);
                         setActiveTab("gpa");
@@ -2885,12 +2819,10 @@ function AuthenticatedApp({
                             semester={selectedSemester}
                             courses={semesterCourseRows}
                             electiveSlots={semesterElectiveRows}
-                            otherCourses={otherCourseRows}
                             selectedSubjectId={isEditorOpen ? currentSubjectId : ""}
                             allCoursesCalculated={allSemesterCoursesCalculated}
                             onSelectCourse={handleOpenPresetCourse}
                             onSelectElective={handleOpenElectivePicker}
-                            onSelectOtherCourse={handleOpenOtherCourse}
                             onCalculateGpa={() => setActiveTab("gpa")}
                             estimatedGpa={calculateEstimatedSemesterGpa(selectedSemester, subjects, currentDepartment)}
                           />
@@ -3759,17 +3691,12 @@ function AuthenticatedApp({
         courses={semesterCourseRows}
         electiveSlots={semesterElectiveRows}
         electiveOptions={mobileElectiveOptions}
-        otherCourses={otherCourseRows}
         selectedSubjectId={isEditorOpen ? currentSubjectId : ""}
         allCoursesCalculated={allSemesterCoursesCalculated}
         onClose={closeMobileCourses}
         onSelectCourse={(course) => {
           setIsMobileCoursesOpen(false);
           handleOpenPresetCourse(course);
-        }}
-        onSelectOtherCourse={(subject) => {
-          setIsMobileCoursesOpen(false);
-          handleOpenOtherCourse(subject);
         }}
         onCalculateGpa={() => {
           setIsMobileCoursesOpen(false);
