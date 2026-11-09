@@ -9,6 +9,7 @@ import {
 } from '../src/securityLogger';
 import { FEEDBACK_CATEGORIES } from '../src/firebaseData';
 import { friendlyAuthError } from '../src/components/AuthScreen';
+import { validateEmail } from '../src/emailValidation';
 
 describe('Security Hardening Test Suite', () => {
   beforeEach(() => {
@@ -80,6 +81,16 @@ describe('Security Hardening Test Suite', () => {
 
       // Other operational errors (e.g. rate limit / network) should still throw
       expect(() => handlePasswordReset({ code: 'auth/too-many-requests' })).toThrow();
+    });
+
+    it('strictly enforces email domain requirements, rejecting dummy domains like 123@356.com', () => {
+      expect(validateEmail('123@356.com').isValid).toBe(false);
+      expect(validateEmail('user@randomfake123.xyz').isValid).toBe(false);
+      expect(validateEmail('student@gmail.com').isValid).toBe(true);
+      expect(validateEmail('student@outlook.com').isValid).toBe(true);
+      expect(validateEmail('student@yahoo.in').isValid).toBe(true);
+      expect(validateEmail('student@annauniv.edu').isValid).toBe(true);
+      expect(validateEmail('student@ceg.ac.in').isValid).toBe(true);
     });
   });
 

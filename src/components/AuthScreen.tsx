@@ -6,6 +6,7 @@ import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
   getRedirectResult,
+  sendEmailVerification,
   sendPasswordResetEmail,
   signInWithCredential,
   signInWithEmailAndPassword,
@@ -15,6 +16,7 @@ import {
 import { AlertCircle, BookOpen, Check, Eye, EyeOff, LoaderCircle, Search, X } from 'lucide-react';
 import { auth } from '../firebase';
 import { logSecurityEvent, maskEmail } from '../securityLogger';
+import { validateEmail } from '../emailValidation';
 import { ThemeToggle, type AppTheme } from './ThemeToggle';
 import { motionVariants } from '../motion';
 import CalCreditLogo from './CalCreditLogo';
@@ -259,6 +261,18 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
     setError('');
     setNotice('');
     try {
+      const emailValidation = validateEmail(email);
+      if (!emailValidation.isValid) {
+        logSecurityEvent('INPUT_VALIDATION_FAILURE', 'warn', {
+          context: 'untrusted_or_invalid_email',
+          email: maskEmail(email),
+        });
+        setError(emailValidation.error || 'Please enter a valid email address.');
+        setBusy(false);
+        return;
+      }
+      const cleanEmail = emailValidation.normalizedEmail!;
+
       if (mode === 'signup') {
         if (password.length < 8) {
           logSecurityEvent('INPUT_VALIDATION_FAILURE', 'warn', { context: 'signup_password_too_short' });
@@ -272,25 +286,32 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
           setBusy(false);
           return;
         }
-        await createUserWithEmailAndPassword(auth, email.trim(), password);
-        logSecurityEvent('AUTH_SIGNUP_SUCCESS', 'info', { email: maskEmail(email) });
+        const userCredential = await createUserWithEmailAndPassword(auth, cleanEmail, password);
+        if (userCredential?.user) {
+          try {
+            await sendEmailVerification(userCredential.user);
+          } catch {
+            // Optional verification link failure should not abort signup
+          }
+        }
+        logSecurityEvent('AUTH_SIGNUP_SUCCESS', 'info', { email: maskEmail(cleanEmail) });
       } else if (mode === 'login') {
-        await signInWithEmailAndPassword(auth, email.trim(), password);
-        logSecurityEvent('AUTH_LOGIN_SUCCESS', 'info', { email: maskEmail(email) });
+        await signInWithEmailAndPassword(auth, cleanEmail, password);
+        logSecurityEvent('AUTH_LOGIN_SUCCESS', 'info', { email: maskEmail(cleanEmail) });
       } else {
         try {
-          await sendPasswordResetEmail(auth, email.trim());
-          logSecurityEvent('AUTH_PASSWORD_RESET_REQUESTED', 'info', { email: maskEmail(email) });
+          await sendPasswordResetEmail(auth, cleanEmail);
+          logSecurityEvent('AUTH_PASSWORD_RESET_REQUESTED', 'info', { email: maskEmail(cleanEmail) });
         } catch (resetError) {
           const code = typeof resetError === 'object' && resetError !== null && 'code' in resetError
             ? String(resetError.code)
             : '';
           // Return identical response for non-existent users to prevent user enumeration
           if (code !== 'auth/user-not-found') {
-            logSecurityEvent('AUTH_PASSWORD_RESET_FAILURE', 'warn', { code, email: maskEmail(email) });
+            logSecurityEvent('AUTH_PASSWORD_RESET_FAILURE', 'warn', { code, email: maskEmail(cleanEmail) });
             throw resetError;
           }
-          logSecurityEvent('AUTH_PASSWORD_RESET_REQUESTED', 'info', { email: maskEmail(email), enumerated: false });
+          logSecurityEvent('AUTH_PASSWORD_RESET_REQUESTED', 'info', { email: maskEmail(cleanEmail), enumerated: false });
         }
         setNotice('If an account exists for this email, a password reset link has been sent. Check your inbox.');
       }
@@ -456,8 +477,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm focus:border-[#172554]"
-                  placeholder="you@example.com"
+                  placeholder="you@gmail.com, you@outlook.com, etc."
                 />
+                <span className="mt-1 block text-[11px] text-slate-500">
+                  Accepted: Google, Microsoft, Yahoo, Apple, Zoho, Proton, or college (.edu, .ac.in) email.
+                </span>
               </label>
 
               {mode !== 'reset' && (
