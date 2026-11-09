@@ -347,7 +347,7 @@ interface AcademicSetupScreenProps extends Omit<AcademicProfileFormProps, 'submi
 }
 
 export const AcademicSetupScreen: React.FC<AcademicSetupScreenProps> = ({ theme, onToggleTheme, ...props }) => (
-  <main className="min-h-screen bg-transparent px-4 py-8 pt-[calc(2rem+var(--safe-area-top))] pb-[calc(2rem+var(--safe-area-bottom))] text-slate-900 sm:px-6 sm:py-12">
+  <main className="min-h-screen bg-transparent px-4 py-8 pt-[calc(2rem+var(--safe-area-top))] pb-[calc(2rem+var(--safe-area-bottom))] transition-[padding] duration-300 ease-out text-slate-900 sm:px-6 sm:py-12">
     <section className="mx-auto w-full max-w-xl rounded-2xl border border-slate-300 bg-white p-5 shadow-sm sm:p-8">
       <div className="mb-7 flex items-start justify-between gap-3 border-b border-slate-200 pb-5">
         <div className="flex min-w-0 flex-col gap-2">
@@ -502,7 +502,7 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
           </div>
         </header>
 
-        <div className="min-h-0 flex-1 overflow-y-auto custom-department-scrollbar p-4 sm:p-5 space-y-4 pb-[calc(1.5rem+max(var(--safe-area-bottom),3.5rem))] sm:pb-6">
+        <div className="min-h-0 flex-1 overflow-y-auto custom-department-scrollbar p-4 sm:p-5 space-y-4 pb-[calc(1.5rem+var(--safe-area-bottom))] transition-[padding] duration-300 ease-out sm:pb-6">
           {editing ? (
             <AcademicProfileForm
               profile={profile}
@@ -689,9 +689,9 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
           )}
         </div>
 
-        {/* 10. Logout at the bottom with safe-area spacing above mobile 3-button navigation */}
+        {/* 10. Logout at the bottom with safe-area spacing elevated only for mobile 3-button navigation */}
         {!editing && (
-          <footer className="shrink-0 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#161618] p-4 pb-[calc(1rem+max(var(--safe-area-bottom),3.5rem))] sm:pb-4">
+          <footer className="shrink-0 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#161618] p-4 pb-[calc(1rem+var(--safe-area-bottom))] transition-[padding] duration-300 ease-out sm:pb-4">
             <button
               type="button"
               onClick={onLogout}

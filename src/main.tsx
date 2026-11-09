@@ -16,9 +16,10 @@ if (typeof window !== 'undefined') {
         document.documentElement.style.setProperty('--safe-area-inset-top', '24px');
       }
       const currentBottom = document.documentElement.style.getPropertyValue('--safe-area-inset-bottom');
-      if (!currentBottom || currentBottom === '0px' || currentBottom.trim() === '') {
-        // Default standard Android 3-button navigation bar height in dp (48px) until exact WindowInsets are reported by MainActivity
-        document.documentElement.style.setProperty('--safe-area-inset-bottom', '48px');
+      if (!currentBottom || currentBottom.trim() === '') {
+        // Default to 0px so gesture navigation, web, and non-native views remain flush at the bottom.
+        // MainActivity dynamically injects the bottom inset only when 3-button navigation is active.
+        document.documentElement.style.setProperty('--safe-area-inset-bottom', '0px');
       }
     }
   } catch {

@@ -2635,7 +2635,7 @@ function AuthenticatedApp({
         <div
           role="status"
           aria-live="polite"
-          className="fixed inset-x-4 bottom-[calc(5.25rem+env(safe-area-inset-bottom))] z-50 mx-auto flex max-w-md items-center justify-between gap-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white/95 dark:bg-[#202024]/95 p-3.5 shadow-lg backdrop-blur-sm"
+          className="fixed inset-x-4 bottom-[calc(5.25rem+var(--safe-area-bottom))] z-50 mx-auto flex max-w-md items-center justify-between gap-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white/95 dark:bg-[#202024]/95 p-3.5 shadow-lg backdrop-blur-sm transition-[bottom] duration-300 ease-out"
         >
           <span className="truncate text-xs font-semibold text-slate-700 dark:text-slate-300">
             {undoToast.message}
@@ -2664,7 +2664,7 @@ function AuthenticatedApp({
         <div
           className={`fixed inset-x-3 z-[100] flex items-start justify-between gap-3 rounded-xl border border-rose-300 bg-rose-50 p-3 text-sm text-rose-900 shadow-lg sm:inset-x-auto sm:right-6 sm:w-[min(28rem,calc(100vw-3rem))] ${
             isErrorDismissing ? "toast-exit-lr pointer-events-none" : "toast-in"
-          } bottom-[calc(6.25rem+env(safe-area-inset-bottom))] md:bottom-6`}
+          } bottom-[calc(6.25rem+var(--safe-area-bottom))] md:bottom-6 transition-[bottom] duration-300 ease-out`}
           role="alert"
           aria-live="assertive"
         >
@@ -2680,7 +2680,7 @@ function AuthenticatedApp({
       )}
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-[calc(7.5rem+env(safe-area-inset-bottom))] md:pb-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-[calc(7.5rem+var(--safe-area-bottom))] md:pb-8 transition-[padding] duration-300 ease-out">
         {signOutError && (
           <div
             className="mb-5 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-900"
