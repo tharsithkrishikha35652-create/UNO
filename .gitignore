@@ -34,6 +34,7 @@ firebase-debug.log
 *.patch
 scratch/
 *.zip
+syllabi/
 
 # Keystore files and signing credentials
 *.jks
