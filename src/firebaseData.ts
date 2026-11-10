@@ -17,6 +17,7 @@ import { logSecurityEvent } from './securityLogger';
 import { GPA_COURSES, getAllGpaCourses } from './gpaCourses';
 import { PRESET_COURSES, getAllPresetCourses } from './components/SubjectSelectionDialog';
 import { isGhostPlaceholderCourse } from './calculatorUtils';
+import { stripUndefined } from './firestoreSerialization';
 
 export const FEEDBACK_CATEGORIES = ['General', 'Bug report', 'Suggestion', 'Other'] as const;
 export type FeedbackCategory = (typeof FEEDBACK_CATEGORIES)[number];
@@ -307,12 +308,12 @@ export async function saveUserAcademicProfile(
   const batch = writeBatch(firestore);
   batch.set(
     doc(firestore, 'users', uid, 'settings', 'profile'),
-    { ...profile, updatedAt: serverTimestamp() },
+    stripUndefined({ ...profile, updatedAt: serverTimestamp() }),
     { merge: true }
   );
   batch.set(
     doc(firestore, 'users', uid, 'settings', 'preferences'),
-    { ...preferences, updatedAt: serverTimestamp() },
+    stripUndefined({ ...preferences, updatedAt: serverTimestamp() }),
     { merge: true }
   );
   await batch.commit();
@@ -333,7 +334,7 @@ export async function syncUserSubjects(
     if (previousSnapshots.get(subject.id) === serialized) return;
     batch.set(
       doc(firestore, 'users', uid, 'subjects', subject.id),
-      { ...subject, credits: subjectCredits(subject), sortIndex, updatedAt: serverTimestamp() },
+      stripUndefined({ ...subject, credits: subjectCredits(subject), sortIndex, updatedAt: serverTimestamp() }),
       { merge: false }
     );
     operationCount += 1;
@@ -362,7 +363,7 @@ export async function saveUserPreferences(
 ) {
   await setDoc(
     userDocument(uid, 'settings', 'preferences'),
-    { ...preferences, updatedAt: serverTimestamp() },
+    stripUndefined({ ...preferences, updatedAt: serverTimestamp() }),
     { merge: true }
   );
 }
@@ -383,14 +384,14 @@ export async function saveCalculatedGrade(
 ) {
   await setDoc(
     userDocument(uid, 'gradeRecords', subject.id),
-    {
+    stripUndefined({
       ...record,
       subjectId: subject.id,
       subjectName: subject.name,
       subjectCode: subject.code,
       inputs: subject,
       calculatedAt: serverTimestamp(),
-    },
+    }),
     { merge: true }
   );
 }
@@ -399,17 +400,17 @@ export async function saveGpaHistory(uid: string, entry: GpaHistoryEntry) {
   const { id, ...record } = entry;
   await setDoc(
     userDocument(uid, 'gpaHistory', id),
-    { ...record, createdAt: serverTimestamp() },
+    stripUndefined({ ...record, createdAt: serverTimestamp() }),
     { merge: false }
   );
 }
 
 export async function resolveLegacyMigration(uid: string, status: 'imported' | 'skipped') {
-  await setDoc(userDocument(uid, 'settings', 'legacyMigration'), {
+  await setDoc(userDocument(uid, 'settings', 'legacyMigration'), stripUndefined({
     resolved: true,
     status,
     resolvedAt: serverTimestamp(),
-  });
+  }));
 }
 
 function safeDocumentId(value: unknown): string {
@@ -438,19 +439,22 @@ export async function importLegacySubjects(
   const batch = writeBatch(firestore);
 
   importedSubjects.forEach((subject, sortIndex) => {
-    batch.set(doc(firestore, 'users', uid, 'subjects', subject.id), {
-      ...subject,
-      credits: subjectCredits(subject),
-      sortIndex: existingSubjects.length + sortIndex,
-      updatedAt: serverTimestamp(),
-    });
+    batch.set(
+      doc(firestore, 'users', uid, 'subjects', subject.id),
+      stripUndefined({
+        ...subject,
+        credits: subjectCredits(subject),
+        sortIndex: existingSubjects.length + sortIndex,
+        updatedAt: serverTimestamp(),
+      })
+    );
   });
-  batch.set(userDocument(uid, 'settings', 'legacyMigration'), {
+  batch.set(userDocument(uid, 'settings', 'legacyMigration'), stripUndefined({
     resolved: true,
     status: 'imported',
     importedCount: importedSubjects.length,
     resolvedAt: serverTimestamp(),
-  });
+  }));
   await batch.commit();
   return importedSubjects;
 }

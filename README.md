@@ -61,18 +61,22 @@ Built specifically around the autonomous curriculum of **College of Engineering,
 ## Key Features
 
 ### 1. Multi-Course Assessment Engine
-Engineering curricula encompass varying course structures with differing ratios of continuous assessment and semester-end exams. CalCredit natively supports **11 distinct course types**:
+Engineering curricula encompass varying course structures with differing ratios of continuous assessment and semester-end exams. CalCredit supports the following assessment types and aggregate weightages:
 
 - **Theory Courses** (`theory`): CA 40M (Tests 32M + Activities 8M) · ESE 60M (Theory Exam).
-- **Laboratory Integrated Theory (2-0-2)** (`2-0-2`): CA 60M (Tests 20M + Activities 5M + Lab 35M) · ESE 40M (Theory Exam).
-- **Laboratory Integrated Theory (2-0-4)** (`2-0-4`): CA 50M (Tests 20M + Activities 5M + Lab 25M) · ESE 50M (Theory 40M + Practical Exam 10M).
-- **Laboratory Integrated Theory (1-0-2)** (`1-0-2`): CA 60M (Tests 20M + Activities 5M + Lab 35M) · ESE 40M (Theory Exam).
+- **Laboratory Integrated Theory (2-0-2, 3-0-2)** (`2-0-2`, `3-0-2`): CA 50M · ESE 50M (Theory Exam).
+- **Laboratory Integrated Theory (2-0-4, 3-0-4)** (`2-0-4`, `3-0-4`): CA 50M · ESE 50M (Theory 40M + Practical Exam 10M).
+- **Laboratory Integrated Theory (1-0-2, 1-0-4)** (`1-0-2`, `1-0-4`): CA 50M · ESE 50M (Practical Exam).
+- **LIT component allocation:** the calculator currently configures 2-0-2 / 3-0-2 as tests 30M + activities 5M + lab 15M across both CAs; 2-0-4 / 3-0-4 as tests 20M + activities 5M + lab 25M; 1-0-2 as tests 20M + activities 5M + lab 25M; and 1-0-4 as tests 10M + activities 5M + lab 35M. These are implementation allocations; confirm the component split against each course's approved syllabus. The aggregate CA/ESE totals above follow the regulation tables.
 - **Practical Laboratory Courses** (`laboratory-course`): Continuous Assessment 60M (Work 45M + Midterm 15M) · Practical Exam 40M.
-- **Project Work** (`project-work`): Continuous Assessment 60M (Review I 10M + Review II 20M + Review III 30M) · ESE 40M (Guide Report 10M + External Thesis 10M + Internal Viva 10M + External Viva 10M).
-- **Self Development Courses (SDC)** (`self-development`): CA 60M · ESE 40M.
+- **Project Work / Internship cum Project Work** (`project`, `project-work`): Continuous Assessment 60M (Review I 10M + Review II 20M + Review III 30M) · ESE 40M (Guide Report 10M + External Thesis 10M + Internal Viva 10M + External Viva 10M).
+- **Internship / Industrial Training** (`internship-training`): 100M continuous assessment (Report 40M + Presentation 30M + Viva 30M, including industry assessment).
+- **Mini-Project** (`mini-project`): 100M continuous assessment (Review I 25M + Review II 25M + Review III Report 30M + Review III Viva 20M).
+- **Self Development Courses (SDC)** (`self-development`): CA 60M · ESE 40M (Theory 15M + Practical 25M in the current app configuration).
 - **Universal Human Values (UHV)** (`universal-human-values`): 100% Internal Assessment (Tests 70M + Assignments 30M) without ESE.
 - **Industry Oriented Courses & Standards Courses**: 100% Internal continuous evaluation (Two 50% Tests).
 - **Audit Courses**: Internal assessment without GPA credit weightage.
+- **Heritage Courses** (`heritage-course`): CA 40M (two assessments, each Tests 16M + Activities 4M) · ESE 60M.
 - **Self-Learning Courses (SLC)** (`self-learning`): External assessment with custom 90–100 scale and configurable pass mark (40 or 50).
 
 ### 2. Anna University Regulation Compliance

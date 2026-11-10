@@ -414,4 +414,20 @@ describe('Firestore Security Rules', () => {
       await assertFails(batch3.commit());
     });
   });
+
+  describe('Public App Configuration', () => {
+    it('allows unauthenticated version checks but keeps configuration writes restricted', async () => {
+      await testEnv.withSecurityRulesDisabled(async (context) => {
+        await setDoc(doc(context.firestore(), 'app_config/version'), {
+          minimumVersion: '1.0.0',
+        });
+      });
+
+      const unauthedDb = testEnv.unauthenticatedContext().firestore();
+      await assertSucceeds(getDoc(doc(unauthedDb, 'app_config/version')));
+      await assertFails(setDoc(doc(unauthedDb, 'app_config/version'), {
+        minimumVersion: '2.0.0',
+      }));
+    });
+  });
 });

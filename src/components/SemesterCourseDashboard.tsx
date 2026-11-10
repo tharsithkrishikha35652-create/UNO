@@ -147,19 +147,18 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
     <div className="w-full">
       <motion.ul
         aria-label={`Semester ${semester} courses`}
-        className="flex flex-col gap-2.5 sm:grid sm:grid-cols-2 sm:gap-3"
+        className="flex flex-col gap-2.5 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:gap-y-2.5"
         variants={reduceMotion ? undefined : motionVariants.list}
         initial={reduceMotion ? false : 'initial'}
         animate="animate"
       >
-        {courses.map(({ course, subject, progress }, idx) => {
+        {courses.map(({ course, subject, progress }) => {
           const isSelected = subject?.id === selectedSubjectId;
-          const isEven = idx % 2 === 0;
 
           return (
             <motion.li
               key={course.id}
-              className={`w-[89%] ${isEven ? 'self-start mr-auto ml-0' : 'self-end ml-auto mr-0'} sm:w-full sm:m-0 sm:self-auto`}
+              className="w-full"
               variants={courseItemMotion}
               layout="position"
             >
@@ -169,19 +168,17 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
                 aria-pressed={isSelected}
                 aria-label={`${course.name}, ${progress}`}
                 title={`${course.name}${course.code ? ` · ${course.code}` : ''} — ${progress}`}
-                className={`group flex min-h-[3.25rem] w-full items-center justify-between gap-3 rounded-xl border p-3 text-left transition-all focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#172554] cursor-pointer shadow-xs ${
+                className={`group flex min-h-14 w-full items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-3 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#172554] cursor-pointer dark:border-slate-700 dark:bg-[#161618] ${
                   isSelected
-                    ? 'border-[#172554] bg-[#172554] text-white shadow-sm'
-                    : 'border-slate-300 bg-white text-[#172554] hover:border-[#172554] hover:bg-slate-50'
+                    ? 'font-extrabold text-black dark:text-white'
+                    : 'text-black hover:border-slate-300 hover:bg-white dark:text-white dark:hover:border-slate-600 dark:hover:bg-[#161618]'
                 }`}
-                animate={{ scale: isSelected && !reduceMotion ? 1.01 : 1 }}
-                transition={transitions.feedback}
               >
                 <div className="min-w-0 flex-1">
                   {course.code && (
                     <span
-                      className={`block text-[10px] font-bold font-mono mb-0.5 ${
-                        isSelected ? 'text-blue-100/80' : 'text-slate-500'
+                      className={`mb-0.5 block text-[11px] font-bold ${
+                        isSelected ? 'text-black dark:text-white' : 'text-[#111111] dark:text-slate-300'
                       }`}
                     >
                       {course.code}
@@ -199,24 +196,18 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
           );
         })}
 
-        {electiveSlots.map(({ slot, course, subject, progress }, idx) => {
+        {electiveSlots.map(({ slot, course, subject, progress }) => {
           const isSelected = subject?.id === selectedSubjectId;
-          const globalIdx = courses.length + idx;
-          const isEven = globalIdx % 2 === 0;
 
           return (
             <motion.li
               key={slot}
-              className={`w-[89%] ${isEven ? 'self-start mr-auto ml-0' : 'self-end ml-auto mr-0'} sm:w-full sm:m-0 sm:self-auto`}
+              className="w-full"
               variants={courseItemMotion}
               layout="position"
             >
               <div
-                className={`group flex min-h-[3.25rem] w-full items-center justify-between gap-2.5 rounded-xl border p-2 sm:p-2.5 text-left transition-all shadow-xs ${
-                  isSelected
-                    ? 'border-[#172554] bg-[#172554] text-white shadow-sm'
-                    : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-[#161618] text-[#172554] dark:text-[#f1f1f3] hover:border-[#172554]'
-                }`}
+                className="group flex min-h-14 w-full items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-3 text-left text-black transition-colors dark:border-slate-700 dark:bg-[#161618] dark:text-white"
               >
                 <button
                   type="button"
@@ -224,16 +215,16 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
                   aria-pressed={isSelected}
                   aria-label={`${slot}${course ? `: ${course.name}` : ', choose course'}${course ? `, ${progress}` : ''}`}
                   title={course ? `${slot}: ${course.name} — ${progress}` : `${slot}: choose an option`}
-                  className={`min-w-0 flex-1 rounded-xl px-3 py-2 text-left cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#172554] ${
+                  className={`min-w-0 flex-1 bg-white px-0 py-0 text-left cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#172554] dark:bg-[#161618] ${
                     isSelected
-                      ? 'bg-white/10 text-white'
-                      : 'bg-slate-100/80 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800/80 text-[#172554] dark:text-[#f1f1f3]'
+                      ? 'font-extrabold text-black dark:text-white'
+                      : 'text-black hover:text-black dark:text-white dark:hover:text-white'
                   }`}
                 >
                   <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
                     <span
-                      className={`inline-block text-[10px] font-bold tracking-wider uppercase ${
-                        isSelected ? 'text-blue-100/90' : 'text-slate-500 dark:text-slate-400'
+                      className={`inline-block text-[11px] font-bold tracking-wider uppercase ${
+                        isSelected ? 'text-black dark:text-white' : 'text-[#111111] dark:text-slate-300'
                       }`}
                     >
                       {slot}
@@ -242,11 +233,11 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
                   <span
                     className={`block text-xs sm:text-sm leading-snug break-words whitespace-normal ${
                       !course
-                        ? 'italic font-medium text-slate-500 dark:text-slate-400'
+                        ? 'italic font-medium text-black dark:text-white'
                         : 'font-bold'
                     }`}
                   >
-                    {course ? course.name : 'Choose elective course…'}
+                    {course?.name ?? ''}
                   </span>
                 </button>
 
@@ -262,10 +253,10 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
                         }}
                         aria-label={`Change ${slot} course`}
                         title={`Change ${slot} course`}
-                        className={`flex h-8 w-8 items-center justify-center rounded-lg border transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-[#172554] ${
+                        className={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-[#172554] ${
                           isSelected
-                            ? 'border-white/30 bg-white/10 text-white/90 hover:bg-white/20'
-                            : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-[#172554] hover:text-[#172554] shadow-xs'
+                            ? 'text-black dark:text-white'
+                            : 'text-black hover:text-black dark:text-white dark:hover:text-white'
                         }`}
                       >
                         <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
@@ -277,10 +268,10 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
                       onClick={() => onSelectElective(slot)}
                       aria-label={`Choose course for ${slot}`}
                       title={`Choose course for ${slot}`}
-                      className={`inline-flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-bold transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-[#172554] ${
+                      className={`inline-flex min-h-10 items-center gap-1.5 px-2.5 text-xs font-bold transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-[#172554] ${
                         isSelected
-                          ? 'border-white/30 bg-white/10 text-white hover:bg-white/20'
-                          : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 shadow-xs'
+                          ? 'text-black dark:text-white'
+                          : 'text-black hover:text-black dark:text-white dark:hover:text-white'
                       }`}
                     >
                       <BookOpen className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" aria-hidden="true" />

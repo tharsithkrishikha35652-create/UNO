@@ -35,7 +35,7 @@ import {
   getPresetCourses,
   getElectiveSlotsBySemester,
 } from '../src/components/SubjectSelectionDialog';
-import { getCourseWeights, getCourseType, calculateMarks, isGhostPlaceholderCourse } from '../src/calculatorUtils';
+import { DEFAULT_SUBJECT, getCourseWeights, getCourseType, calculateMarks, isGhostPlaceholderCourse } from '../src/calculatorUtils';
 import { DEPARTMENT_OPTIONS } from '../src/components/AcademicProfile';
 import { isVersionOutdated } from '../src/versionUtils';
 
@@ -79,6 +79,74 @@ describe('Department Course & Curriculum Verification', () => {
       'Professional Elective VI',
       'Emerging Technology Course II',
     ]);
+  });
+
+  it('routes PT Creative and Innovative Project and MSE Mini Project to their matching assessment modes', () => {
+    const ptCreativeProject = getPresetCourses('PT').find((course) => course.code === 'PP23705');
+    const mseCombinedOption = getPresetCourses('MSE').find((course) => course.code === 'MS23703');
+
+    expect(ptCreativeProject?.courseType).toBe('laboratory-course');
+    expect(mseCombinedOption?.courseType).toBe('mini-project');
+  });
+
+  it('maps all Sustainability and Engineering Entrepreneurship presets to LIT assessment', () => {
+    const requiredLits = [
+      ['GEO', 'UC23U02'],
+      ['BME', 'BM23U02'],
+      ['VLSI', 'VL23U02'],
+      ['MSE', 'MS23U02'],
+      ['MSE', 'UC23E01'],
+    ] as const;
+
+    for (const [department, code] of requiredLits) {
+      const preset = getPresetCourses(department).find((course) => course.code === code);
+      expect(preset?.courseType, `${department} ${code}`).toBe('2-0-2');
+      expect(getCourseWeights(preset!.courseType)).toMatchObject({
+        caMax: 25,
+        internalMax: 50,
+        eseWeight: 50,
+        eseTheoryWeight: 50,
+        eseLabWeight: 0,
+      });
+    }
+  });
+
+  it('keeps aggregate CA and ESE totals at 100 across all supported assessment types', () => {
+    const expectedTotals: Array<[Parameters<typeof getCourseWeights>[0], number, number]> = [
+      ['theory', 40, 60],
+      ['2-0-2', 50, 50],
+      ['3-0-2', 50, 50],
+      ['3+2', 50, 50],
+      ['2-0-4', 50, 50],
+      ['2+4', 50, 50],
+      ['1-0-2', 50, 50],
+      ['1+2', 50, 50],
+      ['3-0-4', 50, 50],
+      ['3+4', 50, 50],
+      ['1-0-4', 50, 50],
+      ['1+4', 50, 50],
+      ['project', 60, 40],
+      ['project-work', 60, 40],
+      ['laboratory-course', 60, 40],
+      ['self-development', 60, 40],
+      ['mini-project', 100, 0],
+      ['internship-training', 100, 0],
+      ['universal-human-values', 100, 0],
+      ['industry-oriented-tests', 100, 0],
+      ['standards-course', 100, 0],
+      ['audit-course', 100, 0],
+      ['heritage-course', 40, 60],
+      ['self-learning', 0, 0],
+    ];
+
+    for (const [courseType, expectedCa, expectedEse] of expectedTotals) {
+      const weights = getCourseWeights(courseType);
+      expect(weights.internalMax, `${courseType} CA`).toBe(expectedCa);
+      expect(weights.eseWeight, `${courseType} ESE`).toBe(expectedEse);
+      if (courseType !== 'self-learning') {
+        expect(weights.internalMax + weights.eseWeight, `${courseType} total`).toBe(100);
+      }
+    }
   });
 
   it('verifies Civil Engineering elective catalog matches the 2026 syllabus exactly', () => {
@@ -564,6 +632,38 @@ describe('Department Course & Curriculum Verification', () => {
     expect(breakdown.total).toBe(100);
     expect(breakdown.grade.letter).toBe('S');
     expect(breakdown.grade.gradePoint).toBe(10);
+  });
+
+  it('calculates Semester VIII project component contributions and subtotals', () => {
+    const breakdown = calculateMarks({
+      ...DEFAULT_SUBJECT,
+      id: 'course_project_sem8',
+      name: 'Project Work / Internship cum Project Work',
+      code: 'BM23801',
+      courseType: 'project',
+      projectWorkMarks: {
+        reviewI: 80,
+        reviewII: 70,
+        reviewIII: 90,
+        thesisGuide: 80,
+        thesisExternal: 70,
+        vivaExternal: 60,
+        vivaInternal: 90,
+      },
+    });
+
+    expect(breakdown.projectWorkComponents?.map(({ weight, contribution }) => ({ weight, contribution }))).toEqual([
+      { weight: 10, contribution: 8 },
+      { weight: 20, contribution: 14 },
+      { weight: 30, contribution: 27 },
+      { weight: 10, contribution: 8 },
+      { weight: 10, contribution: 7 },
+      { weight: 10, contribution: 6 },
+      { weight: 10, contribution: 9 },
+    ]);
+    expect(breakdown.internal_total).toBe(49);
+    expect(breakdown.ese_p).toBe(30);
+    expect(breakdown.total).toBe(79);
   });
 
   it('calculates Mini-Project Table 8 as 100% CA and applies the 50% pass threshold', () => {

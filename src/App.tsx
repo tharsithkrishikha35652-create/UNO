@@ -96,6 +96,16 @@ import {
   type GpaHistoryEntry,
 } from "./firebaseData";
 import {
+  createOfflineDraft,
+  fallbackWorkspaceFromDraft,
+  getPendingSubjectChanges,
+  mergePendingSubjects,
+  readOfflineDraft,
+  removeSyncedPendingSubjects,
+  writeOfflineDraft,
+  type PendingGradeRecord,
+} from "./offlineDrafts";
+import {
   ArrowLeft,
   BookOpen,
   Calculator,
@@ -367,6 +377,14 @@ function normalizeSubjectForSyllabus(subject: SubjectData): SubjectData {
   }
   if (normalizedName === "makespace" || normalizedName === "makerspace")
     return { ...subject, name: "Makerspace", courseType: "1-0-4" };
+  if (normalizedName === "mini project summer internship") {
+    return {
+      ...subject,
+      courseType: subject.courseType === "internship-training"
+        ? "internship-training"
+        : "mini-project",
+    };
+  }
   if (
     normalizedName === "project work" ||
     normalizedName === "internship cum project work" ||
@@ -575,6 +593,12 @@ function parseLegacySubjects(): SubjectData[] {
   } catch {
     return [];
   }
+}
+
+function firebaseErrorCode(error: unknown): string {
+  return typeof error === "object" && error !== null && "code" in error
+    ? String(error.code)
+    : "unknown";
 }
 
 function WorkspaceLoading({ message }: { message: string }) {
@@ -1120,6 +1144,10 @@ function AuthenticatedApp({
     }, 320);
   };
   const [loadAttempt, setLoadAttempt] = useState(0);
+  const [syncAttempt, setSyncAttempt] = useState(0);
+  const [isOnline, setIsOnline] = useState(() =>
+    typeof navigator === "undefined" ? true : navigator.onLine
+  );
   const [legacySubjects, setLegacySubjects] = useState<SubjectData[]>([]);
   const [migrationResolved, setMigrationResolved] = useState(false);
   const [migrationBusy, setMigrationBusy] = useState(false);
@@ -1171,13 +1199,14 @@ function AuthenticatedApp({
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
+    const cachedDraft = readOfflineDraft(user.uid);
     setDataLoading(true);
     setDataError("");
     void loadUserWorkspace(user.uid)
       .then((workspace) => {
         if (cancelled) return;
         const loadedSubjects = mergeDuplicateProjectSubjects(
-          workspace.subjects
+          mergePendingSubjects(workspace.subjects, cachedDraft ?? createOfflineDraft(user.uid))
             .filter((s) => !isGhostPlaceholderCourse(s))
             .map(normalizeSubjectForSyllabus)
         );
@@ -1194,6 +1223,7 @@ function AuthenticatedApp({
         ]);
         const currentCalculationSignatures = {
           ...workspace.calculatedSignatures,
+          ...(cachedDraft?.calculatedSignatures ?? {}),
         };
         loadedSubjects.forEach((subject) => {
           if (recalculationRequiredTypes.has(getCourseType(subject)))
@@ -1251,6 +1281,46 @@ function AuthenticatedApp({
       .catch((error: unknown) => {
         if (cancelled) return;
         console.error("Unable to load account data:", error);
+        if (cachedDraft) {
+          const cachedWorkspace = fallbackWorkspaceFromDraft(cachedDraft);
+          const loadedSubjects = mergeDuplicateProjectSubjects(
+            cachedWorkspace.subjects
+              .filter((subject) => !isGhostPlaceholderCourse(subject))
+              .map(normalizeSubjectForSyllabus)
+          );
+          setProfile(cachedWorkspace.profile);
+          setSubjects(loadedSubjects);
+          setCalculatedSignatures(cachedWorkspace.calculatedSignatures);
+          setGpaHistory(cachedWorkspace.gpaHistory);
+          setMigrationResolved(true);
+          persistedSubjectsRef.current = new Map(
+            loadedSubjects.map((subject) => [subject.id, JSON.stringify(subject)])
+          );
+          cachedDraft.pendingSubjectIds.forEach((id) => {
+            const subject = loadedSubjects.find((item) => item.id === id);
+            if (subject) {
+              persistedSubjectsRef.current.set(id, `__offline_pending__${JSON.stringify(subject)}`);
+            }
+          });
+          cachedDraft.deletedSubjectIds.forEach((id) =>
+            persistedSubjectsRef.current.set(id, "__offline_deleted__")
+          );
+          const initialSemester = (cachedWorkspace.preferences.selectedSemester ??
+            (loadedSubjects[0] ? getSubjectSemester(loadedSubjects[0]) : null) ?? 1) as SemesterNumber;
+          setSelectedSemester(initialSemester);
+          setCurrentSubjectId(
+            loadedSubjects.some((subject) => subject.id === cachedWorkspace.preferences.currentSubjectId)
+              ? cachedWorkspace.preferences.currentSubjectId
+              : loadedSubjects[0]?.id ?? ""
+          );
+          setActiveTab(cachedWorkspace.preferences.activeTab);
+          setIncludeEstimates(cachedWorkspace.preferences.includeEstimates);
+          setEstimatePercentage(cachedWorkspace.preferences.estimatePercentage);
+          preferencesSignatureRef.current = JSON.stringify(cachedWorkspace.preferences);
+          setSaveError("Using this device's saved workspace. Pending changes will sync when connection returns.");
+          setDataLoading(false);
+          return;
+        }
         setDataError(
           "Could not load your account data. Check your connection, then retry."
         );
@@ -1262,9 +1332,67 @@ function AuthenticatedApp({
   }, [user?.uid, loadAttempt]);
 
   useEffect(() => {
+    const updateOnlineState = () => {
+      setIsOnline(navigator.onLine);
+      if (navigator.onLine) setSyncAttempt((attempt) => attempt + 1);
+    };
+    window.addEventListener("online", updateOnlineState);
+    window.addEventListener("offline", updateOnlineState);
+    return () => {
+      window.removeEventListener("online", updateOnlineState);
+      window.removeEventListener("offline", updateOnlineState);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!user || dataLoading || dataError) return;
+    const existing = readOfflineDraft(user.uid) ?? createOfflineDraft(user.uid);
+    const changes = getPendingSubjectChanges(
+      subjects,
+      persistedSubjectsRef.current,
+      existing.pendingSubjectIds,
+      existing.deletedSubjectIds
+    );
+    writeOfflineDraft({
+      ...existing,
+      updatedAt: Date.now(),
+      subjects,
+      pendingSubjectIds: changes.pendingSubjectIds,
+      deletedSubjectIds: changes.deletedSubjectIds,
+      calculatedSignatures,
+      profile,
+      preferences: {
+        currentSubjectId,
+        activeTab,
+        includeEstimates,
+        estimatePercentage,
+        selectedSemester,
+      },
+      gpaHistory,
+    });
+  }, [
+    user?.uid,
+    dataLoading,
+    dataError,
+    subjects,
+    calculatedSignatures,
+    profile,
+    currentSubjectId,
+    activeTab,
+    includeEstimates,
+    estimatePercentage,
+    selectedSemester,
+    gpaHistory,
+  ]);
+
+  useEffect(() => {
     if (!user || dataLoading || dataError) return;
     const snapshot = [...subjects];
     const timeout = window.setTimeout(() => {
+      if (!isOnline) {
+        setSaveError("You're offline. Your changes are saved on this device and will sync when you're back online.");
+        return;
+      }
       persistQueueRef.current = persistQueueRef.current
         .then(async () => {
           const latestSnapshots = await syncUserSubjects(
@@ -1273,17 +1401,45 @@ function AuthenticatedApp({
             persistedSubjectsRef.current
           );
           persistedSubjectsRef.current = latestSnapshots;
-          setSaveError("");
+          let draft = readOfflineDraft(user.uid);
+          if (draft) {
+            draft = removeSyncedPendingSubjects(
+              draft,
+              snapshot,
+              draft.deletedSubjectIds
+            );
+            const latestById = new Map(snapshot.map((subject) => [subject.id, subject]));
+            for (const [subjectId, record] of Object.entries(draft.pendingGrades)) {
+              const savedSubject = latestById.get(subjectId);
+              if (!savedSubject || JSON.stringify(savedSubject) !== record.inputSignature) {
+                const pendingGrades: Record<string, PendingGradeRecord> = { ...draft.pendingGrades };
+                delete pendingGrades[subjectId];
+                draft = { ...draft, pendingGrades };
+                continue;
+              }
+              await saveCalculatedGrade(user.uid, savedSubject, record);
+              const pendingGrades: Record<string, PendingGradeRecord> = { ...draft.pendingGrades };
+              delete pendingGrades[subjectId];
+              draft = { ...draft, pendingGrades };
+              writeOfflineDraft(draft);
+            }
+            writeOfflineDraft(draft);
+            if (!draft.pendingSubjectIds.length && !draft.deletedSubjectIds.length && !Object.keys(draft.pendingGrades).length) {
+              setSaveError("");
+            }
+          } else {
+            setSaveError("");
+          }
         })
         .catch((error: unknown) => {
           console.error("Unable to save account data:", error);
-          setSaveError(
-            "Some changes could not be saved. Check your connection and retry."
-          );
+          setSaveError(!navigator.onLine
+            ? "You're offline. Your changes are saved on this device and will sync when you're back online."
+            : `You're online, but sync failed (Firebase: ${firebaseErrorCode(error)}). Your changes remain saved on this device; retry sync.`);
         });
     }, 450);
     return () => window.clearTimeout(timeout);
-  }, [subjects, user?.uid, dataLoading, dataError]);
+  }, [subjects, user?.uid, dataLoading, dataError, isOnline, syncAttempt]);
 
   useEffect(() => {
     if (!user || dataLoading || dataError) return;
@@ -2047,9 +2203,63 @@ function AuthenticatedApp({
 
     setCalculationState("calculating");
     setSaveError("");
+    const gradeRecord = {
+      inputSignature,
+      credits: course?.credits ?? 0,
+      total: calculationBreakdown.total,
+      grade: calculationBreakdown.grade.letter,
+      gradeLabel: calculationBreakdown.grade.label,
+      gradePoint: calculationBreakdown.grade.gradePoint,
+      courseType: calculationBreakdown.courseTypeLabel,
+      estimate: {
+        enabled: estimateWasApplied,
+        percentage: estimatePercentageAtStart,
+      },
+    };
+    setCalculatedSignatures((previous) => ({
+      ...previous,
+      [subjectIdAtStart]: inputSignature,
+    }));
+    if (user) {
+      const existing = readOfflineDraft(user.uid) ?? createOfflineDraft(user.uid);
+      const changes = getPendingSubjectChanges(
+        subjectsSnapshot,
+        persistedSubjectsRef.current,
+        existing.pendingSubjectIds,
+        existing.deletedSubjectIds
+      );
+      writeOfflineDraft({
+        ...existing,
+        updatedAt: Date.now(),
+        subjects: subjectsSnapshot,
+        pendingSubjectIds: changes.pendingSubjectIds,
+        deletedSubjectIds: changes.deletedSubjectIds,
+        calculatedSignatures: {
+          ...existing.calculatedSignatures,
+          [subjectIdAtStart]: inputSignature,
+        },
+        pendingGrades: {
+          ...existing.pendingGrades,
+          [subjectIdAtStart]: gradeRecord,
+        },
+        profile,
+        preferences: {
+          currentSubjectId,
+          activeTab,
+          includeEstimates,
+          estimatePercentage,
+          selectedSemester,
+        },
+        gpaHistory,
+      });
+    }
+    setCalculationState(user && isOnline ? "saving" : "success");
     try {
       if (user) {
-        setCalculationState("saving");
+        if (!isOnline) {
+          setSaveError("You're offline. Your grade and changes are saved on this device and will sync when you're back online.");
+          return;
+        }
         const syncTask = persistQueueRef.current.then(async () => {
           const latestSnapshots = await syncUserSubjects(
             user.uid,
@@ -2061,19 +2271,17 @@ function AuthenticatedApp({
         persistQueueRef.current = syncTask.catch(() => undefined);
         await syncTask;
 
-        await saveCalculatedGrade(user.uid, subjectSnapshot, {
-          inputSignature,
-          credits: course?.credits ?? 0,
-          total: calculationBreakdown.total,
-          grade: calculationBreakdown.grade.letter,
-          gradeLabel: calculationBreakdown.grade.label,
-          gradePoint: calculationBreakdown.grade.gradePoint,
-          courseType: calculationBreakdown.courseTypeLabel,
-          estimate: {
-            enabled: estimateWasApplied,
-            percentage: estimatePercentageAtStart,
-          },
-        });
+        await saveCalculatedGrade(user.uid, subjectSnapshot, gradeRecord);
+        const draft = readOfflineDraft(user.uid);
+        if (draft) {
+          const pendingGrades = { ...draft.pendingGrades };
+          delete pendingGrades[subjectIdAtStart];
+          writeOfflineDraft(removeSyncedPendingSubjects(
+            { ...draft, pendingGrades },
+            subjectsSnapshot,
+            draft.deletedSubjectIds
+          ));
+        }
       }
 
       const currentRevisionMatches =
@@ -2093,10 +2301,10 @@ function AuthenticatedApp({
       setCalculationState("success");
     } catch (error) {
       console.error("Unable to save calculated grade:", error);
-      setCalculationState("error");
-      setSaveError(
-        "The latest marks or result could not be saved. Check your connection and recalculate."
-      );
+      setSaveError(!navigator.onLine
+        ? "You're offline. Your grade and changes are saved on this device and will sync when you're back online."
+        : `You're online, but grade sync failed (Firebase: ${firebaseErrorCode(error)}). Your grade is saved on this device; retry sync.`);
+      setCalculationState("success");
     }
   };
 
@@ -2669,6 +2877,15 @@ function AuthenticatedApp({
           aria-live="assertive"
         >
           <span className="min-w-0 break-words">{saveError}</span>
+          {user && isOnline && (
+            <button
+              type="button"
+              onClick={() => setSyncAttempt((attempt) => attempt + 1)}
+              className="min-h-11 shrink-0 font-bold underline underline-offset-2"
+            >
+              Retry sync
+            </button>
+          )}
           <button
             type="button"
             onClick={handleDismissSaveError}
@@ -2845,6 +3062,20 @@ function AuthenticatedApp({
                           <div className="text-xs sm:text-sm font-bold text-[#172554] mb-2.5">
                             Course type: {breakdown.courseTypeLabel}
                           </div>
+                        )}
+
+                        {currentSubject.code === "MS23703" && (
+                          <label className="mb-4 flex max-w-xl flex-col gap-1.5 rounded-xl border border-slate-300 bg-white p-3 text-xs font-bold text-[#172554] sm:flex-row sm:items-center sm:justify-between">
+                            Assessment route for this course
+                            <select
+                              value={currentCourseType === "internship-training" ? "internship-training" : "mini-project"}
+                              onChange={(event) => updateCurrentSubject({ courseType: event.currentTarget.value as "mini-project" | "internship-training" })}
+                              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold"
+                            >
+                              <option value="mini-project">Mini-Project — Table 8</option>
+                              <option value="internship-training">Summer Internship — Table 7</option>
+                            </select>
+                          </label>
                         )}
 
                         <div className="relative mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-slate-300 bg-white px-3 py-2.5">
@@ -3238,6 +3469,7 @@ function AuthenticatedApp({
                               reviewIIIReport: "",
                               reviewIIIViva: "",
                             }}
+                            breakdown={breakdown}
                             onMarksChange={(miniProjectMarks) =>
                               updateCurrentSubject({ miniProjectMarks })
                             }
@@ -3258,6 +3490,7 @@ function AuthenticatedApp({
                               vivaVoce: "",
                               industryViva: "",
                             }}
+                            breakdown={breakdown}
                             onMarksChange={(internshipTrainingMarks) =>
                               updateCurrentSubject({ internshipTrainingMarks })
                             }
@@ -3277,6 +3510,12 @@ function AuthenticatedApp({
                                 vivaInternal: "",
                               }
                             }
+                            breakdown={breakdown}
+                            onCalculate={() => void handleCalculateMarks()}
+                            calculationState={calculationState}
+                            hasCalculated={hasCalculatedCurrentSubject}
+                            guestMode={guestMode}
+                            savePending={Boolean(user && saveError)}
                             onMarksChange={(projectWorkMarks) =>
                               updateCurrentSubject({ projectWorkMarks })
                             }
@@ -3466,6 +3705,7 @@ function AuthenticatedApp({
                                 onCalculate={() => void handleCalculateMarks()}
                                 calculationState={calculationState}
                                 hasCalculated={hasCalculatedCurrentSubject}
+                                savePending={Boolean(user && saveError)}
                                 guestMode={guestMode}
                                 ese={currentSubject.ese}
                                 onEseChange={(val) =>
@@ -3542,6 +3782,8 @@ function AuthenticatedApp({
                                 ? "Calculating result…"
                                 : calculationState === "saving"
                                 ? "Saving result to your account…"
+                                : saveError
+                                ? "Grade calculated; waiting to sync your account."
                                 : guestMode
                                 ? "Result calculated for this temporary session only."
                                 : "Result calculated and saved to your account."}

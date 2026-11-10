@@ -11,7 +11,6 @@ import {
   signInWithCredential,
   signInWithEmailAndPassword,
   signInWithPopup,
-  signInWithRedirect,
 } from 'firebase/auth';
 import { AlertCircle, BookOpen, Check, Eye, EyeOff, LoaderCircle, Search, X } from 'lucide-react';
 import { auth } from '../firebase';
@@ -35,28 +34,6 @@ type AuthMode = 'login' | 'signup' | 'reset';
 export const GOOGLE_REDIRECT_PENDING_KEY = 'calcredit_google_redirect_pending';
 
 const GUEST_LOGIN_DISABLED = true;
-
-async function redirectWithGoogle(
-  authInstance: NonNullable<typeof auth>,
-  provider: GoogleAuthProvider
-) {
-  try {
-    window.sessionStorage.setItem(GOOGLE_REDIRECT_PENDING_KEY, 'true');
-  } catch {
-    // Redirect sign-in can still proceed when session storage is unavailable.
-  }
-
-  try {
-    await signInWithRedirect(authInstance, provider);
-  } catch (error) {
-    try {
-      window.sessionStorage.removeItem(GOOGLE_REDIRECT_PENDING_KEY);
-    } catch {
-      // Ignore storage cleanup failures.
-    }
-    throw error;
-  }
-}
 
 export function friendlyAuthError(error: unknown, provider: 'email' | 'google' = 'email', mode?: AuthMode): string {
   const code = typeof error === 'object' && error !== null && 'code' in error
@@ -349,28 +326,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
         logSecurityEvent('AUTH_LOGIN_SUCCESS', 'info', { provider: 'google', platform: 'native' });
       } else {
         const provider = new GoogleAuthProvider();
-        if (forceGoogleAccountSelection) {
-          provider.setCustomParameters({ prompt: 'select_account' });
-        }
-        const isMobileWeb = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-        if (isMobileWeb) {
-          await redirectWithGoogle(auth, provider);
-          return;
-        }
-        try {
-          await signInWithPopup(auth, provider);
-          logSecurityEvent('AUTH_LOGIN_SUCCESS', 'info', { provider: 'google', platform: 'web_popup' });
-        } catch (popupError) {
-          const popupCode =
-            typeof popupError === 'object' && popupError !== null && 'code' in popupError
-              ? String(popupError.code)
-              : '';
-          if (popupCode === 'auth/popup-blocked') {
-            await redirectWithGoogle(auth, provider);
-            return;
-          }
-          throw popupError;
-        }
+        provider.setCustomParameters({ prompt: 'select_account' });
+        await signInWithPopup(auth, provider);
+        logSecurityEvent('AUTH_LOGIN_SUCCESS', 'info', { provider: 'google', platform: 'web_popup' });
       }
     } catch (authError) {
       const code = typeof authError === 'object' && authError !== null && 'code' in authError

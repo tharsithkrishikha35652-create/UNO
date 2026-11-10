@@ -96,7 +96,8 @@ service cloud.firestore {
     }
 
     match /app_config/{configId} {
-      allow read: if true;
+      // The app checks version/maintenance metadata before sign-in; these documents contain no private user data.
+      allow get, list: if true;
       allow write: if isFeedbackAdmin();
     }
   }

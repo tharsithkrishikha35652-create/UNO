@@ -2166,7 +2166,7 @@ export const GEO_PRESET_COURSES: PresetCourse[] = [
   { id: 'GI23602_GEO', name: 'Spatial Data Adjustment', code: 'GI23602', type: 'Theory', courseType: 'theory', semester: 6, group: 'core' },
   { id: 'IOC_SEM6_II_GEO', name: 'Industry Oriented Course II', code: 'IOC_SEM6_II', type: 'IOC · Two Tests (50% Each)', courseType: 'industry-oriented-tests', semester: 6, group: 'core' },
   { id: 'GI23S03_GEO', name: 'Skill Development Course III', code: 'GI23S03', type: '1-0-2', courseType: '1-0-2', semester: 6, group: 'core' },
-  { id: 'UC23U02_GEO', name: 'Perspectives of Sustainable Development', code: 'UC23U02', type: 'Theory', courseType: 'theory', semester: 6, group: 'core' },
+  { id: 'UC23U02_GEO', name: 'Perspectives of Sustainable Development', code: 'UC23U02', type: '2-0-2', courseType: '2-0-2', semester: 6, group: 'core' },
 
   // Semester VII (19 credits)
   { id: 'GI23701_GEO', name: 'Web and Cloud Based GIS', code: 'GI23701', type: '2-0-2', courseType: '2-0-2', semester: 7, group: 'core' },
@@ -2380,7 +2380,7 @@ export const BME_PRESET_COURSES: PresetCourse[] = [
   { id: 'BM23502_BME', name: 'Control System for Biomedical Engineering', code: 'BM23502', type: 'Theory', courseType: 'theory', semester: 5, group: 'core' },
   { id: 'BM23503_BME', name: 'Microcontrollers and Embedded Systems', code: 'BM23503', type: '3-0-2', courseType: '3-0-2', semester: 5, group: 'core' },
   { id: 'IOC_SEM5_I_BME', name: 'Industry Oriented Course I', code: 'IOC_SEM5_I', type: 'IOC · Two Tests (50% Each)', courseType: 'industry-oriented-tests', semester: 5, group: 'core' },
-  { id: 'BM23U02_BME', name: 'Perspectives of Sustainable Development', code: 'BM23U02', type: 'Theory', courseType: 'theory', semester: 5, group: 'core' },
+  { id: 'BM23U02_BME', name: 'Perspectives of Sustainable Development', code: 'BM23U02', type: '2-0-2', courseType: '2-0-2', semester: 5, group: 'core' },
   { id: 'BM23504_BME', name: 'Summer Internship', code: 'BM23504', type: 'Internship · 100% CA (Table 7)', courseType: 'internship-training', semester: 5, group: 'core' },
   { id: 'BM23S03_BME', name: 'Design and Development of Wearable biosensors', code: 'BM23S03', type: '1-0-2', courseType: '1-0-2', semester: 5, group: 'core' },
 
@@ -3298,7 +3298,7 @@ export const VLSI_PRESET_COURSES: PresetCourse[] = [
   { id: 'VL23602_VLSI', name: 'Electromagnetic Interference and Compatibility for VLSI', code: 'VL23602', type: 'Theory', courseType: 'theory', semester: 6, group: 'core' },
   { id: 'VL23S03_VLSI', name: 'Skill Development Course – 3', code: 'VL23S03', type: 'Theory', courseType: 'theory', semester: 6, group: 'core' },
   { id: 'IOC_SEM6_II_VLSI', name: 'Industry Oriented Course II', code: 'IOC_SEM6_II', type: 'IOC · Two Tests (50% Each)', courseType: 'industry-oriented-tests', semester: 6, group: 'core' },
-  { id: 'VL23U02_VLSI', name: 'Sustainability Course', code: 'VL23U02', type: 'Theory', courseType: 'theory', semester: 6, group: 'core' },
+  { id: 'VL23U02_VLSI', name: 'Sustainability Course', code: 'VL23U02', type: '2-0-2', courseType: '2-0-2', semester: 6, group: 'core' },
 
   // Semester VII (22 credits)
   { id: 'VL23701_VLSI', name: 'ASIC Design', code: 'VL23701', type: '2-0-2', courseType: '2-0-2', semester: 7, group: 'core' },
@@ -3795,7 +3795,7 @@ export const PT_PRESET_COURSES: PresetCourse[] = [
   { id: 'PP23U01_PT', name: 'Standards - Printing and Packaging Technology', code: 'PP23U01', type: 'Standards Course', courseType: 'standards-course', semester: 7, group: 'core' },
   { id: 'PP23704_PT', name: 'Summer Internship', code: 'PP23704', type: 'Internship · 100% CA (Table 7)', courseType: 'internship-training', semester: 7, group: 'core' },
   { id: 'IOC_SEM7_III_PT', name: 'Industry Oriented Course III', code: 'IOC_SEM7_III', type: 'IOC · Two Tests (50% Each)', courseType: 'industry-oriented-tests', semester: 7, group: 'core' },
-  { id: 'PP23705_PT', name: 'Creative and Innovative Project', code: 'PP23705', type: 'Project', courseType: 'project', semester: 7, group: 'core' },
+  { id: 'PP23705_PT', name: 'Creative and Innovative Project', code: 'PP23705', type: 'Laboratory · 60% CA / 40% ESE', courseType: 'laboratory-course', semester: 7, group: 'core' },
 
   // Semester VIII (8 credits)
   { id: 'PP23801_PT', name: 'Project Work / Internship with Project Work', code: 'PP23801', type: 'PW · Regulation 17.7 (60% CA / 40% ESE)', courseType: 'project', semester: 8, group: 'core' },
@@ -4263,14 +4263,14 @@ export const MSE_PRESET_COURSES: PresetCourse[] = [
 
   // Semester VI (19 credits)
   { id: 'IOC_SEM6_II_MSE', name: 'Industry Oriented Course – II', code: 'IOC_SEM6_II', type: 'IOC · Two Tests (50% Each)', courseType: 'industry-oriented-tests', semester: 6, group: 'core' },
-  { id: 'MS23U02_MSE', name: 'Perspectives of Sustainable Development', code: 'MS23U02', type: 'Theory', courseType: 'theory', semester: 6, group: 'core' },
+  { id: 'MS23U02_MSE', name: 'Perspectives of Sustainable Development', code: 'MS23U02', type: '2-0-2', courseType: '2-0-2', semester: 6, group: 'core' },
 
   // Semester VII (25 credits)
   { id: 'MS23701_MSE', name: 'Computational Materials Engineering', code: 'MS23701', type: '3-0-2', courseType: '3-0-2', semester: 7, group: 'core' },
   { id: 'MS23702_MSE', name: 'Non-Destructive Testing and Evaluation', code: 'MS23702', type: '3-0-2', courseType: '3-0-2', semester: 7, group: 'core' },
-  { id: 'UC23E01_MSE', name: 'Engineering Entrepreneurship Development', code: 'UC23E01', type: 'Theory', courseType: 'theory', semester: 7, group: 'core' },
+  { id: 'UC23E01_MSE', name: 'Engineering Entrepreneurship Development', code: 'UC23E01', type: '2-0-2', courseType: '2-0-2', semester: 7, group: 'core' },
   { id: 'IOC_SEM7_III_MSE', name: 'Industry Oriented Course – III', code: 'IOC_SEM7_III', type: 'IOC · Two Tests (50% Each)', courseType: 'industry-oriented-tests', semester: 7, group: 'core' },
-  { id: 'MS23703_MSE', name: 'Mini Project / Summer Internship', code: 'MS23703', type: 'Project', courseType: 'project', semester: 7, group: 'core' },
+  { id: 'MS23703_MSE', name: 'Mini Project / Summer Internship', code: 'MS23703', type: 'Mini-Project · Table 8 (100% CA)', courseType: 'mini-project', semester: 7, group: 'core' },
 
   // Semester VIII (8 credits)
   { id: 'MS23801_MSE', name: 'Project Work / Internship cum Project Work', code: 'MS23801', type: 'PW · Regulation 17.7 (60% CA / 40% ESE)', courseType: 'project', semester: 8, group: 'core' },
@@ -4694,8 +4694,8 @@ export const SubjectSelectionDialog: React.FC<SubjectSelectionDialogProps> = ({
         {/* Modern Dialog Header */}
         <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 px-5 py-4">
           <div className="flex items-center gap-2.5">
-            <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#172554] dark:bg-[#2a2a30] text-blue-100">
-              <BookOpen className="h-4 w-4 text-cyan-300 dark:text-[#e08564]" aria-hidden="true" />
+            <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#d97757]/12 dark:bg-[#d97757]/20 text-[#b54f2a] dark:text-[#e08564]">
+              <BookOpen className="h-4 w-4 text-[#b54f2a] dark:text-[#e08564]" aria-hidden="true" />
             </span>
             <div>
               <h2 id="dialog-title" className="text-sm font-bold text-[#172554] dark:text-[#f1f1f3]">

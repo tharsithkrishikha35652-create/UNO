@@ -116,10 +116,10 @@ const COURSE_WEIGHTS: Record<CourseType, Omit<CourseWeights, 'courseType' | 'caM
   // Programming in C: LIT 2-0-4
   '2-0-4': { courseTypeLabel: '2-0-4 LIT', testWeight: 10, actWeight: 2.5, labWeight: 12.5, eseTheoryWeight: 40, eseLabWeight: 10 },
   '2+4': { courseTypeLabel: '2-0-4 LIT', testWeight: 10, actWeight: 2.5, labWeight: 12.5, eseTheoryWeight: 40, eseLabWeight: 10 },
-  // Computational Thinking: LIT 1-0-2
+  // LIT 1-0-2: CA 25M + 25M; practical-only ESE 50M.
   '1-0-2': { courseTypeLabel: '1-0-2 LIT', testWeight: 10, actWeight: 2.5, labWeight: 12.5, eseTheoryWeight: 0, eseLabWeight: 50 },
   '1+2': { courseTypeLabel: '1-0-2 LIT', testWeight: 10, actWeight: 2.5, labWeight: 12.5, eseTheoryWeight: 0, eseLabWeight: 50 },
-  // Later semester mixed courses using the same CA pattern as the existing 3-0-2 / 2-0-4 logic, with ESE split as 40 theory + 10 practical.
+  // LIT 3-0-4: same configured CA split as 3-0-2, with ESE 40 theory + 10 practical.
   '3-0-4': { courseTypeLabel: '3-0-4 LIT', testWeight: 15, actWeight: 2.5, labWeight: 7.5, eseTheoryWeight: 40, eseLabWeight: 10 },
   '3+4': { courseTypeLabel: '3-0-4 LIT', testWeight: 15, actWeight: 2.5, labWeight: 7.5, eseTheoryWeight: 40, eseLabWeight: 10 },
   '1-0-4': { courseTypeLabel: '1-0-4 LIT', testWeight: 5, actWeight: 2.5, labWeight: 17.5, eseTheoryWeight: 0, eseLabWeight: 50 },

@@ -10,6 +10,7 @@ interface EndSemesterSectionProps {
   onCalculate: () => void;
   calculationState: 'idle' | 'calculating' | 'saving' | 'success' | 'error';
   hasCalculated: boolean;
+  savePending?: boolean;
   guestMode: boolean;
   ese: number | string;
   onEseChange: (val: number | string) => void;
@@ -31,6 +32,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
   onCalculate,
   calculationState,
   hasCalculated,
+  savePending = false,
   guestMode,
   ese,
   onEseChange,
@@ -431,6 +433,8 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                 ? 'Calculating result…'
                 : calculationState === 'saving'
                   ? 'Saving result to your account…'
+                  : savePending
+                    ? 'Grade calculated; waiting to sync your account.'
                   : guestMode
                     ? 'Result calculated for this temporary session only.'
                     : 'Result calculated and saved to your account.'}
