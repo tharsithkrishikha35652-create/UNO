@@ -29,6 +29,8 @@ interface ContinuousAssessmentSectionProps {
   onActScoresChange: (scores: (number | string)[]) => void;
   actPoints: number;
   actWeight?: number;
+  actMaxPerBox?: number | string;
+  onActMaxPerBoxChange?: (max: number | string) => void;
   actStartIndex: number;
 
   labNo: number | string;
@@ -37,6 +39,8 @@ interface ContinuousAssessmentSectionProps {
   onLabScoresChange: (scores: (number | string)[]) => void;
   labPoints: number;
   labWeight?: number;
+  labMaxPerBox?: number | string;
+  onLabMaxPerBoxChange?: (max: number | string) => void;
   labStartIndex: number;
 
   estimatedMarks?: boolean;
@@ -66,6 +70,8 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
   onActScoresChange,
   actPoints,
   actWeight = 2.5,
+  actMaxPerBox = 10,
+  onActMaxPerBoxChange,
   actStartIndex,
   labNo,
   onLabNoChange,
@@ -73,6 +79,8 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
   onLabScoresChange,
   labPoints,
   labWeight = 7.5,
+  labMaxPerBox = 10,
+  onLabMaxPerBoxChange,
   labStartIndex,
   estimatedMarks = false,
 }) => {
@@ -331,7 +339,8 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
               scores={actScores}
               onScoresChange={onActScoresChange}
               startIndex={actStartIndex}
-              maxMarkPerBox={10}
+              maxMarkPerBox={actMaxPerBox}
+              onMaxMarkPerBoxChange={onActMaxPerBoxChange}
               weight={actWeight}
               calculatedPoints={actPoints}
               caName={`CA ${number}`}
@@ -354,7 +363,8 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
               scores={labScores}
               onScoresChange={onLabScoresChange}
               startIndex={labStartIndex}
-              maxMarkPerBox={10}
+              maxMarkPerBox={labMaxPerBox}
+              onMaxMarkPerBoxChange={onLabMaxPerBoxChange}
               weight={labWeight}
               calculatedPoints={labPoints}
               caName={`CA ${number}`}

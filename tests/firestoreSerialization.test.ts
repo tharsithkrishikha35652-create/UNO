@@ -19,6 +19,22 @@ describe('Firestore write serialization', () => {
     });
   });
 
+  it('preserves configured course mark maxima for Firestore persistence', () => {
+    expect(stripUndefined({
+      markMaxima: {
+        act1: 20,
+        eseTheory: 150,
+        'project.reviewI': 200,
+      },
+    })).toEqual({
+      markMaxima: {
+        act1: 20,
+        eseTheory: 150,
+        'project.reviewI': 200,
+      },
+    });
+  });
+
   it('preserves non-plain Firestore sentinel and timestamp objects', () => {
     const sentinel = new (class ServerTimestamp {})();
     expect(stripUndefined({ createdAt: sentinel }).createdAt).toBe(sentinel);

@@ -69,58 +69,66 @@ export const ResultsSummaryPanel: React.FC<ResultsSummaryPanelProps> = ({
 
   const test1MaxNum = Number(subject.test1Max) || 50;
   const test2MaxNum = Number(subject.test2Max) || 50;
+  const act1Max = Math.max(1, Number(subject.markMaxima?.act1) || 10);
+  const act2Max = Math.max(1, Number(subject.markMaxima?.act2) || 10);
+  const lab1Max = Math.max(1, Number(subject.markMaxima?.lab1) || 10);
+  const lab2Max = Math.max(1, Number(subject.markMaxima?.lab2) || 10);
+  const eseTheoryMax = Math.max(1, Number(subject.markMaxima?.eseTheory) || 100);
+  const labCourseWorkMax = Math.max(1, Number(subject.markMaxima?.labCourseWork) || 100);
+  const labCourseMidtermMax = Math.max(1, Number(subject.markMaxima?.labCourseMidterm) || 100);
+  const labCourseExamMax = Math.max(1, Number(subject.markMaxima?.labCourseExam) || 100);
 
   const act1Count = Math.max(0, parseInt(String(subject.act1No), 10) || 0);
   const act1Sum = subject.act1Scores
     .slice(0, act1Count)
-    .reduce<number>((acc, v) => acc + (v === '' || isNaN(Number(v)) ? 0 : Number(v)), 0);
+    .reduce<number>((acc, v) => acc + (v === '' || isNaN(Number(v)) ? 0 : Math.min(act1Max, Number(v))), 0);
 
   const lab1Count = Math.max(0, parseInt(String(subject.lab1No), 10) || 0);
   const lab1Sum = subject.lab1Scores
     .slice(0, lab1Count)
-    .reduce<number>((acc, v) => acc + (v === '' || isNaN(Number(v)) ? 0 : Number(v)), 0);
+    .reduce<number>((acc, v) => acc + (v === '' || isNaN(Number(v)) ? 0 : Math.min(lab1Max, Number(v))), 0);
 
   const act2Count = Math.max(0, parseInt(String(subject.act2No), 10) || 0);
   const act2Sum = subject.act2Scores
     .slice(0, act2Count)
-    .reduce<number>((acc, v) => acc + (v === '' || isNaN(Number(v)) ? 0 : Number(v)), 0);
+    .reduce<number>((acc, v) => acc + (v === '' || isNaN(Number(v)) ? 0 : Math.min(act2Max, Number(v))), 0);
 
   const lab2Count = Math.max(0, parseInt(String(subject.lab2No), 10) || 0);
   const lab2Sum = subject.lab2Scores
     .slice(0, lab2Count)
-    .reduce<number>((acc, v) => acc + (v === '' || isNaN(Number(v)) ? 0 : Number(v)), 0);
+    .reduce<number>((acc, v) => acc + (v === '' || isNaN(Number(v)) ? 0 : Math.min(lab2Max, Number(v))), 0);
 
   const mobileSummaryRows: MobileSummaryRow[] = isUhvCourse
     ? [
         { label: 'One test', weight: '70%', rawMarks: `${Number(subject.test1 || 0).toFixed(2)} / ${test1MaxNum}`, contribution: `${breakdown.test1_p.toFixed(2)} / 70` },
-        { label: `Assignment 1 (${act1Count})`, weight: '15%', rawMarks: `${act1Sum.toFixed(2)} / ${act1Count * 10}`, contribution: `${breakdown.act1_p.toFixed(2)} / 15` },
-        { label: `Assignment 2 (${act2Count})`, weight: '15%', rawMarks: `${act2Sum.toFixed(2)} / ${act2Count * 10}`, contribution: `${breakdown.act2_p.toFixed(2)} / 15` },
+        { label: `Assignment 1 (${act1Count})`, weight: '15%', rawMarks: `${act1Sum.toFixed(2)} / ${act1Count * act1Max}`, contribution: `${breakdown.act1_p.toFixed(2)} / 15` },
+        { label: `Assignment 2 (${act2Count})`, weight: '15%', rawMarks: `${act2Sum.toFixed(2)} / ${act2Count * act2Max}`, contribution: `${breakdown.act2_p.toFixed(2)} / 15` },
       ]
     : hasContinuousAssessmentComponents
       ? continuousAssessmentComponents.map((component) => ({
           label: component.label,
           weight: `${component.weight}%`,
-          rawMarks: `${component.score.toFixed(2)} / 100`,
+          rawMarks: `${component.score.toFixed(2)} / ${component.maxScore}`,
           contribution: `${component.contribution.toFixed(2)} / ${component.weight}`,
         }))
     : isLaboratoryCourse
       ? [
-          { label: 'Work, observation and record', weight: '45%', rawMarks: `${Number(subject.labCourseWorkMark || 0).toFixed(2)} / 100`, contribution: `${breakdown.lab1_p.toFixed(2)} / 45` },
-          { label: 'Midterm practical test', weight: '15%', rawMarks: `${Number(subject.labCourseMidtermMark || 0).toFixed(2)} / 100`, contribution: `${breakdown.test1_p.toFixed(2)} / 15` },
-          { label: 'End-semester practical', weight: '40%', rawMarks: `${Number(subject.labCourseExamMark || 0).toFixed(2)} / 100`, contribution: `${breakdown.ese_p.toFixed(2)} / 40` },
+          { label: 'Work, observation and record', weight: '45%', rawMarks: `${Number(subject.labCourseWorkMark || 0).toFixed(2)} / ${labCourseWorkMax}`, contribution: `${breakdown.lab1_p.toFixed(2)} / 45` },
+          { label: 'Midterm practical test', weight: '15%', rawMarks: `${Number(subject.labCourseMidtermMark || 0).toFixed(2)} / ${labCourseMidtermMax}`, contribution: `${breakdown.test1_p.toFixed(2)} / 15` },
+          { label: 'End-semester practical', weight: '40%', rawMarks: `${Number(subject.labCourseExamMark || 0).toFixed(2)} / ${labCourseExamMax}`, contribution: `${breakdown.ese_p.toFixed(2)} / 40` },
         ]
       : isSelfLearningCourse
         ? [{
             label: subject.name || 'Self-Learning Course',
             weight: `Pass threshold: ${Number(subject.selfLearningPassMark) === 40 ? 40 : 50}%`,
-            rawMarks: `${Number(subject.ese || 0).toFixed(2)} / 100`,
+            rawMarks: `${Number(subject.ese || 0).toFixed(2)} / ${eseTheoryMax}`,
             contribution: `Indicative grade: ${breakdown.grade.letter}`,
           }]
         : hasProjectWorkComponents
           ? projectWorkComponents.map((component) => ({
               label: component.label,
               weight: `${component.weight}%`,
-              rawMarks: `${component.score.toFixed(2)} / 100`,
+              rawMarks: `${component.score.toFixed(2)} / ${component.maxScore}`,
               contribution: `${component.contribution.toFixed(2)} / ${component.weight}`,
             }))
           : [
@@ -129,17 +137,17 @@ export const ResultsSummaryPanel: React.FC<ResultsSummaryPanelProps> = ({
                 { label: assessmentTwoName, weight: `${testWeight}%`, rawMarks: `${Number(subject.test2 || 0).toFixed(2)} / ${test2MaxNum}`, contribution: `${breakdown.test2_p.toFixed(2)} / ${testWeight}` },
               ] : []),
               ...(actWeight > 0 ? [
-                { label: `${isHeritageCourse ? 'Activity' : isSelfDevelopment ? 'Activities' : 'Assignments'} 1`, weight: `${actWeight}%`, rawMarks: `${act1Sum.toFixed(2)} / ${act1Count * 10}`, contribution: `${breakdown.act1_p.toFixed(2)} / ${actWeight}` },
-                { label: `${isHeritageCourse ? 'Activity' : isSelfDevelopment ? 'Activities' : 'Assignments'} 2`, weight: `${actWeight}%`, rawMarks: `${act2Sum.toFixed(2)} / ${act2Count * 10}`, contribution: `${breakdown.act2_p.toFixed(2)} / ${actWeight}` },
+                { label: `${isHeritageCourse ? 'Activity' : isSelfDevelopment ? 'Activities' : 'Assignments'} 1`, weight: `${actWeight}%`, rawMarks: `${act1Sum.toFixed(2)} / ${act1Count * act1Max}`, contribution: `${breakdown.act1_p.toFixed(2)} / ${actWeight}` },
+                { label: `${isHeritageCourse ? 'Activity' : isSelfDevelopment ? 'Activities' : 'Assignments'} 2`, weight: `${actWeight}%`, rawMarks: `${act2Sum.toFixed(2)} / ${act2Count * act2Max}`, contribution: `${breakdown.act2_p.toFixed(2)} / ${actWeight}` },
               ] : []),
               ...(hasLab ? [
-                { label: 'Lab practicals 1', weight: `${labWeight}%`, rawMarks: `${lab1Sum.toFixed(2)} / ${lab1Count * 10}`, contribution: `${breakdown.lab1_p.toFixed(2)} / ${labWeight}` },
-                { label: 'Lab practicals 2', weight: `${labWeight}%`, rawMarks: `${lab2Sum.toFixed(2)} / ${lab2Count * 10}`, contribution: `${breakdown.lab1_p.toFixed(2)} / ${labWeight}` },
+                { label: 'Lab practicals 1', weight: `${labWeight}%`, rawMarks: `${lab1Sum.toFixed(2)} / ${lab1Count * lab1Max}`, contribution: `${breakdown.lab1_p.toFixed(2)} / ${labWeight}` },
+                { label: 'Lab practicals 2', weight: `${labWeight}%`, rawMarks: `${lab2Sum.toFixed(2)} / ${lab2Count * lab2Max}`, contribution: `${breakdown.lab2_p.toFixed(2)} / ${labWeight}` },
               ] : []),
               ...(eseTheoryWeight > 0 ? [{
                 label: 'ESE Theory Exam',
                 weight: `${eseTheoryWeight}%`,
-                rawMarks: `${Number(subject.ese || 0).toFixed(2)} / 100`,
+                rawMarks: `${Number(subject.ese || 0).toFixed(2)} / ${eseTheoryMax}`,
                 contribution: `${breakdown.ese_theory_p.toFixed(2)} / ${eseTheoryWeight.toFixed(2)}`,
               }] : []),
               ...(eseLabWeight > 0 ? [{
@@ -156,8 +164,8 @@ export const ResultsSummaryPanel: React.FC<ResultsSummaryPanelProps> = ({
         'Universal Human Values — Continuous Assessment only',
         `Course: ${subject.name}`,
         `Test: ${Number(subject.test1 || 0).toFixed(2)} / ${test1MaxNum} | Contribution ${breakdown.test1_p.toFixed(2)} / 70`,
-        `Assignment 1: ${act1Sum.toFixed(2)} / ${act1Count * 10} | Contribution ${breakdown.act1_p.toFixed(2)} / 15`,
-        `Assignment 2: ${act2Sum.toFixed(2)} / ${act2Count * 10} | Contribution ${breakdown.act2_p.toFixed(2)} / 15`,
+        `Assignment 1: ${act1Sum.toFixed(2)} / ${act1Count * act1Max} | Contribution ${breakdown.act1_p.toFixed(2)} / 15`,
+        `Assignment 2: ${act2Sum.toFixed(2)} / ${act2Count * act2Max} | Contribution ${breakdown.act2_p.toFixed(2)} / 15`,
         `Total: ${breakdown.total.toFixed(2)} / 100`,
         `Indicative outcome: ${breakdown.grade.letter}`,
       ].join('\n');
@@ -174,7 +182,7 @@ export const ResultsSummaryPanel: React.FC<ResultsSummaryPanelProps> = ({
         `Course: ${subject.name}`,
         'Continuous Assessment (100%)',
         ...continuousAssessmentComponents.map((component) =>
-          `- ${component.label}: ${component.score.toFixed(2)} / 100 × ${component.weight}% = ${component.contribution.toFixed(2)}`
+          `- ${component.label}: ${component.score.toFixed(2)} / ${component.maxScore} × ${component.weight}% = ${component.contribution.toFixed(2)}`
         ),
         `Continuous Assessment total: ${breakdown.total.toFixed(2)} / 100`,
         `Indicative outcome: ${breakdown.grade.letter}`,
@@ -188,9 +196,9 @@ export const ResultsSummaryPanel: React.FC<ResultsSummaryPanelProps> = ({
       const text = [
         'Laboratory Course — Regulation 17.6',
         `Course: ${subject.name}`,
-        `Work / observation / record: ${Number(subject.labCourseWorkMark || 0).toFixed(2)} / 100 | Contribution ${breakdown.lab1_p.toFixed(2)} / 45`,
-        `Midterm practical test: ${Number(subject.labCourseMidtermMark || 0).toFixed(2)} / 100 | Contribution ${breakdown.test1_p.toFixed(2)} / 15`,
-        `End-semester practical: ${Number(subject.labCourseExamMark || 0).toFixed(2)} / 100 | Contribution ${breakdown.ese_p.toFixed(2)} / 40`,
+        `Work / observation / record: ${Number(subject.labCourseWorkMark || 0).toFixed(2)} / ${labCourseWorkMax} | Contribution ${breakdown.lab1_p.toFixed(2)} / 45`,
+        `Midterm practical test: ${Number(subject.labCourseMidtermMark || 0).toFixed(2)} / ${labCourseMidtermMax} | Contribution ${breakdown.test1_p.toFixed(2)} / 15`,
+        `End-semester practical: ${Number(subject.labCourseExamMark || 0).toFixed(2)} / ${labCourseExamMax} | Contribution ${breakdown.ese_p.toFixed(2)} / 40`,
         `Total: ${breakdown.total.toFixed(2)} / 100`,
         `Indicative outcome: ${breakdown.grade.letter}`,
       ].join('\n');
@@ -204,7 +212,7 @@ export const ResultsSummaryPanel: React.FC<ResultsSummaryPanelProps> = ({
       navigator.clipboard.writeText([
         'Self-Learning Course — External Result',
         `Course: ${subject.name || 'Self-Learning Course'}`,
-        `Provider mark: ${Number(subject.ese || 0).toFixed(2)} / 100`,
+        `Provider mark: ${Number(subject.ese || 0).toFixed(2)} / ${eseTheoryMax}`,
         `Pass threshold: ${passMark}%`,
         `Indicative outcome: ${breakdown.grade.letter}`,
         'The provider’s official result and grade conversion remain authoritative.',
@@ -215,7 +223,7 @@ export const ResultsSummaryPanel: React.FC<ResultsSummaryPanelProps> = ({
     }
     if (breakdown.projectWorkComponents) {
       const componentLines = projectWorkComponents.map((component) =>
-        `- ${component.label}: ${component.score.toFixed(2)}/100 × ${component.weight}% = ${component.contribution.toFixed(2)}`
+        `- ${component.label}: ${component.score.toFixed(2)}/${component.maxScore} × ${component.weight}% = ${component.contribution.toFixed(2)}`
       );
       const projectText = [
         breakdown.courseType === 'project'
@@ -253,13 +261,13 @@ Course: ${subject.name || 'Course'} - ${breakdown.courseTypeLabel}
 ============================================================
 ${isIndustryOrientedTests || isStandardsCourse || isAuditCourse || isHeritageCourse ? assessmentOneName : 'Continuous Assessment 1'}
 - ${assessmentOneName}: Scored ${subject.test1 || 0}/${test1MaxNum} | Contributed: ${breakdown.test1_p.toFixed(2)} / ${testWeight}
-${actWeight > 0 ? `- ${isHeritageCourse ? 'Activity' : isSelfDevelopment ? 'Activities' : 'Assignments'}: Scored ${act1Sum}/${act1Count * 10} | Contributed: ${breakdown.act1_p.toFixed(2)} / ${actWeight}\n` : ''}
-${hasLab ? `- ${isSelfDevelopment ? 'Lab' : 'Lab Practicals'}: Scored ${lab1Sum}/${lab1Count * 10} | Contributed: ${breakdown.lab1_p.toFixed(2)} / ${labWeight}\n` : ''}CA 1 Subtotal: ${breakdown.ca1_total.toFixed(2)} / ${caMax.toFixed(2)}
+${actWeight > 0 ? `- ${isHeritageCourse ? 'Activity' : isSelfDevelopment ? 'Activities' : 'Assignments'}: Scored ${act1Sum}/${act1Count * act1Max} | Contributed: ${breakdown.act1_p.toFixed(2)} / ${actWeight}\n` : ''}
+${hasLab ? `- ${isSelfDevelopment ? 'Lab' : 'Lab Practicals'}: Scored ${lab1Sum}/${lab1Count * lab1Max} | Contributed: ${breakdown.lab1_p.toFixed(2)} / ${labWeight}\n` : ''}CA 1 Subtotal: ${breakdown.ca1_total.toFixed(2)} / ${caMax.toFixed(2)}
 
 ${isIndustryOrientedTests || isStandardsCourse || isAuditCourse || isHeritageCourse ? assessmentTwoName : 'Continuous Assessment 2'}
 - ${assessmentTwoName}: Scored ${subject.test2 || 0}/${test2MaxNum} | Contributed: ${breakdown.test2_p.toFixed(2)} / ${testWeight}
-${actWeight > 0 ? `- ${isHeritageCourse ? 'Activity' : isSelfDevelopment ? 'Activities' : 'Assignments'}: Scored ${act2Sum}/${act2Count * 10} | Contributed: ${breakdown.act2_p.toFixed(2)} / ${actWeight}\n` : ''}
-${hasLab ? `- ${isSelfDevelopment ? 'Lab' : 'Lab Practicals'}: Scored ${lab2Sum}/${lab2Count * 10} | Contributed: ${breakdown.lab2_p.toFixed(2)} / ${labWeight}\n` : ''}CA 2 Subtotal: ${breakdown.ca2_total.toFixed(2)} / ${caMax.toFixed(2)}
+${actWeight > 0 ? `- ${isHeritageCourse ? 'Activity' : isSelfDevelopment ? 'Activities' : 'Assignments'}: Scored ${act2Sum}/${act2Count * act2Max} | Contributed: ${breakdown.act2_p.toFixed(2)} / ${actWeight}\n` : ''}
+${hasLab ? `- ${isSelfDevelopment ? 'Lab' : 'Lab Practicals'}: Scored ${lab2Sum}/${lab2Count * lab2Max} | Contributed: ${breakdown.lab2_p.toFixed(2)} / ${labWeight}\n` : ''}CA 2 Subtotal: ${breakdown.ca2_total.toFixed(2)} / ${caMax.toFixed(2)}
 
 Internal assessment total: ${breakdown.internal_total.toFixed(2)} / ${internalMax.toFixed(2)}
 ${eseText}
@@ -396,8 +404,8 @@ Final grade: Grade ${breakdown.grade.letter} - ${breakdown.grade.label} | Grade 
           </thead>
           <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
             <tr><td className="px-4 py-3 font-semibold">One test</td><td className="px-4 py-3 text-center">70%</td><td className="px-4 py-3 text-right tabular-nums font-numeric">{Number(subject.test1 || 0).toFixed(2)} / {test1MaxNum}</td><td className="px-4 py-3 text-right font-bold tabular-nums font-numeric">{breakdown.test1_p.toFixed(2)} / 70</td></tr>
-            <tr><td className="px-4 py-3 font-semibold">Assignment 1 ({act1Count})</td><td className="px-4 py-3 text-center">15%</td><td className="px-4 py-3 text-right tabular-nums font-numeric">{act1Sum.toFixed(2)} / {act1Count * 10}</td><td className="px-4 py-3 text-right font-bold tabular-nums font-numeric">{breakdown.act1_p.toFixed(2)} / 15</td></tr>
-            <tr><td className="px-4 py-3 font-semibold">Assignment 2 ({act2Count})</td><td className="px-4 py-3 text-center">15%</td><td className="px-4 py-3 text-right tabular-nums font-numeric">{act2Sum.toFixed(2)} / {act2Count * 10}</td><td className="px-4 py-3 text-right font-bold tabular-nums font-numeric">{breakdown.act2_p.toFixed(2)} / 15</td></tr>
+            <tr><td className="px-4 py-3 font-semibold">Assignment 1 ({act1Count})</td><td className="px-4 py-3 text-center">15%</td><td className="px-4 py-3 text-right tabular-nums font-numeric">{act1Sum.toFixed(2)} / {act1Count * act1Max}</td><td className="px-4 py-3 text-right font-bold tabular-nums font-numeric">{breakdown.act1_p.toFixed(2)} / 15</td></tr>
+            <tr><td className="px-4 py-3 font-semibold">Assignment 2 ({act2Count})</td><td className="px-4 py-3 text-center">15%</td><td className="px-4 py-3 text-right tabular-nums font-numeric">{act2Sum.toFixed(2)} / {act2Count * act2Max}</td><td className="px-4 py-3 text-right font-bold tabular-nums font-numeric">{breakdown.act2_p.toFixed(2)} / 15</td></tr>
             <tr className="bg-[#172554] dark:bg-[#202024] text-white font-black"><td className="px-4 py-3 font-bold">Total</td><td className="px-4 py-3 text-center">100%</td><td className="px-4 py-3 text-right">—</td><td className="px-4 py-3 text-right tabular-nums font-numeric">{breakdown.total.toFixed(2)} / 100</td></tr>
           </tbody>
         </table>
@@ -409,7 +417,7 @@ Final grade: Grade ${breakdown.grade.letter} - ${breakdown.grade.label} | Grade 
             <tr>
               <th className="px-4 py-3">Continuous assessment component</th>
               <th className="px-4 py-3 text-center">Weight</th>
-              <th className="px-4 py-3 text-right">Score / 100</th>
+              <th className="px-4 py-3 text-right">Score / max</th>
               <th className="px-4 py-3 text-right">Contribution</th>
             </tr>
           </thead>
@@ -418,7 +426,7 @@ Final grade: Grade ${breakdown.grade.letter} - ${breakdown.grade.label} | Grade 
               <tr key={component.key} className="hover:bg-slate-50 dark:hover:bg-[#202024]/50 transition-colors">
                 <td className="px-4 py-3 font-semibold">{component.label}</td>
                 <td className="px-4 py-3 text-center font-bold">{component.weight}%</td>
-                <td className="px-4 py-3 text-right tabular-nums font-numeric">{component.score.toFixed(2)} / 100</td>
+                <td className="px-4 py-3 text-right tabular-nums font-numeric">{component.score.toFixed(2)} / {component.maxScore}</td>
                 <td className="px-4 py-3 text-right font-black tabular-nums font-numeric">{component.contribution.toFixed(2)} / {component.weight}</td>
               </tr>
             ))}
@@ -443,9 +451,9 @@ Final grade: Grade ${breakdown.grade.letter} - ${breakdown.grade.label} | Grade 
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-            <tr><td className="px-4 py-3 font-semibold">Work, observation and record</td><td className="px-4 py-3 text-center">45%</td><td className="px-4 py-3 text-right tabular-nums font-numeric">{Number(subject.labCourseWorkMark || 0).toFixed(2)} / 100</td><td className="px-4 py-3 text-right font-bold tabular-nums font-numeric">{breakdown.lab1_p.toFixed(2)} / 45</td></tr>
-            <tr><td className="px-4 py-3 font-semibold">Midterm practical test</td><td className="px-4 py-3 text-center">15%</td><td className="px-4 py-3 text-right tabular-nums font-numeric">{Number(subject.labCourseMidtermMark || 0).toFixed(2)} / 100</td><td className="px-4 py-3 text-right font-bold tabular-nums font-numeric">{breakdown.test1_p.toFixed(2)} / 15</td></tr>
-            <tr><td className="px-4 py-3 font-semibold">End-semester practical</td><td className="px-4 py-3 text-center">40%</td><td className="px-4 py-3 text-right tabular-nums font-numeric">{Number(subject.labCourseExamMark || 0).toFixed(2)} / 100</td><td className="px-4 py-3 text-right font-bold tabular-nums font-numeric">{breakdown.ese_p.toFixed(2)} / 40</td></tr>
+            <tr><td className="px-4 py-3 font-semibold">Work, observation and record</td><td className="px-4 py-3 text-center">45%</td><td className="px-4 py-3 text-right tabular-nums font-numeric">{Number(subject.labCourseWorkMark || 0).toFixed(2)} / {labCourseWorkMax}</td><td className="px-4 py-3 text-right font-bold tabular-nums font-numeric">{breakdown.lab1_p.toFixed(2)} / 45</td></tr>
+            <tr><td className="px-4 py-3 font-semibold">Midterm practical test</td><td className="px-4 py-3 text-center">15%</td><td className="px-4 py-3 text-right tabular-nums font-numeric">{Number(subject.labCourseMidtermMark || 0).toFixed(2)} / {labCourseMidtermMax}</td><td className="px-4 py-3 text-right font-bold tabular-nums font-numeric">{breakdown.test1_p.toFixed(2)} / 15</td></tr>
+            <tr><td className="px-4 py-3 font-semibold">End-semester practical</td><td className="px-4 py-3 text-center">40%</td><td className="px-4 py-3 text-right tabular-nums font-numeric">{Number(subject.labCourseExamMark || 0).toFixed(2)} / {labCourseExamMax}</td><td className="px-4 py-3 text-right font-bold tabular-nums font-numeric">{breakdown.ese_p.toFixed(2)} / 40</td></tr>
             <tr className="bg-[#172554] dark:bg-[#202024] text-white font-black"><td className="px-4 py-3 font-bold">Total</td><td className="px-4 py-3 text-center">100%</td><td className="px-4 py-3 text-right">—</td><td className="px-4 py-3 text-right tabular-nums font-numeric">{breakdown.total.toFixed(2)} / 100</td></tr>
           </tbody>
         </table>
@@ -460,7 +468,7 @@ Final grade: Grade ${breakdown.grade.letter} - ${breakdown.grade.label} | Grade 
             <tr>
               <td className="px-4 py-3 font-semibold">{subject.name || 'Self-Learning Course'}</td>
               <td className="px-4 py-3 text-center">{Number(subject.selfLearningPassMark) === 40 ? 40 : 50}%</td>
-              <td className="px-4 py-3 text-right font-bold tabular-nums font-numeric">{Number(subject.ese || 0).toFixed(2)} / 100</td>
+              <td className="px-4 py-3 text-right font-bold tabular-nums font-numeric">{Number(subject.ese || 0).toFixed(2)} / {eseTheoryMax}</td>
               <td className="px-4 py-3 text-right font-black">{breakdown.grade.letter}</td>
             </tr>
           </tbody>
@@ -473,7 +481,7 @@ Final grade: Grade ${breakdown.grade.letter} - ${breakdown.grade.label} | Grade 
             <tr className="bg-[#172554] dark:bg-[#202024] text-white text-[11px] sm:text-xs font-extrabold">
               <th className="py-2.5 px-3 sm:px-4">{breakdown.courseType === 'project' ? 'Internship cum Project Work component' : 'Table 6 component'}</th>
               <th className="py-2.5 px-2 text-center">Weight</th>
-              <th className="py-2.5 px-3 text-right">Score / 100</th>
+              <th className="py-2.5 px-3 text-right">Score / max</th>
               <th className="py-2.5 px-3 sm:px-4 text-right">Contributed</th>
             </tr>
           </thead>
@@ -485,7 +493,7 @@ Final grade: Grade ${breakdown.grade.letter} - ${breakdown.grade.label} | Grade 
               <tr key={component.key} className="hover:bg-slate-50 dark:hover:bg-[#202024]/50 transition-colors">
                 <td className="py-2 px-3 sm:px-4 font-semibold text-[#172554] dark:text-[#f1f1f3]">{component.label}</td>
                 <td className="py-2 px-2 text-center text-[#172554] dark:text-[#f1f1f3]">{component.weight}%</td>
-                <td className="py-2 px-3 text-right tabular-nums font-numeric text-[#172554] dark:text-[#f1f1f3]">{component.score.toFixed(2)}</td>
+                <td className="py-2 px-3 text-right tabular-nums font-numeric text-[#172554] dark:text-[#f1f1f3]">{component.score.toFixed(2)} / {component.maxScore}</td>
                 <td className="py-2 px-3 sm:px-4 text-right font-black tabular-nums font-numeric text-[#172554] dark:text-[#f1f1f3]">{component.contribution.toFixed(2)} / {component.weight}</td>
               </tr>
             ))}
@@ -501,7 +509,7 @@ Final grade: Grade ${breakdown.grade.letter} - ${breakdown.grade.label} | Grade 
               <tr key={component.key} className="hover:bg-slate-50 dark:hover:bg-[#202024]/50 transition-colors">
                 <td className="py-2 px-3 sm:px-4 font-semibold text-[#172554] dark:text-[#f1f1f3]">{component.label}</td>
                 <td className="py-2 px-2 text-center text-[#172554] dark:text-[#f1f1f3]">{component.weight}%</td>
-                <td className="py-2 px-3 text-right tabular-nums font-numeric text-[#172554] dark:text-[#f1f1f3]">{component.score.toFixed(2)}</td>
+                <td className="py-2 px-3 text-right tabular-nums font-numeric text-[#172554] dark:text-[#f1f1f3]">{component.score.toFixed(2)} / {component.maxScore}</td>
                 <td className="py-2 px-3 sm:px-4 text-right font-black tabular-nums font-numeric text-[#172554] dark:text-[#f1f1f3]">{component.contribution.toFixed(2)} / {component.weight}</td>
               </tr>
             ))}
@@ -567,7 +575,7 @@ Final grade: Grade ${breakdown.grade.letter} - ${breakdown.grade.label} | Grade 
                 </td>
                 <td className="py-2 px-2 text-center font-bold text-[#172554] dark:text-[#f1f1f3]">{actWeight}%</td>
                 <td className="py-2 px-3 text-right tabular-nums font-numeric text-[#172554] dark:text-[#f1f1f3]">
-                  {act1Count === 0 ? '—' : `${act1Sum.toFixed(2)} / ${act1Count * 10}`}
+                  {act1Count === 0 ? '—' : `${act1Sum.toFixed(2)} / ${act1Count * act1Max}`}
                 </td>
                 <td className="py-2 px-3 sm:px-4 text-right font-black text-[#172554] dark:text-[#f1f1f3] tabular-nums font-numeric">
                   {breakdown.act1_p.toFixed(2)}{' '}
@@ -584,7 +592,7 @@ Final grade: Grade ${breakdown.grade.letter} - ${breakdown.grade.label} | Grade 
                 </td>
                 <td className="py-2 px-2 text-center font-bold text-[#172554] dark:text-[#f1f1f3]">{labWeight}%</td>
                 <td className="py-2 px-3 text-right tabular-nums font-numeric text-[#172554] dark:text-[#f1f1f3]">
-                  {lab1Count === 0 ? '—' : `${lab1Sum.toFixed(2)} / ${lab1Count * 10}`}
+                  {lab1Count === 0 ? '—' : `${lab1Sum.toFixed(2)} / ${lab1Count * lab1Max}`}
                 </td>
                 <td className="py-2 px-3 sm:px-4 text-right font-black text-[#172554] dark:text-[#f1f1f3] tabular-nums font-numeric">
                   {breakdown.lab1_p.toFixed(2)}{' '}
@@ -641,7 +649,7 @@ Final grade: Grade ${breakdown.grade.letter} - ${breakdown.grade.label} | Grade 
                 </td>
                 <td className="py-2 px-2 text-center font-bold text-[#172554] dark:text-[#f1f1f3]">{actWeight}%</td>
                 <td className="py-2 px-3 text-right tabular-nums font-numeric text-[#172554] dark:text-[#f1f1f3]">
-                  {act2Count === 0 ? '—' : `${act2Sum.toFixed(2)} / ${act2Count * 10}`}
+                  {act2Count === 0 ? '—' : `${act2Sum.toFixed(2)} / ${act2Count * act2Max}`}
                 </td>
                 <td className="py-2 px-3 sm:px-4 text-right font-black text-[#172554] dark:text-[#f1f1f3] tabular-nums font-numeric">
                   {breakdown.act2_p.toFixed(2)}{' '}
@@ -658,7 +666,7 @@ Final grade: Grade ${breakdown.grade.letter} - ${breakdown.grade.label} | Grade 
                 </td>
                 <td className="py-2 px-2 text-center font-bold text-[#172554] dark:text-[#f1f1f3]">{labWeight}%</td>
                 <td className="py-2 px-3 text-right tabular-nums font-numeric text-[#172554] dark:text-[#f1f1f3]">
-                  {lab2Count === 0 ? '—' : `${lab2Sum.toFixed(2)} / ${lab2Count * 10}`}
+                  {lab2Count === 0 ? '—' : `${lab2Sum.toFixed(2)} / ${lab2Count * lab2Max}`}
                 </td>
                 <td className="py-2 px-3 sm:px-4 text-right font-black text-[#172554] dark:text-[#f1f1f3] tabular-nums font-numeric">
                   {breakdown.lab2_p.toFixed(2)}{' '}
@@ -712,7 +720,7 @@ Final grade: Grade ${breakdown.grade.letter} - ${breakdown.grade.label} | Grade 
                   </td>
                   <td className="py-2 px-2 text-center font-bold text-[#172554] dark:text-[#f1f1f3]">{eseTheoryWeight}%</td>
                   <td className="py-2 px-3 text-right font-bold text-[#172554] dark:text-[#f1f1f3] tabular-nums font-numeric">
-                    {subject.ese === '' ? '0.00' : Number(subject.ese).toFixed(2)} / 100
+                    {subject.ese === '' ? '0.00' : Number(subject.ese).toFixed(2)} / {eseTheoryMax}
                   </td>
                   <td className="py-2 px-3 sm:px-4 text-right font-black text-[#172554] dark:text-[#f1f1f3] tabular-nums font-numeric">
                     {breakdown.ese_theory_p.toFixed(2)}{' '}
@@ -768,7 +776,7 @@ Final grade: Grade ${breakdown.grade.letter} - ${breakdown.grade.label} | Grade 
                 </td>
                 <td className="py-2.5 px-2 text-center font-bold text-[#172554] dark:text-[#f1f1f3]">{eseTheoryWeight}%</td>
                 <td className="py-2.5 px-3 text-right font-bold text-[#172554] dark:text-[#f1f1f3] tabular-nums font-numeric">
-                  {subject.ese === '' ? '0.00' : Number(subject.ese).toFixed(2)} / 100
+                    {subject.ese === '' ? '0.00' : Number(subject.ese).toFixed(2)} / {eseTheoryMax}
                 </td>
                 <td className="py-2.5 px-3 sm:px-4 text-right font-black text-[#172554] dark:text-[#f1f1f3] tabular-nums font-numeric">
                   {breakdown.ese_p.toFixed(2)}{' '}

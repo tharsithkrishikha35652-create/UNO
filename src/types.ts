@@ -50,6 +50,7 @@ export interface SubjectData {
   projectWorkMarks?: ProjectWorkMarks;
   miniProjectMarks?: MiniProjectMarks;
   internshipTrainingMarks?: InternshipTrainingMarks;
+  markMaxima?: Record<string, number | string>;
   selfLearningPassMark?: number | string;
   labCourseWorkMark?: number | string;
   labCourseMidtermMark?: number | string;
@@ -113,6 +114,7 @@ export interface ProjectWorkComponentResult {
   section: 'Continuous Assessment' | 'End-Semester Examination';
   weight: number;
   score: number;
+  maxScore: number;
   contribution: number;
 }
 
@@ -121,6 +123,7 @@ export interface ContinuousAssessmentComponentResult {
   label: string;
   weight: number;
   score: number;
+  maxScore: number;
   contribution: number;
 }
 

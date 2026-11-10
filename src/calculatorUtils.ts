@@ -319,6 +319,8 @@ export function calculateMarks(data: SubjectData): CalculationBreakdown {
 
   const courseType = getCourseType(data);
   const weights = getCourseWeights(courseType);
+  const configuredMax = (key: string, fallback: number): number =>
+    Math.max(1, parseNum(data.markMaxima?.[key]) || fallback);
 
   if (courseType === 'mini-project' || courseType === 'internship-training') {
     const componentDefinitions = courseType === 'mini-project'
@@ -340,11 +342,13 @@ export function calculateMarks(data: SubjectData): CalculationBreakdown {
     const components: ContinuousAssessmentComponentResult[] = componentDefinitions.map((component) => {
       const rawScore = marks?.[component.key];
       const parsed = parseNum(rawScore);
-      const score = Math.max(0, Math.min(100, parsed));
+      const maxScore = configuredMax(`${courseType}.${component.key}`, 100);
+      const score = Math.max(0, Math.min(maxScore, parsed));
       return {
         ...component,
         score,
-        contribution: round2(score * component.weight / 100),
+        maxScore,
+        contribution: round2(score / maxScore * component.weight),
       };
     });
     const complete = componentDefinitions.every((component) => {
@@ -388,9 +392,9 @@ export function calculateMarks(data: SubjectData): CalculationBreakdown {
   }
 
   if (courseType === 'project-work' || courseType === 'project') {
-    const score = (value: number | string | undefined): number => {
+    const score = (value: number | string | undefined, maxScore: number): number => {
       const parsed = parseNum(value);
-      return Math.max(0, Math.min(100, parsed));
+      return Math.max(0, Math.min(maxScore, parsed));
     };
     const marks: ProjectWorkMarks = data.projectWorkMarks ?? {
       reviewI: '', reviewII: '', reviewIII: '', thesisGuide: '', thesisExternal: '', vivaExternal: '', vivaInternal: '',
@@ -405,8 +409,9 @@ export function calculateMarks(data: SubjectData): CalculationBreakdown {
       { key: 'vivaInternal', label: 'Viva-Voce — Internal Examiner', section: 'End-Semester Examination' as const, weight: 10 },
     ];
     const components: ProjectWorkComponentResult[] = componentDefinitions.map((component) => {
-      const componentScore = score(marks[component.key]);
-      return { ...component, score: componentScore, contribution: round2(componentScore * component.weight / 100) };
+      const maxScore = configuredMax(`project.${component.key}`, 100);
+      const componentScore = score(marks[component.key], maxScore);
+      return { ...component, score: componentScore, maxScore, contribution: round2(componentScore / maxScore * component.weight) };
     });
     const internalTotal = components
       .filter((component) => component.section === 'Continuous Assessment')
@@ -452,16 +457,18 @@ export function calculateMarks(data: SubjectData): CalculationBreakdown {
 
   if (courseType === 'universal-human-values') {
     const testMax = Math.max(1, parseNum(data.test1Max) || 50);
+    const activity1Max = configuredMax('act1', 10);
+    const activity2Max = configuredMax('act2', 10);
     const test = Math.max(0, Math.min(testMax, parseNum(data.test1)));
     const activity1Count = Math.max(0, Math.floor(parseNum(data.act1No)));
     const activity2Count = Math.max(0, Math.floor(parseNum(data.act2No)));
     const activity1Scores = syncScoresArray(data.act1Scores, activity1Count);
     const activity2Scores = syncScoresArray(data.act2Scores, activity2Count);
-    const activity1Sum = activity1Scores.reduce<number>((sum, value) => sum + Math.max(0, Math.min(10, parseNum(value))), 0);
-    const activity2Sum = activity2Scores.reduce<number>((sum, value) => sum + Math.max(0, Math.min(10, parseNum(value))), 0);
+    const activity1Sum = activity1Scores.reduce<number>((sum, value) => sum + Math.max(0, Math.min(activity1Max, parseNum(value))), 0);
+    const activity2Sum = activity2Scores.reduce<number>((sum, value) => sum + Math.max(0, Math.min(activity2Max, parseNum(value))), 0);
     const testPoints = test / testMax * 70;
-    const activity1Points = activity1Count > 0 ? activity1Sum / (activity1Count * 10) * 15 : 0;
-    const activity2Points = activity2Count > 0 ? activity2Sum / (activity2Count * 10) * 15 : 0;
+    const activity1Points = activity1Count > 0 ? activity1Sum / (activity1Count * activity1Max) * 15 : 0;
+    const activity2Points = activity2Count > 0 ? activity2Sum / (activity2Count * activity2Max) * 15 : 0;
     const total = round2(testPoints + activity1Points + activity2Points);
     const requiredActivitiesComplete = activity1Count > 0 && activity2Count > 0 &&
       activity1Scores.every((value) => value !== '' && value !== null && value !== undefined) &&
@@ -499,12 +506,15 @@ export function calculateMarks(data: SubjectData): CalculationBreakdown {
   }
 
   if (courseType === 'laboratory-course') {
-    const workMark = Math.max(0, Math.min(100, parseNum(data.labCourseWorkMark)));
-    const midtermMark = Math.max(0, Math.min(100, parseNum(data.labCourseMidtermMark)));
-    const examMark = Math.max(0, Math.min(100, parseNum(data.labCourseExamMark)));
-    const workPoints = round2(workMark * 0.45);
-    const midtermPoints = round2(midtermMark * 0.15);
-    const examPoints = round2(examMark * 0.40);
+    const workMax = configuredMax('labCourseWork', 100);
+    const midtermMax = configuredMax('labCourseMidterm', 100);
+    const examMax = configuredMax('labCourseExam', 100);
+    const workMark = Math.max(0, Math.min(workMax, parseNum(data.labCourseWorkMark)));
+    const midtermMark = Math.max(0, Math.min(midtermMax, parseNum(data.labCourseMidtermMark)));
+    const examMark = Math.max(0, Math.min(examMax, parseNum(data.labCourseExamMark)));
+    const workPoints = round2(workMark / workMax * 45);
+    const midtermPoints = round2(midtermMark / midtermMax * 15);
+    const examPoints = round2(examMark / examMax * 40);
     const internalTotal = round2(workPoints + midtermPoints);
     const total = round2(internalTotal + examPoints);
     return {
@@ -535,12 +545,14 @@ export function calculateMarks(data: SubjectData): CalculationBreakdown {
       ca2_total: 0,
       internal_total: internalTotal,
       total,
-      grade: getGradeForScore(data.labCourseWorkMark !== '' && data.labCourseWorkMark !== undefined && data.labCourseWorkMark !== null && data.labCourseMidtermMark !== '' && data.labCourseMidtermMark !== undefined && data.labCourseMidtermMark !== null && data.labCourseExamMark !== '' && data.labCourseExamMark !== undefined && data.labCourseExamMark !== null && total >= 50 && examMark >= 45 ? total : 49),
+      grade: getGradeForScore(data.labCourseWorkMark !== '' && data.labCourseWorkMark !== undefined && data.labCourseWorkMark !== null && data.labCourseMidtermMark !== '' && data.labCourseMidtermMark !== undefined && data.labCourseMidtermMark !== null && data.labCourseExamMark !== '' && data.labCourseExamMark !== undefined && data.labCourseExamMark !== null && total >= 50 && examMark / examMax * 100 >= 45 ? total : 49),
     };
   }
 
   if (courseType === 'self-learning') {
-    const mark = Math.max(0, Math.min(100, parseNum(data.ese)));
+    const maxScore = configuredMax('eseTheory', 100);
+    const rawMark = Math.max(0, Math.min(maxScore, parseNum(data.ese)));
+    const mark = rawMark / maxScore * 100;
     const passMark = Number(data.selfLearningPassMark) === 40 ? 40 : 50;
     const slcGrade = mark >= 90
       ? { ...GRADE_SCALE[0], minScore: 90, maxScore: 100, rangeLabel: '90 – 100' }
@@ -591,8 +603,9 @@ export function calculateMarks(data: SubjectData): CalculationBreakdown {
 
   // 1. ESE:
   // ESE weights come from the course type: theory-only (50, or 60 for the new theory-only courses), theory + practical (40 + 10), or practical-only (50)
-  const ese = Math.max(0, Math.min(100, parseNum(data.ese)));
-  const ese_theory_p = (ese / 100) * weights.eseTheoryWeight;
+  const eseTheoryMax = configuredMax('eseTheory', 100);
+  const ese = Math.max(0, Math.min(eseTheoryMax, parseNum(data.ese)));
+  const ese_theory_p = (ese / eseTheoryMax) * weights.eseTheoryWeight;
 
   let ese_lab_p = 0;
   if (weights.eseLabWeight > 0) {
@@ -614,28 +627,32 @@ export function calculateMarks(data: SubjectData): CalculationBreakdown {
   const test2_p = test2Max > 0 ? (test2 / test2Max) * weights.testWeight : 0;
 
   // 4. Activity 1: act1_p = (act1 / (act1_no * 10)) * actWeight (max 2.5)
+  const act1Max = configuredMax('act1', 10);
   const act1No = Math.max(0, parseNum(data.act1No));
   const act1Scores = syncScoresArray(data.act1Scores, act1No);
-  const act1_sum = act1Scores.reduce<number>((acc, curr) => acc + Math.max(0, Math.min(10, parseNum(curr))), 0);
-  const act1_p = act1No > 0 ? (act1_sum / (act1No * 10)) * weights.actWeight : 0;
+  const act1_sum = act1Scores.reduce<number>((acc, curr) => acc + Math.max(0, Math.min(act1Max, parseNum(curr))), 0);
+  const act1_p = act1No > 0 ? (act1_sum / (act1No * act1Max)) * weights.actWeight : 0;
 
   // 5. Activity 2: act2_p = (act2 / (act2_no * 10)) * actWeight (max 2.5)
+  const act2Max = configuredMax('act2', 10);
   const act2No = Math.max(0, parseNum(data.act2No));
   const act2Scores = syncScoresArray(data.act2Scores, act2No);
-  const act2_sum = act2Scores.reduce<number>((acc, curr) => acc + Math.max(0, Math.min(10, parseNum(curr))), 0);
-  const act2_p = act2No > 0 ? (act2_sum / (act2No * 10)) * weights.actWeight : 0;
+  const act2_sum = act2Scores.reduce<number>((acc, curr) => acc + Math.max(0, Math.min(act2Max, parseNum(curr))), 0);
+  const act2_p = act2No > 0 ? (act2_sum / (act2No * act2Max)) * weights.actWeight : 0;
 
   // 6. Lab 1: lab1_p = (lab1 / (lab1_no * 10)) * labWeight (max = labWeight of the course type)
+  const lab1Max = configuredMax('lab1', 10);
   const lab1No = Math.max(0, parseNum(data.lab1No));
   const lab1Scores = syncScoresArray(data.lab1Scores, lab1No);
-  const lab1_sum = lab1Scores.reduce<number>((acc, curr) => acc + Math.max(0, Math.min(10, parseNum(curr))), 0);
-  const lab1_p = lab1No > 0 ? (lab1_sum / (lab1No * 10)) * weights.labWeight : 0;
+  const lab1_sum = lab1Scores.reduce<number>((acc, curr) => acc + Math.max(0, Math.min(lab1Max, parseNum(curr))), 0);
+  const lab1_p = lab1No > 0 ? (lab1_sum / (lab1No * lab1Max)) * weights.labWeight : 0;
 
   // 7. Lab 2: lab2_p = (lab2 / (lab2_no * 10)) * labWeight (max = labWeight of the course type)
+  const lab2Max = configuredMax('lab2', 10);
   const lab2No = Math.max(0, parseNum(data.lab2No));
   const lab2Scores = syncScoresArray(data.lab2Scores, lab2No);
-  const lab2_sum = lab2Scores.reduce<number>((acc, curr) => acc + Math.max(0, Math.min(10, parseNum(curr))), 0);
-  const lab2_p = lab2No > 0 ? (lab2_sum / (lab2No * 10)) * weights.labWeight : 0;
+  const lab2_sum = lab2Scores.reduce<number>((acc, curr) => acc + Math.max(0, Math.min(lab2Max, parseNum(curr))), 0);
+  const lab2_p = lab2No > 0 ? (lab2_sum / (lab2No * lab2Max)) * weights.labWeight : 0;
 
   // Subtotals
   const ca1_total = test1_p + act1_p + lab1_p; // max = caMax (25, or 20 for theory-only)

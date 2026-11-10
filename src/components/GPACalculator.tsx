@@ -181,11 +181,12 @@ function scoresCompleteOrEstimated(
 function fillEstimatedScores(
   countValue: number | string,
   existingScores: (number | string)[] | undefined,
-  estimatePercentage: number
+  estimatePercentage: number,
+  maxMarkPerBox = 10,
 ): (number | string)[] {
   const count = Math.max(0, Math.floor(Number(countValue) || 0));
   const finalCount = count === 0 ? 1 : count;
-  const estimateMark = (10 * estimatePercentage) / 100;
+  const estimateMark = (maxMarkPerBox * estimatePercentage) / 100;
   return Array.from({ length: finalCount }, (_, i): number | string => {
     const existing = existingScores?.[i];
     return existing !== undefined && entered(existing) ? existing : estimateMark;
@@ -201,6 +202,10 @@ export function applyEstimatedScores(subject: SubjectData, estimatePercentage: n
   const hasEnteredEseLab = entered(subject.eseLab);
   const eseLabMax = Number(subject.eseLabMax) > 0 ? Number(subject.eseLabMax) : 100;
   const estimatedEseLab = (eseLabMax * estimatePercentage) / 100;
+  const activity1Max = Math.max(1, Number(subject.markMaxima?.act1) || 10);
+  const activity2Max = Math.max(1, Number(subject.markMaxima?.act2) || 10);
+  const lab1Max = Math.max(1, Number(subject.markMaxima?.lab1) || 10);
+  const lab2Max = Math.max(1, Number(subject.markMaxima?.lab2) || 10);
 
   return {
     ...subject,
@@ -208,8 +213,8 @@ export function applyEstimatedScores(subject: SubjectData, estimatePercentage: n
       ? {
           act1No: estimatedCount(subject.act1No),
           act2No: estimatedCount(subject.act2No),
-          act1Scores: fillEstimatedScores(subject.act1No, subject.act1Scores, estimatePercentage),
-          act2Scores: fillEstimatedScores(subject.act2No, subject.act2Scores, estimatePercentage),
+          act1Scores: fillEstimatedScores(subject.act1No, subject.act1Scores, estimatePercentage, activity1Max),
+          act2Scores: fillEstimatedScores(subject.act2No, subject.act2Scores, estimatePercentage, activity2Max),
         }
       : {}),
     ...(weights.labWeight > 0
@@ -219,10 +224,10 @@ export function applyEstimatedScores(subject: SubjectData, estimatePercentage: n
         }
       : {}),
     lab1Scores: weights.labWeight > 0
-      ? fillEstimatedScores(subject.lab1No, subject.lab1Scores, estimatePercentage)
+      ? fillEstimatedScores(subject.lab1No, subject.lab1Scores, estimatePercentage, lab1Max)
       : subject.lab1Scores,
     lab2Scores: weights.labWeight > 0
-      ? fillEstimatedScores(subject.lab2No, subject.lab2Scores, estimatePercentage)
+      ? fillEstimatedScores(subject.lab2No, subject.lab2Scores, estimatePercentage, lab2Max)
       : subject.lab2Scores,
     ...(weights.eseLabWeight > 0
       ? {

@@ -44,6 +44,7 @@ import {
 } from "./components/SemesterCourseDashboard";
 import { ProjectWorkAssessmentSection } from "./components/ProjectWorkAssessmentSection";
 import { ContinuousAssessmentMarksSection } from "./components/ContinuousAssessmentMarksSection";
+import { MaxMarksInput } from "./components/MaxMarksInput";
 import {
   applyEstimatedScores,
   calculateEstimatedSemesterGpa,
@@ -1624,6 +1625,8 @@ function AuthenticatedApp({
     "standards-course",
     "audit-course",
   ].includes(currentCourseType);
+  const markMaximum = (key: string, fallback: number) =>
+    Math.max(1, Number(currentSubject.markMaxima?.[key]) || fallback);
 
   // Update specific fields of the current subject
   const updateCurrentSubject = (updates: Partial<SubjectData>) => {
@@ -1703,6 +1706,25 @@ function AuthenticatedApp({
         return updated;
       })
     );
+  };
+
+  const updateMarkMaximum = (
+    key: string,
+    value: number | string,
+    scoreField?: keyof SubjectData,
+    fallback = 100
+  ) => {
+    const nextMax = Math.max(1, Number(value) || fallback);
+    const currentScore = scoreField ? currentSubject[scoreField] : undefined;
+    updateCurrentSubject({
+      markMaxima: {
+        ...currentSubject.markMaxima,
+        [key]: value,
+      },
+      ...(scoreField && currentScore !== '' && currentScore !== undefined
+        ? { [scoreField]: Math.min(nextMax, Math.max(0, Number(currentScore) || 0)) }
+        : {}),
+    });
   };
 
   const updateEstimateSettings = (
@@ -3234,6 +3256,7 @@ function AuthenticatedApp({
                               midterm practical test 15%, and end-semester
                               practical examination 40%.
                             </p>
+                            <div className="flex flex-wrap items-end gap-3">
                             <label
                               className="block text-xs font-bold text-[#172554]"
                               htmlFor="lab-course-work"
@@ -3244,24 +3267,25 @@ function AuthenticatedApp({
                               id="lab-course-work"
                               type="number"
                               min={0}
-                              max={100}
+                              max={markMaximum("labCourseWork", 100)}
                               step={0.5}
                               value={currentSubject.labCourseWorkMark ?? ""}
                               onChange={(event) => {
                                 const raw = event.currentTarget.value;
+                                const max = markMaximum("labCourseWork", 100);
                                 updateCurrentSubject({
                                   labCourseWorkMark:
                                     raw === ""
                                       ? ""
-                                      : Math.min(
-                                          100,
-                                          Math.max(0, Number(raw) || 0)
-                                        ),
+                                      : Math.min(max, Math.max(0, Number(raw) || 0)),
                                 });
                               }}
                               className="w-full max-w-xs rounded-lg border border-[#172554] bg-white px-3 py-2 text-base font-bold text-[#172554] font-numeric tabular-nums"
-                              placeholder="Score out of 100"
+                              placeholder={`Score out of ${markMaximum("labCourseWork", 100)}`}
                             />
+                            <MaxMarksInput id="max-lab-course-work" label="Maximum marks for student work, observation and record" value={currentSubject.markMaxima?.labCourseWork ?? 100} onChange={(value) => updateMarkMaximum("labCourseWork", value, "labCourseWorkMark")} />
+                            </div>
+                            <div className="flex flex-wrap items-end gap-3">
                             <label
                               className="block text-xs font-bold text-[#172554]"
                               htmlFor="lab-course-midterm"
@@ -3272,24 +3296,25 @@ function AuthenticatedApp({
                               id="lab-course-midterm"
                               type="number"
                               min={0}
-                              max={100}
+                              max={markMaximum("labCourseMidterm", 100)}
                               step={0.5}
                               value={currentSubject.labCourseMidtermMark ?? ""}
                               onChange={(event) => {
                                 const raw = event.currentTarget.value;
+                                const max = markMaximum("labCourseMidterm", 100);
                                 updateCurrentSubject({
                                   labCourseMidtermMark:
                                     raw === ""
                                       ? ""
-                                      : Math.min(
-                                          100,
-                                          Math.max(0, Number(raw) || 0)
-                                        ),
+                                      : Math.min(max, Math.max(0, Number(raw) || 0)),
                                 });
                               }}
                               className="w-full max-w-xs rounded-lg border border-[#172554] bg-white px-3 py-2 text-base font-bold text-[#172554] font-numeric tabular-nums"
-                              placeholder="Score out of 100"
+                              placeholder={`Score out of ${markMaximum("labCourseMidterm", 100)}`}
                             />
+                            <MaxMarksInput id="max-lab-course-midterm" label="Maximum marks for midterm practical test" value={currentSubject.markMaxima?.labCourseMidterm ?? 100} onChange={(value) => updateMarkMaximum("labCourseMidterm", value, "labCourseMidtermMark")} />
+                            </div>
+                            <div className="flex flex-wrap items-end gap-3">
                             <label
                               className="block text-xs font-bold text-[#172554]"
                               htmlFor="lab-course-exam"
@@ -3300,24 +3325,24 @@ function AuthenticatedApp({
                               id="lab-course-exam"
                               type="number"
                               min={0}
-                              max={100}
+                              max={markMaximum("labCourseExam", 100)}
                               step={0.5}
                               value={currentSubject.labCourseExamMark ?? ""}
                               onChange={(event) => {
                                 const raw = event.currentTarget.value;
+                                const max = markMaximum("labCourseExam", 100);
                                 updateCurrentSubject({
                                   labCourseExamMark:
                                     raw === ""
                                       ? ""
-                                      : Math.min(
-                                          100,
-                                          Math.max(0, Number(raw) || 0)
-                                        ),
+                                      : Math.min(max, Math.max(0, Number(raw) || 0)),
                                 });
                               }}
                               className="w-full max-w-xs rounded-lg border border-[#172554] bg-white px-3 py-2 text-base font-bold text-[#172554] font-numeric tabular-nums"
-                              placeholder="Score out of 100"
+                              placeholder={`Score out of ${markMaximum("labCourseExam", 100)}`}
                             />
+                            <MaxMarksInput id="max-lab-course-exam" label="Maximum marks for end-semester practical examination" value={currentSubject.markMaxima?.labCourseExam ?? 100} onChange={(value) => updateMarkMaximum("labCourseExam", value, "labCourseExamMark")} />
+                            </div>
                           </section>
                         ) : isSelfLearning ? (
                           <section
@@ -3339,29 +3364,28 @@ function AuthenticatedApp({
                               className="mt-4 block text-xs font-bold text-[#172554]"
                               htmlFor="slc-final-mark"
                             >
-                              External result out of 100
+                              External result out of {markMaximum("eseTheory", 100)}
                             </label>
                             <input
                               id="slc-final-mark"
                               type="number"
                               min={0}
-                              max={100}
+                              max={markMaximum("eseTheory", 100)}
                               step={0.01}
                               value={currentSubject.ese}
                               onChange={(event) => {
                                 const raw = event.currentTarget.value;
+                                const max = markMaximum("eseTheory", 100);
                                 updateCurrentSubject({
                                   ese:
                                     raw === ""
                                       ? ""
-                                      : Math.min(
-                                          100,
-                                          Math.max(0, Number(raw) || 0)
-                                        ),
+                                      : Math.min(max, Math.max(0, Number(raw) || 0)),
                                 });
                               }}
                               className="mt-1 w-full max-w-xs rounded-lg border border-[#172554] bg-white px-3 py-2 text-base font-bold text-[#172554] font-numeric tabular-nums"
                             />
+                            <MaxMarksInput id="max-slc-final-mark" label="Maximum marks for provider result" value={currentSubject.markMaxima?.eseTheory ?? 100} onChange={(value) => updateMarkMaximum("eseTheory", value, "ese")} className="mt-2" />
                             <label
                               className="mt-4 flex max-w-sm flex-col gap-1 text-xs font-bold text-[#172554]"
                               htmlFor="slc-pass-mark"
@@ -3442,7 +3466,10 @@ function AuthenticatedApp({
                                   updateCurrentSubject({ act1Scores: scores })
                                 }
                                 startIndex={1}
-                                maxMarkPerBox={10}
+                                maxMarkPerBox={markMaximum("act1", 10)}
+                                onMaxMarkPerBoxChange={(value) =>
+                                  updateMarkMaximum("act1", value, undefined, 10)
+                                }
                                 weight={15}
                                 calculatedPoints={breakdown.act1_p}
                                 caName="UHV Assignment 1"
@@ -3460,7 +3487,10 @@ function AuthenticatedApp({
                                   updateCurrentSubject({ act2Scores: scores })
                                 }
                                 startIndex={1}
-                                maxMarkPerBox={10}
+                                maxMarkPerBox={markMaximum("act2", 10)}
+                                onMaxMarkPerBoxChange={(value) =>
+                                  updateMarkMaximum("act2", value, undefined, 10)
+                                }
                                 weight={15}
                                 calculatedPoints={breakdown.act2_p}
                                 caName="UHV Assignment 2"
@@ -3484,6 +3514,10 @@ function AuthenticatedApp({
                               reviewIIIReport: "",
                               reviewIIIViva: "",
                             }}
+                            maxima={currentSubject.markMaxima}
+                            onMaximumChange={(key, value) =>
+                              updateMarkMaximum(`mini-project.${key}`, value)
+                            }
                             breakdown={breakdown}
                             onMarksChange={(miniProjectMarks) =>
                               updateCurrentSubject({ miniProjectMarks })
@@ -3505,6 +3539,10 @@ function AuthenticatedApp({
                               vivaVoce: "",
                               industryViva: "",
                             }}
+                            maxima={currentSubject.markMaxima}
+                            onMaximumChange={(key, value) =>
+                              updateMarkMaximum(`internship-training.${key}`, value)
+                            }
                             breakdown={breakdown}
                             onMarksChange={(internshipTrainingMarks) =>
                               updateCurrentSubject({ internshipTrainingMarks })
@@ -3513,6 +3551,7 @@ function AuthenticatedApp({
                         ) : breakdown.courseType === "project-work" ||
                           breakdown.courseType === "project" ? (
                           <ProjectWorkAssessmentSection
+                            semester={selectedSemester}
                             assessmentTitle="Project Work / Internship cum Project Work"
                             marks={
                               currentSubject.projectWorkMarks ?? {
@@ -3524,6 +3563,10 @@ function AuthenticatedApp({
                                 vivaExternal: "",
                                 vivaInternal: "",
                               }
+                            }
+                            maxima={currentSubject.markMaxima}
+                            onMaximumChange={(key, value) =>
+                              updateMarkMaximum(key, value)
                             }
                             breakdown={breakdown}
                             onCalculate={() => void handleCalculateMarks()}
@@ -3589,6 +3632,10 @@ function AuthenticatedApp({
                               }
                               actPoints={breakdown.act1_p}
                               actWeight={breakdown.actWeight}
+                              actMaxPerBox={markMaximum("act1", 10)}
+                              onActMaxPerBoxChange={(value) =>
+                                updateMarkMaximum("act1", value, undefined, 10)
+                              }
                               actStartIndex={1}
                               minimumActivityCount={
                                 currentCourseType === "heritage-course" ? 1 : 0
@@ -3616,6 +3663,10 @@ function AuthenticatedApp({
                               }
                               labPoints={breakdown.lab1_p}
                               labWeight={breakdown.labWeight}
+                              labMaxPerBox={markMaximum("lab1", 10)}
+                              onLabMaxPerBoxChange={(value) =>
+                                updateMarkMaximum("lab1", value, undefined, 10)
+                              }
                               labStartIndex={1}
                               estimatedMarks={currentSubjectUsesEstimates}
                             />
@@ -3673,6 +3724,10 @@ function AuthenticatedApp({
                                 }
                                 actPoints={breakdown.act2_p}
                                 actWeight={breakdown.actWeight}
+                                actMaxPerBox={markMaximum("act2", 10)}
+                                onActMaxPerBoxChange={(value) =>
+                                  updateMarkMaximum("act2", value, undefined, 10)
+                                }
                                 actStartIndex={
                                   (Number(displayedSubject.act1No) || 0) + 1
                                 }
@@ -3706,6 +3761,10 @@ function AuthenticatedApp({
                                 }
                                 labPoints={breakdown.lab2_p}
                                 labWeight={breakdown.labWeight}
+                                labMaxPerBox={markMaximum("lab2", 10)}
+                                onLabMaxPerBoxChange={(value) =>
+                                  updateMarkMaximum("lab2", value, undefined, 10)
+                                }
                                 labStartIndex={
                                   (Number(displayedSubject.lab1No) || 0) + 1
                                 }
@@ -3726,14 +3785,25 @@ function AuthenticatedApp({
                                 onEseChange={(val) =>
                                   updateCurrentSubject({ ese: val })
                                 }
+                                eseTheoryMax={currentSubject.markMaxima?.eseTheory ?? 100}
+                                onEseTheoryMaxChange={(value) =>
+                                  updateMarkMaximum("eseTheory", value, "ese")
+                                }
                                 eseLab={currentSubject.eseLab}
                                 onEseLabChange={(val) =>
                                   updateCurrentSubject({ eseLab: val })
                                 }
                                 eseLabMax={currentSubject.eseLabMax}
-                                onEseLabMaxChange={(val) =>
-                                  updateCurrentSubject({ eseLabMax: val })
-                                }
+                                onEseLabMaxChange={(val) => {
+                                  const nextMax = Math.max(1, Number(val) || 100);
+                                  const currentLabMark = Number(currentSubject.eseLab);
+                                  updateCurrentSubject({
+                                    eseLabMax: val,
+                                    ...(currentSubject.eseLab !== "" && Number.isFinite(currentLabMark)
+                                      ? { eseLab: Math.min(nextMax, Math.max(0, currentLabMark)) }
+                                      : {}),
+                                  });
+                                }}
                                 esePoints={breakdown.ese_p}
                                 eseTheoryPoints={breakdown.ese_theory_p}
                                 eseLabPoints={breakdown.ese_lab_p}

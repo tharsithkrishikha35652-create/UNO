@@ -1,5 +1,6 @@
 import React from 'react';
 import type { CalculationBreakdown } from '../types';
+import { MaxMarksInput } from './MaxMarksInput';
 
 export interface ContinuousAssessmentField {
   key: string;
@@ -12,6 +13,8 @@ interface ContinuousAssessmentMarksSectionProps<TMarks extends object> {
   fields: readonly ContinuousAssessmentField[];
   marks: TMarks;
   onMarksChange: (marks: TMarks) => void;
+  maxima?: Record<string, number | string>;
+  onMaximumChange?: (key: string, value: number | string) => void;
   breakdown: CalculationBreakdown;
 }
 
@@ -21,6 +24,8 @@ export function ContinuousAssessmentMarksSection<TMarks extends object>({
   fields,
   marks,
   onMarksChange,
+  maxima = {},
+  onMaximumChange,
   breakdown,
 }: ContinuousAssessmentMarksSectionProps<TMarks>) {
   const markValues = marks as Record<string, number | string>;
@@ -35,19 +40,20 @@ export function ContinuousAssessmentMarksSection<TMarks extends object>({
     <div className="divide-y divide-slate-200 rounded-xl border border-slate-300 bg-white">
       {fields.map((field) => {
         const result = results.find((component) => component.key === field.key);
+        const maxScore = Math.max(1, Number(maxima[field.key] ?? result?.maxScore ?? 100) || 100);
         return (
-          <label key={field.key} className="grid grid-cols-1 gap-2 p-4 sm:grid-cols-[minmax(0,1fr)_10rem_10rem] sm:items-center">
+          <div key={field.key} className="grid grid-cols-1 gap-2 p-4 sm:grid-cols-[minmax(0,1fr)_10rem_10rem] sm:items-center">
             <span>
               <span className="block text-sm font-semibold text-[#172554]">{field.label}</span>
               <span className="text-xs font-medium text-slate-500">Weight {result?.weight ?? 0}%</span>
             </span>
-            <span className="flex items-center gap-2">
+            <span className="flex flex-wrap items-center gap-2">
               <span className="sr-only">{field.label} score</span>
               <input
                 type="number"
                 inputMode="decimal"
                 min={0}
-                max={100}
+                max={maxScore}
                 step={0.5}
                 value={markValues[field.key] ?? ''}
                 onChange={(event) => {
@@ -57,20 +63,38 @@ export function ContinuousAssessmentMarksSection<TMarks extends object>({
                     ...marks,
                     [field.key]: rawValue === ''
                       ? ''
-                      : Math.min(100, Math.max(0, Number.isFinite(parsed) ? parsed : 0)),
+                      : Math.min(maxScore, Math.max(0, Number.isFinite(parsed) ? parsed : 0)),
                   } as TMarks);
                 }}
                 placeholder="Score"
-                aria-label={`${field.label} score out of 100`}
+                aria-label={`${field.label} score out of ${maxScore}`}
                 className="min-h-10 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-bold text-[#172554] tabular-nums font-numeric focus:border-[#172554] focus:outline-2 focus:outline-[#172554]"
               />
-              <span className="shrink-0 text-xs font-semibold text-slate-600 tabular-nums font-numeric">/ 100</span>
+              <span className="shrink-0 text-xs font-semibold text-slate-600 tabular-nums font-numeric">/ {maxScore}</span>
+              {onMaximumChange && (
+                <MaxMarksInput
+                  id={`max-${title.replace(/\s+/g, '-').toLowerCase()}-${field.key}`}
+                  label={`Maximum marks for ${field.label}`}
+                  value={maxima[field.key] ?? result?.maxScore ?? 100}
+                  onChange={(value) => {
+                    const nextMax = Math.max(1, Number(value) || maxScore);
+                    onMaximumChange(field.key, value);
+                    const current = markValues[field.key];
+                    if (current !== '' && current !== undefined) {
+                      onMarksChange({
+                        ...marks,
+                        [field.key]: Math.min(nextMax, Math.max(0, Number(current) || 0)),
+                      } as TMarks);
+                    }
+                  }}
+                />
+              )}
             </span>
             <span className="flex items-center justify-between gap-2 rounded-lg bg-slate-50 px-3 py-2 text-xs sm:block sm:text-right">
               <span className="font-semibold text-slate-500 sm:block">Contributes</span>
               <span className="font-black tabular-nums text-[#172554]">{result?.contribution.toFixed(2) ?? '0.00'} / {result?.weight ?? 0}</span>
             </span>
-          </label>
+          </div>
         );
       })}
       <div className="flex items-center justify-between bg-slate-50 px-4 py-3 text-sm font-black text-[#172554]">

@@ -3,6 +3,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { transitions } from '../motion';
 import { FlaskConical, FileText } from 'lucide-react';
 import { NumberStepper } from './NumberStepper';
+import { MaxMarksInput } from './MaxMarksInput';
 
 interface DynamicScoreBoxesProps {
   title: string;
@@ -12,7 +13,8 @@ interface DynamicScoreBoxesProps {
   scores: (number | string)[];
   onScoresChange: (newScores: (number | string)[]) => void;
   startIndex?: number;
-  maxMarkPerBox?: number;
+  maxMarkPerBox?: number | string;
+  onMaxMarkPerBoxChange?: (max: number | string) => void;
   weight: number;
   calculatedPoints: number;
   caName: string;
@@ -32,6 +34,7 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
   onScoresChange,
   startIndex = 1,
   maxMarkPerBox = 10,
+  onMaxMarkPerBoxChange,
   weight,
   calculatedPoints,
   caName,
@@ -43,6 +46,7 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
 }) => {
   const reduceMotion = useReducedMotion();
   const numericCount = Math.max(0, parseInt(String(count), 10) || 0);
+  const numericMaxMarkPerBox = Math.max(1, Number(maxMarkPerBox) || 10);
   const accessibleItemLabel = itemLabel ?? scoreLabel ?? (category === 'assignment' ? 'Assignment' : 'Lab Evaluation');
 
   const handleBoxChange = (index: number, val: string) => {
@@ -51,14 +55,14 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
       newScores[index] = '';
     } else {
       const num = parseFloat(val);
-      newScores[index] = isNaN(num) ? '' : Math.max(0, Math.min(maxMarkPerBox, num));
+      newScores[index] = isNaN(num) ? '' : Math.max(0, Math.min(numericMaxMarkPerBox, num));
     }
     onScoresChange(newScores);
   };
 
   const adjustBoxScore = (index: number, delta: number) => {
     const current = parseFloat(String(scores[index] ?? 0)) || 0;
-    const updated = Math.max(0, Math.min(maxMarkPerBox, parseFloat((current + delta).toFixed(2))));
+    const updated = Math.max(0, Math.min(numericMaxMarkPerBox, parseFloat((current + delta).toFixed(2))));
     const newScores = [...scores];
     newScores[index] = updated;
     onScoresChange(newScores);
@@ -110,7 +114,23 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
           </div>
 
           {/* Stepper for number of items */}
-          <div className="flex items-center gap-2 self-start sm:self-auto">
+          <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+            {onMaxMarkPerBoxChange && (
+              <MaxMarksInput
+                id={`max-score-${category}-${caName.replace(/\s+/g, '-').toLowerCase()}`}
+                label={`Maximum marks for each ${accessibleItemLabel.toLowerCase()} in ${caName}`}
+                value={maxMarkPerBox}
+                onChange={(value) => {
+                  const nextMax = Math.max(1, Number(value) || numericMaxMarkPerBox);
+                  onMaxMarkPerBoxChange(value);
+                  if (!estimatedMarks) {
+                    onScoresChange(scores.map((score) =>
+                      score === '' ? '' : Math.min(nextMax, Math.max(0, Number(score) || 0))
+                    ));
+                  }
+                }}
+              />
+            )}
             <label
               htmlFor={`count-${category}-${caName}`}
               className="text-xs font-bold text-[#172554] dark:text-[#f1f1f3]"
@@ -189,17 +209,17 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
                         onIncrement={() => adjustBoxScore(idx, 0.5)}
                         onDecrement={() => adjustBoxScore(idx, -0.5)}
                         min={0}
-                        max={maxMarkPerBox}
+                        max={numericMaxMarkPerBox}
                         step={0.5}
                         disabled={estimatedMarks}
                         readOnly={estimatedMarks}
-                        ariaLabel={`${accessibleItemLabel} ${displayIndex} mark out of ${maxMarkPerBox}`}
+                        ariaLabel={`${accessibleItemLabel} ${displayIndex} mark out of ${numericMaxMarkPerBox}`}
                         ariaLabelDecrement={`Decrease ${category === 'assignment' ? 'assignment' : 'lab'} ${displayIndex} mark by 0.5`}
                         ariaLabelIncrement={`Increase ${category === 'assignment' ? 'assignment' : 'lab'} ${displayIndex} mark by 0.5`}
                         size="sm"
                       />
                       <span className="text-[10px] sm:text-xs font-bold text-[#d97757] dark:text-[#d97757] font-numeric tabular-nums shrink-0">
-                        /{maxMarkPerBox}
+                        /{numericMaxMarkPerBox}
                       </span>
                     </div>
                   </motion.div>

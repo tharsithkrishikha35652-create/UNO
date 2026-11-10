@@ -4,6 +4,7 @@ import { motionVariants } from '../motion';
 import { GraduationCap, Target, FlaskConical, ChevronDown, Calculator, LoaderCircle } from 'lucide-react';
 import { GRADE_SCALE } from '../calculatorUtils';
 import { CourseType } from '../types';
+import { MaxMarksInput } from './MaxMarksInput';
 
 interface EndSemesterSectionProps {
   courseType?: CourseType;
@@ -14,6 +15,8 @@ interface EndSemesterSectionProps {
   guestMode: boolean;
   ese: number | string;
   onEseChange: (val: number | string) => void;
+  eseTheoryMax?: number | string;
+  onEseTheoryMaxChange?: (val: number | string) => void;
   eseLab?: number | string;
   onEseLabChange?: (val: number | string) => void;
   eseLabMax?: number | string;
@@ -36,6 +39,8 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
   guestMode,
   ese,
   onEseChange,
+  eseTheoryMax = 100,
+  onEseTheoryMaxChange,
   eseLab = '',
   onEseLabChange,
   eseLabMax = 100,
@@ -49,6 +54,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
   estimatedLabMark = false,
 }) => {
   const eseWeight = eseTheoryWeight + eseLabWeight;
+  const numericEseMax = Math.max(1, Number(eseTheoryMax) || 100);
   const hasTheory = eseTheoryWeight > 0;
   const hasLab = eseLabWeight > 0;
   const isSplit = hasTheory && hasLab; // theory + practical
@@ -62,12 +68,12 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
       return;
     }
     const val = parseFloat(raw);
-    onEseChange(isNaN(val) ? '' : Math.max(0, Math.min(100, val)));
+    onEseChange(isNaN(val) ? '' : Math.max(0, Math.min(numericEseMax, val)));
   };
 
-  const handleLabMaxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLabMaxChange = (value: number | string) => {
     if (!onEseLabMaxChange) return;
-    const raw = e.target.value;
+    const raw = String(value);
     if (raw === '') {
       onEseLabMaxChange('');
       return;
@@ -88,7 +94,6 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
     onEseLabChange(isNaN(val) ? '' : Math.max(0, Math.min(maxVal, val)));
   };
 
-  const numericEse = ese === '' || ese === undefined ? 0 : Number(ese) || 0;
   const numericLabMax = Math.max(1, eseLabMax === '' || eseLabMax === undefined ? 100 : Number(eseLabMax) || 100);
   const numericLab = eseLab === '' || eseLab === undefined ? 0 : Number(eseLab) || 0;
   const reduceMotion = useReducedMotion();
@@ -140,15 +145,24 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                   type="number"
                   inputMode="decimal"
                   min={0}
-                  max={100}
+                  max={numericEseMax}
                   step={0.5}
                   value={ese === '' || ese === undefined ? '' : ese}
-                  placeholder="Enter theory marks (0 - 100)"
+                  placeholder={`Enter theory marks (0 - ${numericEseMax})`}
                   onChange={handleEseChange}
                   className="h-11 w-full rounded-lg px-3 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm tabular-nums font-numeric"
                 />
-                <span className="absolute right-3.5 top-2.5 text-xs font-bold text-[#d97757] tabular-nums font-numeric">/ 100</span>
+                <span className="absolute right-3.5 top-2.5 text-xs font-bold text-[#d97757] tabular-nums font-numeric">/ {numericEseMax}</span>
               </div>
+              {onEseTheoryMaxChange && (
+                <MaxMarksInput
+                  id="ese-theory-max"
+                  label="Maximum marks for ESE theory"
+                  value={eseTheoryMax}
+                  onChange={onEseTheoryMaxChange}
+                  className="mb-2"
+                />
+              )}
 
 
 
@@ -208,6 +222,15 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                   / {numericLabMax}
                 </span>
               </div>
+              {onEseLabMaxChange && (
+                <MaxMarksInput
+                  id="ese-lab-max"
+                  label={`Maximum marks for ESE ${labName.toLowerCase()}`}
+                  value={eseLabMax}
+                  onChange={handleLabMaxChange}
+                  className="mb-2"
+                />
+              )}
 
 
 
@@ -254,10 +277,10 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
 
                   // Theory course: needed from Theory assuming current practical marks.
                   // Practical-only course: needed from the practical exam itself.
-                  const approxScale = hasTheory ? 100 : numericLabMax;
+                  const approxScale = hasTheory ? numericEseMax : numericLabMax;
                   const approxName = hasTheory ? 'Theory' : 'Practical';
                   const approxNeeded = hasTheory
-                    ? Math.ceil((Math.max(0, neededTotalEse - eseLabPoints) / eseTheoryWeight) * 100)
+                    ? Math.ceil((Math.max(0, neededTotalEse - eseLabPoints) / eseTheoryWeight) * numericEseMax)
                     : Math.ceil((neededTotalEse / eseLabWeight) * numericLabMax);
 
                   return (
@@ -325,15 +348,24 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                   type="number"
                   inputMode="decimal"
                   min={0}
-                  max={100}
+                  max={numericEseMax}
                   step={0.5}
                   value={ese === '' || ese === undefined ? '' : ese}
-                  placeholder="Enter your ESE marks (0 - 100)"
+                  placeholder={`Enter your ESE marks (0 - ${numericEseMax})`}
                   onChange={handleEseChange}
                   className="h-11 w-full rounded-lg px-3 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm tabular-nums font-numeric"
                 />
-                <span className="absolute right-3.5 top-2.5 text-xs font-bold text-[#d97757] tabular-nums font-numeric">/ 100</span>
+                <span className="absolute right-3.5 top-2.5 text-xs font-bold text-[#d97757] tabular-nums font-numeric">/ {numericEseMax}</span>
               </div>
+              {onEseTheoryMaxChange && (
+                <MaxMarksInput
+                  id="ese-theory-max"
+                  label="Maximum marks for ESE theory"
+                  value={eseTheoryMax}
+                  onChange={onEseTheoryMaxChange}
+                  className="mb-2"
+                />
+              )}
 
 
             </div>
@@ -365,9 +397,9 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
 
               <div className="mt-3 rounded-xl border border-[#172554] divide-y divide-[#172554] text-xs font-medium overflow-hidden">
                 {GRADE_SCALE.filter((g) => g.letter !== 'U').map((g) => {
-                  const neededEse = Math.max(0, Math.ceil(((g.minScore - internalTotal) / eseTheoryWeight) * 100));
+                  const neededEse = Math.max(0, Math.ceil(((g.minScore - internalTotal) / eseTheoryWeight) * numericEseMax));
                   const isAlreadySecured = internalTotal >= g.minScore;
-                  const isImpossible = neededEse > 100;
+                  const isImpossible = neededEse > numericEseMax;
 
                   return (
                     <div
@@ -386,11 +418,11 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                           </span>
                         ) : isImpossible ? (
                           <span className="text-rose-700 font-bold text-[11px]">
-                            Needs &gt;100 - Unattainable
+                            Needs &gt;{numericEseMax} - Unattainable
                           </span>
                         ) : (
                           <span className="text-[#172554] font-bold">
-                            Need <span className="underline decoration-2 text-[#1e3a8a]">{neededEse}</span> / 100 in ESE
+                            Need <span className="underline decoration-2 text-[#1e3a8a]">{neededEse}</span> / {numericEseMax} in ESE
                           </span>
                         )}
                       </div>
