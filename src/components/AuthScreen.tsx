@@ -59,6 +59,11 @@ async function redirectWithGoogle(
 }
 
 export function friendlyAuthError(error: unknown, provider: 'email' | 'google' = 'email', mode?: AuthMode): string {
+  // Log full technical details in development for diagnostics
+  if (import.meta.env.DEV && error) {
+    console.error(`[Firebase Auth Error] [provider=${provider}, mode=${mode || 'unknown'}]:`, error);
+  }
+
   const code = typeof error === 'object' && error !== null && 'code' in error
     ? String(error.code)
     : '';
@@ -66,14 +71,25 @@ export function friendlyAuthError(error: unknown, provider: 'email' | 'google' =
     ? String(error.message)
     : '';
 
-  if (code === '10' || message.includes('10') || message.toLowerCase().includes('developer_error')) {
-    return 'Google Sign-In configuration error (Code 10). Make sure your SHA-1 fingerprint and google-services.json are added to the Firebase Console.';
-  }
-  if (code === '12500' || message.includes('12500')) {
-    return 'Google Sign-In failed (Code 12500). Verify your Google Play Services and Firebase project configuration.';
-  }
-  if (provider === 'google' && Capacitor.isNativePlatform() && (message.includes('default_web_client_id') || message.includes('No ID token') || message.includes('GetCredentialException') || message.includes('google-services'))) {
-    return 'Google Sign-In setup incomplete for APK. Add your SHA-1 fingerprint and google-services.json to the Firebase Console.';
+  // Developer configuration or backend restriction errors - abstract cleanly from students
+  const isConfigOrClientRestriction =
+    code === 'auth/api-key-not-valid' ||
+    code === 'auth/invalid-api-key' ||
+    code === 'auth/app-not-authorized' ||
+    code === 'auth/operation-not-allowed' ||
+    code === '10' ||
+    code === '12500' ||
+    message.includes('requests-from-this-android-client-application') ||
+    message.toLowerCase().includes('developer_error') ||
+    message.includes('default_web_client_id') ||
+    message.includes('No ID token') ||
+    message.includes('google-services') ||
+    message.includes('GetCredentialException');
+
+  if (isConfigOrClientRestriction) {
+    return provider === 'google'
+      ? 'Google sign-in is temporarily unavailable. Please try logging in with your email.'
+      : 'Authentication service is temporarily unavailable. Please try again in a few moments.';
   }
 
   switch (code) {
@@ -88,41 +104,32 @@ export function friendlyAuthError(error: unknown, provider: 'email' | 'google' =
       return 'An account already exists for this email. Try logging in.';
     case 'auth/weak-password':
       return 'Choose a stronger password with at least 8 characters, including letters and numbers.';
-    case 'auth/operation-not-allowed':
-      return provider === 'google'
-        ? 'Google sign-in is disabled. Enable Google under Authentication → Sign-in method in Firebase Console.'
-        : 'Email/password sign-in is disabled. Enable it under Authentication → Sign-in method in Firebase Console.';
     case 'auth/account-exists-with-different-credential':
       return 'An account already exists with this email using a different sign-in method. Log in with that method first.';
     case 'auth/popup-blocked':
       return 'Your browser blocked the Google sign-in window. Allow pop-ups for this site and try again.';
-    case 'auth/api-key-not-valid':
-    case 'auth/invalid-api-key':
-      return 'The Firebase API key is invalid or restricted. Please verify your API key in Firebase Console and .env.';
-    case 'auth/app-not-authorized':
-      return 'This app is not authorized to use Firebase Authentication with the provided API key.';
+    case 'auth/popup-closed-by-user':
+    case 'auth/cancelled-popup-request':
+      return 'Sign-in was cancelled. Please try again.';
     case 'auth/unauthorized-domain': {
       const currentHost = typeof window !== 'undefined' ? window.location.hostname : '';
-      const currentPort = typeof window !== 'undefined' && window.location.port ? `:${window.location.port}` : '';
-      return currentHost === 'localhost' || currentHost === '127.0.0.1'
-        ? 'This domain is not authorized for Firebase sign-in. Add it under Authentication → Settings → Authorized domains.'
-        : `This IP/domain (${currentHost}) is not authorized by Firebase. Open via http://localhost${currentPort} instead, or add ${currentHost} in Firebase Console → Authentication → Settings → Authorized domains.`;
+      if (currentHost === 'localhost' || currentHost === '127.0.0.1') {
+        return 'Authentication is temporarily unavailable on this address. Please try again in a few moments.';
+      }
+      return 'Sign-in is not permitted from this address. Please access via the official app domain or localhost.';
     }
     case 'auth/operation-not-supported-in-this-environment':
-      return 'Google sign-in needs a supported browser window. Open the web app in your browser and try again.';
+      return 'Google sign-in is not supported in this browser window. Please open the app in a standard browser.';
     case 'auth/too-many-requests':
       return 'Too many attempts. Wait a moment and try again.';
     case 'auth/network-request-failed':
       return 'A network error occurred. Check your connection and try again.';
-    case '10':
-      return 'Google Sign-In configuration error (Code 10). Make sure your SHA-1 fingerprint and google-services.json are added to the Firebase Console.';
-    case '12500':
-      return 'Google Sign-In failed (Code 12500). Verify your Google Play Services and Firebase project configuration.';
     default:
-      if (message) {
-        return `Authentication failed: ${message}`;
+      // Strip any raw Firebase internal errors (e.g. "Firebase: Error (...)")
+      if (message && !message.toLowerCase().includes('firebase') && !message.includes('auth/')) {
+        return message;
       }
-      return 'Authentication failed. Please try again.';
+      return 'Authentication service is temporarily unavailable. Please try again in a few moments.';
   }
 }
 
@@ -231,9 +238,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
           setError('');
           setNotice('Google sign-in complete. Loading your account…');
         } else {
-          setError(
-            'Google returned to CalCredit without completing sign-in. Please try again; if it repeats, check the Firebase authorized domain and Google provider settings.'
-          );
+          console.warn('[Auth] Google redirect completed without user. Check authorized domains and provider settings.');
+          setError('Google sign-in could not be completed. Please try again.');
         }
       })
       .catch((redirectError) => {
@@ -422,18 +428,14 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
       >
         <div className="bg-[#172554] text-white px-5 py-5 flex items-center justify-between gap-3 sm:px-6">
           <div className="flex min-w-0 flex-col gap-1.5">
-            <CalCreditLogo
-              markSize={36}
-              wordHeight={22}
-              style={{
-                '--cc-credit': '#F5EEDC',
-                '--cc-cal': '#F0482E',
-                '--cc-dot': 'var(--cc-cal)',
-              } as React.CSSProperties}
-            />
+            <CalCreditLogo markSize={36} wordHeight={22} theme="dark" />
             <h1 className="text-base font-black sm:text-lg">Academic Marks Calculator</h1>
           </div>
-          <ThemeToggle theme={theme} onToggle={onToggleTheme} className="h-10 w-10 border-white/30 bg-white/10 text-white hover:bg-white/20" />
+          <ThemeToggle
+            theme={theme}
+            onToggle={onToggleTheme}
+            className="h-10 w-10 shrink-0 border-white/30 bg-white/10 text-white hover:bg-white/20"
+          />
         </div>
 
         <div className="p-6 sm:p-8">
@@ -479,9 +481,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
                   className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm focus:border-[#172554]"
                   placeholder="you@gmail.com, you@outlook.com, etc."
                 />
-                <span className="mt-1 block text-[11px] text-slate-500">
-                  Accepted: Google, Microsoft, Yahoo, Apple, Zoho, Proton, or college (.edu, .ac.in) email.
-                </span>
               </label>
 
               {mode !== 'reset' && (

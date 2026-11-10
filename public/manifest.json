@@ -1,0 +1,17 @@
+{
+  "name": "CalCredit",
+  "short_name": "CalCredit",
+  "description": "Anna University Academic Marks & Grade Calculator",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F7F1E1",
+  "theme_color": "#F7F1E1",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

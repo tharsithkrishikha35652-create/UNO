@@ -67,9 +67,8 @@ const FirstTimeTour = React.lazy(() => import("./components/FirstTimeTour"));
 import { createPortal } from "react-dom";
 import { ThemeToggle, type AppTheme } from "./components/ThemeToggle";
 import CalCreditLogo from "./components/CalCreditLogo";
-import LaunchSequence from "./components/LaunchSequence";
-import darkScholarBg from "./assets/dark-scholar-bg.png";
-import warmScholarBg from "./assets/warm-scholar-bg.png";
+import Logo from "./components/Logo";
+import LaunchAnimation from "./components/LaunchAnimation";
 import { CGPAHub } from "./components/CGPAHub";
 import { GPA_COURSES, getGpaCourses, getAllGpaCourses } from "./gpaCourses";
 import { AuthScreen, GOOGLE_REDIRECT_PENDING_KEY } from "./components/AuthScreen";
@@ -634,7 +633,13 @@ export default function App() {
     });
   const [signOutPending, setSignOutPending] = useState(false);
   const [signOutError, setSignOutError] = useState("");
-  const [launching, setLaunching] = useState(true);
+  const [launching, setLaunching] = useState(() => {
+    try {
+      return window.sessionStorage.getItem("calcredit_launch_played") !== "true";
+    } catch {
+      return true;
+    }
+  });
   const [versionConfig, setVersionConfig] = useState<AppVersionConfig | null>(null);
 
   const checkVersion = useCallback(async () => {
@@ -826,6 +831,12 @@ export default function App() {
         </section>
       </main>
     );
+  } else if (typeof window !== "undefined" && window.location.search.includes("screen=credits")) {
+    content = (
+      <div className="min-h-screen p-4">
+        <CreditsScreen />
+      </div>
+    );
   } else if (!user) {
     content = (
       <AuthScreen
@@ -856,11 +867,15 @@ export default function App() {
       {content}
       {launching &&
         createPortal(
-          <LaunchSequence
-            ready={authResolved}
-            onDone={() => setLaunching(false)}
-            darkBg={darkScholarBg}
-            lightBg={warmScholarBg}
+          <LaunchAnimation
+            onDone={() => {
+              try {
+                window.sessionStorage.setItem("calcredit_launch_played", "true");
+              } catch {
+                /* ignore */
+              }
+              setLaunching(false);
+            }}
           />,
           document.body
         )}

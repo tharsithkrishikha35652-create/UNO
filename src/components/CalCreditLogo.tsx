@@ -3,8 +3,14 @@ import type { CSSProperties } from 'react';
 /**
  * CalCredit logo: the single source of truth for the mark and the wordmark.
  * Rendered using pure native JSX elements without dangerouslySetInnerHTML.
+ *
+ * Brand Guidelines:
+ * - Zero yellow anywhere (old #FFD23F eliminated).
+ * - Light mode: red #E23B22, ink #1B1815.
+ * - Dark mode: red #FF5440, ink #F5EEDC.
+ * - Perfectly preserves original main branch layout and aspect ratios.
  */
-type Props = {
+export type Props = {
   /** Height and width of the icon in px. Set to 0 to hide it. */
   markSize?: number;
   /** Height of the wordmark in px (width follows). Set to 0 to hide it. */
@@ -15,11 +21,26 @@ type Props = {
   gap?: number;
   className?: string;
   style?: CSSProperties;
+  /** Theme override: 'light' | 'dark' */
+  theme?: 'light' | 'dark';
 };
 
 const WORD_ASPECT = 259.7 / 46.6;
 
-function MarkPlain() {
+function MarkPlain({ theme }: { theme?: 'light' | 'dark' }) {
+  const ink =
+    theme === 'dark'
+      ? '#F5EEDC'
+      : theme === 'light'
+      ? '#1B1815'
+      : 'var(--cc-credit, #1B1815)';
+  const cal =
+    theme === 'dark'
+      ? '#FF5440'
+      : theme === 'light'
+      ? '#E23B22'
+      : 'var(--cc-cal, #E23B22)';
+
   return (
     <g transform="translate(60 60) scale(0.95) translate(-64.5 -60)">
       <g
@@ -28,7 +49,7 @@ function MarkPlain() {
         strokeWidth="8"
         strokeLinecap="round"
         strokeLinejoin="round"
-        style={{ stroke: 'var(--cc-credit,#F5EEDC)' }}
+        style={{ stroke: ink }}
       >
         <path d="M35 52 L45 43.5 V80.5" />
         <ellipse cx="76" cy="63.5" rx="11.5" ry="17" />
@@ -38,18 +59,20 @@ function MarkPlain() {
         fill="none"
         strokeWidth="8"
         strokeLinecap="round"
-        style={{ stroke: 'var(--cc-cal,#F0482E)' }}
+        style={{ stroke: cal }}
       />
       <g transform="translate(87,86) rotate(35)">
-        <path d="M0 0L-4-9V-34Q-4-38 0-38Q4-38 4-34V-9Z" style={{ fill: 'var(--cc-credit,#F5EEDC)' }} />
-        <rect x="-4" y="-27" width="8" height="4.5" style={{ fill: 'var(--cc-dot,#FFD23F)' }} />
-        <path d="M0 0L-2.4-5.4H2.4Z" style={{ fill: 'var(--cc-cal,#F0482E)' }} />
+        <path d="M0 0L-4-9V-34Q-4-38 0-38Q4-38 4-34V-9Z" style={{ fill: ink }} />
+        <path d="M0 0L-2.4-5.4H2.4Z" style={{ fill: cal }} />
       </g>
     </g>
   );
 }
 
-function MarkTile() {
+function MarkTile({ theme }: { theme?: 'light' | 'dark' }) {
+  const ink = theme === 'dark' ? '#F5EEDC' : '#1B1815';
+  const cal = theme === 'dark' ? '#FF5440' : '#E23B22';
+
   return (
     <>
       <rect width="120" height="120" rx="26" fill="#F5EEDC" />
@@ -60,7 +83,7 @@ function MarkTile() {
           strokeWidth="8"
           strokeLinecap="round"
           strokeLinejoin="round"
-          style={{ stroke: '#1B1815' }}
+          style={{ stroke: ink }}
         >
           <path d="M35 52 L45 43.5 V80.5" />
           <ellipse cx="76" cy="63.5" rx="11.5" ry="17" />
@@ -70,22 +93,34 @@ function MarkTile() {
           fill="none"
           strokeWidth="8"
           strokeLinecap="round"
-          style={{ stroke: '#E23B22' }}
+          style={{ stroke: cal }}
         />
         <g transform="translate(87,86) rotate(35)">
-          <path d="M0 0L-4-9V-34Q-4-38 0-38Q4-38 4-34V-9Z" style={{ fill: '#1B1815' }} />
-          <rect x="-4" y="-27" width="8" height="4.5" style={{ fill: '#FFD23F' }} stroke="#1B1815" strokeWidth="1" />
-          <path d="M0 0L-2.4-5.4H2.4Z" style={{ fill: '#E23B22' }} />
+          <path d="M0 0L-4-9V-34Q-4-38 0-38Q4-38 4-34V-9Z" style={{ fill: ink }} />
+          <path d="M0 0L-2.4-5.4H2.4Z" style={{ fill: cal }} />
         </g>
       </g>
     </>
   );
 }
 
-function Wordmark() {
+function Wordmark({ theme }: { theme?: 'light' | 'dark' }) {
+  const ink =
+    theme === 'dark'
+      ? '#F5EEDC'
+      : theme === 'light'
+      ? '#1B1815'
+      : 'var(--cc-credit, #1B1815)';
+  const cal =
+    theme === 'dark'
+      ? '#FF5440'
+      : theme === 'light'
+      ? '#E23B22'
+      : 'var(--cc-cal, #E23B22)';
+
   return (
     <>
-      <g style={{ fill: 'var(--cc-cal,#F0482E)' }}>
+      <g style={{ fill: cal }}>
         <path d="M35.91 -6.22A20.60 20.60 0 1 1 35.91 -33.78L31.30 -29.64A14.40 14.40 0 1 0 31.30 -10.36Z" />
         <circle cx="33.61" cy="-8.29" r="3.10" />
         <circle cx="33.61" cy="-31.71" r="3.10" />
@@ -100,7 +135,7 @@ function Wordmark() {
         <circle cx="80.80" cy="-40.90" r="3.10" />
         <circle cx="80.80" cy="-3.10" r="3.10" />
       </g>
-      <g style={{ fill: 'var(--cc-credit,#F5EEDC)' }}>
+      <g style={{ fill: ink }}>
         <path d="M126.61 -6.22A20.60 20.60 0 1 1 126.61 -33.78L122.00 -29.64A14.40 14.40 0 1 0 122.00 -10.36Z" />
         <circle cx="124.31" cy="-8.29" r="3.10" />
         <circle cx="124.31" cy="-31.71" r="3.10" />
@@ -130,7 +165,7 @@ function Wordmark() {
         <path d="M255.60 0.60A11.10 11.10 0 0 1 244.56 -11.66L250.73 -11.01A4.90 4.90 0 0 0 255.60 -5.60Z" />
         <circle cx="255.60" cy="-2.50" r="3.10" />
       </g>
-      <g style={{ fill: 'var(--cc-dot,var(--cc-cal,#F0482E))' }}>
+      <g style={{ fill: cal }}>
         <circle cx="227.10" cy="-37.50" r="4.40" />
       </g>
     </>
@@ -144,13 +179,20 @@ export default function CalCreditLogo({
   gap = 10,
   className,
   style,
+  theme,
 }: Props) {
   return (
     <span
       role="img"
       aria-label="CalCredit"
       className={className}
-      style={{ display: 'inline-flex', alignItems: 'center', gap, lineHeight: 0, ...style }}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: markSize > 0 && wordHeight > 0 ? gap : 0,
+        lineHeight: 0,
+        ...style,
+      }}
     >
       {markSize > 0 && (
         <svg
@@ -158,8 +200,9 @@ export default function CalCreditLogo({
           height={markSize}
           aria-hidden="true"
           viewBox={tile ? '0 0 120 120' : '8 8 104 104'}
+          className="shrink-0"
         >
-          {tile ? <MarkTile /> : <MarkPlain />}
+          {tile ? <MarkTile theme={theme} /> : <MarkPlain theme={theme} />}
         </svg>
       )}
       {wordHeight > 0 && (
@@ -168,8 +211,9 @@ export default function CalCreditLogo({
           width={wordHeight * WORD_ASPECT}
           aria-hidden="true"
           viewBox="-0.5 -45 259.7 46.6"
+          className="shrink-0"
         >
-          <Wordmark />
+          <Wordmark theme={theme} />
         </svg>
       )}
     </span>

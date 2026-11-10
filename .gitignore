@@ -8,6 +8,7 @@ dist
 tsconfig.tsbuildinfo
 release-apk/
 *.apk
+test-results/
 
 # Local and OS files
 *.local

@@ -58,7 +58,7 @@
 :root {
   --safe-area-top: max(env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px));
   --safe-area-bottom: max(env(safe-area-inset-bottom, 0px), var(--safe-area-inset-bottom, 0px));
-  --cc-cal: #d97757;
+  --cc-cal: #E23B22;
   --cc-credit: #1B1815;
   --cc-dot: var(--cc-cal);
   --font-primary: "Figtree", "Figtree Variable", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -89,7 +89,7 @@
 
 :root[data-theme="dark"],
 [data-theme="dark"] {
-  --cc-cal: #F0482E;
+  --cc-cal: #FF5440;
   --cc-credit: #F5EEDC;
   --cc-dot: var(--cc-cal);
   color-scheme: dark;
