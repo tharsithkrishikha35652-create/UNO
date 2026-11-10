@@ -57,11 +57,11 @@ interface CardPosition {
 
 const TOTAL_STEPS = 10;
 
-// Exact pen colors read from src/assets/branding/calcredit_logo_final.svg
-// Light theme (#markL): stroke="#E23B22"
-// Dark theme (#markD): stroke="#F0482E"
+// Brand colors from official CalCredit logo
+// Light theme: stroke="#E23B22"
+// Dark theme: stroke="#FF5440"
 const PEN_COLOR_LIGHT = '#E23B22';
-const PEN_COLOR_DARK = '#F0482E';
+const PEN_COLOR_DARK = '#FF5440';
 
 function safeScrollIntoView(el: HTMLElement, options?: ScrollIntoViewOptions) {
   try {

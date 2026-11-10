@@ -1,15 +1,31 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
-  <rect width="120" height="120" rx="26" fill="#F5EEDC"/>
-  <g transform="translate(60 60) scale(0.95) translate(-64.5 -60)">
-    <g transform="translate(-3.5,-2)" fill="none" stroke="#1B1815" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M35 52 L45 43.5 V80.5"/><ellipse cx="76" cy="63.5" rx="11.5" ry="17"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <style>
+    :root {
+      --bg: #F7F1E1;
+      --ink: #1B1815;
+      --red: #E23B22;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #14110F;
+        --ink: #F5EEDC;
+        --red: #FF5440;
+      }
+    }
+    .bg { fill: var(--bg); }
+    .ink { stroke: var(--ink); fill: var(--ink); }
+    .red { stroke: var(--red); fill: var(--red); }
+  </style>
+  <rect width="128" height="128" rx="28" class="bg"/>
+  <g transform="translate(-3 0)">
+    <g fill="none" class="ink" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M43 46 V82 M43 46 L33 54"/>
+      <ellipse cx="69" cy="64" rx="11" ry="18"/>
     </g>
-    <path d="M87 34 C77.6 23.6 70 21 56 21 C34.5 21 19.5 40.5 19.5 62 C19.5 83.5 38.5 98.5 60 98.5 C74 98.5 77.6 96.4 87 86" fill="none" stroke="#E23B22" stroke-width="8" stroke-linecap="round"/>
-    <g transform="translate(87,86) rotate(35)">
-      <path d="M0 0 L-4 -9 V-34 Q-4 -38 0 -38 Q4 -38 4 -34 V-9 Z" fill="#1B1815"/>
-      <rect x="-4" y="-27" width="8" height="4.5" fill="#FFD23F" stroke="#1B1815" stroke-width="1"/>
-      <path d="M0 0 L-2.4 -5.4 H2.4 Z" fill="#E23B22"/>
+    <path d="M84.24 38.57 A38 38 0 1 0 84.24 89.43" fill="none" class="red" stroke-width="8" stroke-linecap="round"/>
+    <g transform="translate(84.24 89.43) rotate(42)">
+      <path d="M-5.5 -50 Q-5.5 -54 0 -54 Q5.5 -54 5.5 -50 V-17 L1.4 -1 H-1.4 L-5.5 -17 Z" class="ink"/>
+      <path d="M-5.5 -17 L-1.4 -1 H1.4 L5.5 -17 Z" class="red"/>
     </g>
   </g>
 </svg>
-

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Instagram, Linkedin } from 'lucide-react';
+import CalCreditLogo from './CalCreditLogo';
 
 const creators = [
   {
@@ -264,10 +265,9 @@ export const CreditsScreen: React.FC = () => {
     >
       <header className="grid gap-7 lg:grid-cols-12 lg:gap-x-10">
         <div className="flex flex-col justify-between gap-7 lg:col-span-5">
-          <div className="flex items-center gap-3">
-            <span className="credits-grow h-px w-8 bg-[var(--app-structural-accent)] dark:bg-[var(--app-action-accent)]" aria-hidden="true" />
-            <span className="credits-rise text-[10px] font-extrabold uppercase tracking-[0.18em] text-[var(--app-structural-accent)] dark:text-[var(--app-action-accent)]" style={cssVars({ '--credits-delay': '200ms' })}>
-              Credits
+          <div className="flex items-center">
+            <span className="credits-rise inline-flex items-center" style={cssVars({ '--credits-delay': '200ms' })}>
+              <CalCreditLogo markSize={0} wordHeight={15} gap={0} />
             </span>
           </div>
           <h1 id="credits-heading" className="credits-serif text-[2.1rem] font-medium leading-[1.08] tracking-tight text-[var(--app-primary-text)] sm:text-5xl lg:text-[2.5rem]">

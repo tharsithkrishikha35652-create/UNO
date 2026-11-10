@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:translateX="28.12"
+        android:translateY="27.12"
+        android:scaleX="0.42"
+        android:scaleY="0.42">
+        <group android:translateX="-3">
+            <!-- 10 mark: digit 1 -->
+            <path
+                android:pathData="M43,46 V82 M43,46 L33,54"
+                android:strokeColor="#1B1815"
+                android:strokeWidth="8"
+                android:strokeLineCap="round"
+                android:strokeLineJoin="round" />
+            <!-- 10 mark: digit 0 -->
+            <path
+                android:pathData="M69,46 A11,18 0 1 0 69,82 A11,18 0 1 0 69,46 Z"
+                android:strokeColor="#1B1815"
+                android:strokeWidth="8"
+                android:strokeLineCap="round"
+                android:strokeLineJoin="round" />
+            <!-- Red C arc -->
+            <path
+                android:pathData="M84.24,38.57 A38,38 0 1 0 84.24,89.43"
+                android:strokeColor="#E23B22"
+                android:strokeWidth="8"
+                android:strokeLineCap="round" />
+            <!-- Architectural pen nib rotated 42 degrees -->
+            <group
+                android:translateX="84.24"
+                android:translateY="89.43"
+                android:rotation="42">
+                <!-- Pen body (dark ink) -->
+                <path
+                    android:pathData="M-5.5,-50 Q-5.5,-54 0,-54 Q5.5,-54 5.5,-50 V-17 L1.4,-1 H-1.4 L-5.5,-17 Z"
+                    android:fillColor="#1B1815" />
+                <!-- Pen nib tip (brand red) -->
+                <path
+                    android:pathData="M-5.5,-17 L-1.4,-1 H1.4 L5.5,-17 Z"
+                    android:fillColor="#E23B22" />
+            </group>
+        </group>
+    </group>
+</vector>

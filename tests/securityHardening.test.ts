@@ -83,6 +83,36 @@ describe('Security Hardening Test Suite', () => {
       expect(() => handlePasswordReset({ code: 'auth/too-many-requests' })).toThrow();
     });
 
+    it('abstracts developer and backend Firebase errors cleanly away from students', () => {
+      // 1. Android restriction / client error
+      const androidRestrictionError = friendlyAuthError(
+        { message: 'Firebase: Error (auth/requests-from-this-android-client-application-<empty>-are-blocked.).' },
+        'email',
+        'login'
+      );
+      expect(androidRestrictionError).toBe('Authentication service is temporarily unavailable. Please try again in a few moments.');
+      expect(androidRestrictionError).not.toContain('Firebase');
+      expect(androidRestrictionError).not.toContain('android-client');
+
+      // 2. Invalid or restricted API key
+      const apiKeyError = friendlyAuthError({ code: 'auth/api-key-not-valid' }, 'email', 'login');
+      expect(apiKeyError).toBe('Authentication service is temporarily unavailable. Please try again in a few moments.');
+
+      // 3. Google Sign-In backend/developer errors
+      const googleDevError = friendlyAuthError({ code: '10', message: 'developer_error' }, 'google');
+      expect(googleDevError).toBe('Google sign-in is temporarily unavailable. Please try logging in with your email.');
+      expect(googleDevError).not.toContain('SHA-1');
+      expect(googleDevError).not.toContain('google-services.json');
+
+      // 4. Arbitrary internal Firebase errors never leak 'Firebase:' prefix
+      const internalError = friendlyAuthError(
+        { message: 'Firebase: Error (auth/internal-error-something-unexpected).' },
+        'email',
+        'login'
+      );
+      expect(internalError).toBe('Authentication service is temporarily unavailable. Please try again in a few moments.');
+    });
+
     it('strictly enforces email domain requirements, rejecting dummy domains like 123@356.com', () => {
       expect(validateEmail('123@356.com').isValid).toBe(false);
       expect(validateEmail('user@randomfake123.xyz').isValid).toBe(false);
