@@ -404,6 +404,7 @@ export const LaunchAnimation: React.FC<LaunchAnimationProps> = ({ onDone, theme 
       }}
     >
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600&display=swap');
         .cc-launch-st {
           display: block;
           margin: 0 auto;
@@ -420,7 +421,7 @@ export const LaunchAnimation: React.FC<LaunchAnimationProps> = ({ onDone, theme 
         .cc-launch-st .ch { fill: none; stroke-width: 6.8; stroke-linecap: round; stroke-linejoin: round; }
         .cc-launch-st .ch.r { stroke: var(--red); }
         .cc-launch-st .ch.k { stroke: var(--ink); }
-        .cc-launch-st .tag { fill: var(--muted); font: 600 12.5px system-ui, -apple-system, sans-serif; letter-spacing: 0.12em; }
+        .cc-launch-st .tag { fill: var(--muted); font: 600 12.5px 'Nunito', system-ui, -apple-system, sans-serif; }
         .cc-launch-st .sw { fill: none; stroke: var(--ink); }
         .cc-launch-st .sw2 { fill: none; stroke: var(--red); stroke-width: 3; }
         @media (prefers-reduced-motion: reduce) {
