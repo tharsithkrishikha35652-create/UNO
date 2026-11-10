@@ -41,13 +41,8 @@ export const Logo: React.FC<LogoProps> = ({
   title = 'CalCredit',
   id,
 }) => {
-  // Color palette classes based on theme prop or default dynamic Tailwind classes
-  const redColor =
-    theme === 'dark'
-      ? '#FF5440'
-      : theme === 'light'
-      ? '#E23B22'
-      : undefined;
+  // Color palette: Red accent strictly fixed at #E23B22; ink adapts (#1B1815 light / #F5EEDC dark)
+  const redColor = '#E23B22';
 
   const inkColor =
     theme === 'dark'
@@ -63,7 +58,7 @@ export const Logo: React.FC<LogoProps> = ({
       ? '#6B645C'
       : undefined;
 
-  const redClass = redColor ? undefined : 'text-[#E23B22] dark:text-[#FF5440]';
+  const redClass = 'text-[#E23B22]';
   const inkClass = inkColor ? undefined : 'text-[#1B1815] dark:text-[#F5EEDC]';
   const subClass = subColor ? undefined : 'fill-[#6B645C] dark:fill-[#B7AEA0]';
 

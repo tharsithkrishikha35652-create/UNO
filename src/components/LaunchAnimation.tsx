@@ -399,7 +399,7 @@ export const LaunchAnimation: React.FC<LaunchAnimationProps> = ({ onDone, theme 
         // CSS variables for launch sequence SVG elements
         ['--sbg' as string]: bgColor,
         ['--ink' as string]: isDark ? '#F5EEDC' : '#1B1815',
-        ['--red' as string]: isDark ? '#FF5440' : '#E23B22',
+        ['--red' as string]: '#E23B22',
         ['--muted' as string]: isDark ? '#A39E90' : '#6B675E',
       }}
     >
