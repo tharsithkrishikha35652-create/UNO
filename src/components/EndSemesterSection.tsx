@@ -1,10 +1,68 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
 import { motionVariants } from '../motion';
-import { GraduationCap, Target, FlaskConical, ChevronDown, Calculator, LoaderCircle } from 'lucide-react';
+import { GraduationCap, Target, FlaskConical, ChevronDown, Calculator, LoaderCircle, Pencil } from 'lucide-react';
 import { GRADE_SCALE } from '../calculatorUtils';
 import { CourseType } from '../types';
 import { MaxMarksInput } from './MaxMarksInput';
+
+interface EseMaximumControlProps {
+  id: string;
+  label: string;
+  value: number | string;
+  onChange?: (value: number | string) => void;
+}
+
+const EseMaximumControl: React.FC<EseMaximumControlProps> = ({ id, label, value, onChange }) => {
+  const [isEditing, setIsEditing] = useState(false);
+
+  return (
+    <>
+      <div className="absolute right-2 top-2 flex items-center gap-1">
+        <span className="text-xs font-bold text-[#d97757] tabular-nums font-numeric">/ {value}</span>
+        {onChange && (
+          <button
+            type="button"
+            onClick={() => setIsEditing((editing) => !editing)}
+            aria-label={`${isEditing ? 'Close' : 'Edit'} ${label}`}
+            aria-expanded={isEditing}
+            title={isEditing ? 'Close maximum marks editor' : `Edit ${label.toLowerCase()}`}
+            className="inline-flex h-6 w-6 items-center justify-center rounded text-slate-500 transition-colors hover:bg-slate-100 hover:text-[#172554] focus-visible:outline-2 focus-visible:outline-[#172554]"
+          >
+            <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
+          </button>
+        )}
+      </div>
+      {isEditing && onChange && (
+        <div className="mt-2 flex justify-end">
+          <MaxMarksInput id={id} label={label} value={value} onChange={onChange} />
+        </div>
+      )}
+    </>
+  );
+};
+
+interface NeededTheoryMarkInput {
+  neededTotalEse: number;
+  theoryWeight: number;
+  theoryMax: number;
+  labPoints: number;
+  labWeight: number;
+  hasEnteredLabMark: boolean;
+}
+
+export function calculateNeededTheoryMark({
+  neededTotalEse,
+  theoryWeight,
+  theoryMax,
+  labPoints,
+  labWeight,
+  hasEnteredLabMark,
+}: NeededTheoryMarkInput): number {
+  if (theoryWeight <= 0) return 0;
+  const labContribution = hasEnteredLabMark ? labPoints : labWeight * 0.9;
+  return Math.ceil((Math.max(0, neededTotalEse - labContribution) / theoryWeight) * theoryMax);
+}
 
 interface EndSemesterSectionProps {
   courseType?: CourseType;
@@ -96,6 +154,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
 
   const numericLabMax = Math.max(1, eseLabMax === '' || eseLabMax === undefined ? 100 : Number(eseLabMax) || 100);
   const numericLab = eseLab === '' || eseLab === undefined ? 0 : Number(eseLab) || 0;
+  const hasEnteredLabMark = eseLab !== '' && eseLab !== undefined && Number.isFinite(Number(eseLab));
   const reduceMotion = useReducedMotion();
 
   return (
@@ -150,22 +209,15 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                   value={ese === '' || ese === undefined ? '' : ese}
                   placeholder={`Enter theory marks (0 - ${numericEseMax})`}
                   onChange={handleEseChange}
-                  className="h-11 w-full rounded-lg px-3 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm tabular-nums font-numeric"
+                  className="h-11 w-full rounded-lg py-2 pl-3 pr-20 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm tabular-nums font-numeric"
                 />
-                <span className="absolute right-3.5 top-2.5 text-xs font-bold text-[#d97757] tabular-nums font-numeric">/ {numericEseMax}</span>
-              </div>
-              {onEseTheoryMaxChange && (
-                <MaxMarksInput
+                <EseMaximumControl
                   id="ese-theory-max"
                   label="Maximum marks for ESE theory"
-                  value={eseTheoryMax}
+                  value={numericEseMax}
                   onChange={onEseTheoryMaxChange}
-                  className="mb-2"
                 />
-              )}
-
-
-
+              </div>
             </div>
 
             <div className="pt-4 border-t border-slate-200 mt-4">
@@ -216,24 +268,15 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                   value={eseLab === '' || eseLab === undefined ? '' : eseLab}
                   placeholder={`Enter ${labName.toLowerCase()} marks (0 - ${numericLabMax})`}
                   onChange={handleLabChange}
-                  className="h-11 w-full rounded-lg px-3 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm tabular-nums font-numeric"
+                  className="h-11 w-full rounded-lg py-2 pl-3 pr-20 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm tabular-nums font-numeric"
                 />
-                <span className="absolute right-3.5 top-2.5 text-xs font-bold text-[#d97757] tabular-nums font-numeric">
-                  / {numericLabMax}
-                </span>
-              </div>
-              {onEseLabMaxChange && (
-                <MaxMarksInput
+                <EseMaximumControl
                   id="ese-lab-max"
                   label={`Maximum marks for ESE ${labName.toLowerCase()}`}
-                  value={eseLabMax}
-                  onChange={handleLabMaxChange}
-                  className="mb-2"
+                  value={numericLabMax}
+                  onChange={onEseLabMaxChange ? handleLabMaxChange : undefined}
                 />
-              )}
-
-
-
+              </div>
             </div>
 
             <div className="pt-4 border-t border-slate-200 mt-4">
@@ -280,7 +323,14 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                   const approxScale = hasTheory ? numericEseMax : numericLabMax;
                   const approxName = hasTheory ? 'Theory' : 'Practical';
                   const approxNeeded = hasTheory
-                    ? Math.ceil((Math.max(0, neededTotalEse - eseLabPoints) / eseTheoryWeight) * numericEseMax)
+                    ? calculateNeededTheoryMark({
+                        neededTotalEse,
+                        theoryWeight: eseTheoryWeight,
+                        theoryMax: numericEseMax,
+                        labPoints: eseLabPoints,
+                        labWeight: eseLabWeight,
+                        hasEnteredLabMark,
+                      })
                     : Math.ceil((neededTotalEse / eseLabWeight) * numericLabMax);
 
                   return (
@@ -308,6 +358,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                             {approxNeeded <= approxScale && (
                               <span className="block text-[10px] font-normal text-slate-600">
                                 ~{approxNeeded}/{approxScale} in {approxName}
+                                {hasTheory && !hasEnteredLabMark ? ' (assuming 90% lab)' : ''}
                               </span>
                             )}
                           </span>
@@ -353,20 +404,15 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                   value={ese === '' || ese === undefined ? '' : ese}
                   placeholder={`Enter your ESE marks (0 - ${numericEseMax})`}
                   onChange={handleEseChange}
-                  className="h-11 w-full rounded-lg px-3 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm tabular-nums font-numeric"
+                  className="h-11 w-full rounded-lg py-2 pl-3 pr-20 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm tabular-nums font-numeric"
                 />
-                <span className="absolute right-3.5 top-2.5 text-xs font-bold text-[#d97757] tabular-nums font-numeric">/ {numericEseMax}</span>
-              </div>
-              {onEseTheoryMaxChange && (
-                <MaxMarksInput
+                <EseMaximumControl
                   id="ese-theory-max"
                   label="Maximum marks for ESE theory"
-                  value={eseTheoryMax}
+                  value={numericEseMax}
                   onChange={onEseTheoryMaxChange}
-                  className="mb-2"
                 />
-              )}
-
+              </div>
 
             </div>
 
