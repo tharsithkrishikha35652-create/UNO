@@ -5,22 +5,72 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.view.View;
 import android.view.WindowManager;
+import android.webkit.JavascriptInterface;
 import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
+
+    private volatile int lastTopDp = 24;
+    private volatile int lastBottomDp = 0;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // 1. Enforce true edge-to-edge window fitting across all OEM skins (ColorOS, OneUI, MIUI, etc.)
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        getWindow().setStatusBarColor(android.graphics.Color.TRANSPARENT);
+        getWindow().setNavigationBarColor(android.graphics.Color.TRANSPARENT);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            getWindow().setStatusBarContrastEnforced(false);
+            getWindow().setNavigationBarContrastEnforced(false);
+        }
+
+        // 2. Allow content to render into display cutout area (camera hole / notch)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             WindowManager.LayoutParams lp = getWindow().getAttributes();
             lp.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
             getWindow().setAttributes(lp);
         }
 
+        // 3. Set default light status bar (dark icons for white header)
         View decorView = getWindow().getDecorView();
+        WindowInsetsControllerCompat insetsController = WindowCompat.getInsetsController(getWindow(), decorView);
+        if (insetsController != null) {
+            insetsController.setAppearanceLightStatusBars(true);
+        }
+
+        // 4. Expose synchronous JS interface so webview can query insets at the exact moment it mounts
+        if (getBridge() != null && getBridge().getWebView() != null) {
+            getBridge().getWebView().addJavascriptInterface(new Object() {
+                @JavascriptInterface
+                public int getTopInsetDp() {
+                    return lastTopDp;
+                }
+
+                @JavascriptInterface
+                public int getBottomInsetDp() {
+                    return lastBottomDp;
+                }
+
+                @JavascriptInterface
+                public void setDarkMode(boolean isDark) {
+                    runOnUiThread(() -> {
+                        WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+                        if (controller != null) {
+                            controller.setAppearanceLightStatusBars(!isDark);
+                        }
+                    });
+                }
+            }, "AndroidInsets");
+        }
+
+        // 5. Dynamic WindowInsets listener
         ViewCompat.setOnApplyWindowInsetsListener(decorView, (v, windowInsets) -> {
             int top = windowInsets.getInsets(
                 WindowInsetsCompat.Type.statusBars() | WindowInsetsCompat.Type.displayCutout()
@@ -37,19 +87,30 @@ public class MainActivity extends BridgeActivity {
                 bottomDp = density > 0 && bottom > 0 ? Math.round(bottom / density) : 48;
             }
 
-            if (getBridge() != null && getBridge().getWebView() != null) {
-                String js = "document.documentElement.style.setProperty('--safe-area-inset-top', '" + topDp + "px');" +
-                            "document.documentElement.style.setProperty('--safe-area-inset-bottom', '" + bottomDp + "px');";
-                getBridge().getWebView().evaluateJavascript(js, null);
-            }
+            lastTopDp = topDp;
+            lastBottomDp = bottomDp;
+
+            injectInsetsToWebView(topDp, bottomDp);
+
             return ViewCompat.onApplyWindowInsets(v, windowInsets);
         });
+
+        // 6. Ensure insets are computed and posted when layout is ready
+        decorView.post(this::syncSafeArea);
     }
 
     @Override
     public void onResume() {
         super.onResume();
         syncSafeArea();
+    }
+
+    private void injectInsetsToWebView(int topDp, int bottomDp) {
+        if (getBridge() != null && getBridge().getWebView() != null) {
+            String js = "document.documentElement.style.setProperty('--safe-area-inset-top', '" + topDp + "px');" +
+                        "document.documentElement.style.setProperty('--safe-area-inset-bottom', '" + bottomDp + "px');";
+            getBridge().getWebView().evaluateJavascript(js, null);
+        }
     }
 
     private boolean isThreeButtonNavigation(WindowInsetsCompat insets, float density) {
@@ -90,10 +151,6 @@ public class MainActivity extends BridgeActivity {
     }
 
     private void syncSafeArea() {
-        if (getBridge() == null || getBridge().getWebView() == null) {
-            return;
-        }
-
         float density = getResources().getDisplayMetrics().density;
 
         int statusBarHeight = 0;
@@ -130,8 +187,9 @@ public class MainActivity extends BridgeActivity {
             bottomDp = density > 0 && navBarHeight > 0 ? Math.round(navBarHeight / density) : 48;
         }
 
-        String js = "document.documentElement.style.setProperty('--safe-area-inset-top', '" + topDp + "px');" +
-                    "document.documentElement.style.setProperty('--safe-area-inset-bottom', '" + bottomDp + "px');";
-        getBridge().getWebView().evaluateJavascript(js, null);
+        lastTopDp = topDp;
+        lastBottomDp = bottomDp;
+
+        injectInsetsToWebView(topDp, bottomDp);
     }
 }

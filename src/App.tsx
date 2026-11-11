@@ -683,6 +683,16 @@ export default function App() {
     } catch (error) {
       console.error("Unable to save the theme preference:", error);
     }
+    try {
+      const androidBridge = (window as unknown as {
+        AndroidInsets?: {
+          setDarkMode?: (isDark: boolean) => void;
+        };
+      })?.AndroidInsets;
+      androidBridge?.setDarkMode?.(theme === "dark");
+    } catch {
+      // Non-blocking fallback
+    }
   }, [theme]);
 
   const toggleTheme = useCallback(() => {
