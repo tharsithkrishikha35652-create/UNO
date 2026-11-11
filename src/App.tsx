@@ -68,7 +68,6 @@ const FirstTimeTour = React.lazy(() => import("./components/FirstTimeTour"));
 import { createPortal } from "react-dom";
 import { ThemeToggle, type AppTheme } from "./components/ThemeToggle";
 import CalCreditLogo from "./components/CalCreditLogo";
-import Logo from "./components/Logo";
 import LaunchAnimation from "./components/LaunchAnimation";
 import { CGPAHub } from "./components/CGPAHub";
 import { GPA_COURSES, getGpaCourses, getAllGpaCourses } from "./gpaCourses";

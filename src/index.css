@@ -89,7 +89,7 @@
 
 :root[data-theme="dark"],
 [data-theme="dark"] {
-  --cc-cal: #FF5440;
+  --cc-cal: #E23B22;
   --cc-credit: #F5EEDC;
   --cc-dot: var(--cc-cal);
   color-scheme: dark;
