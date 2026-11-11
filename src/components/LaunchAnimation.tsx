@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useId, useRef, useCallback } from 'react';
+import { ANNA_UNIV_PATH } from './Logo';
 
 export type LaunchAnimationProps = {
   /** Called once the animation finishes and the overlay fades out */
@@ -8,15 +9,14 @@ export type LaunchAnimationProps = {
 };
 
 const DATA = {
-  WMW: 275.5,
   HOP: 23.2,
   BLOB: {
-    ring_d: 'M29.73 -26.77A40 40 0 1 0 29.73 26.77',
-    d1: 'M-20.5 -12.2L-12.8 -18.9V18.9',
-    d0: 'M20.5 0A9 18.9 0 1 0 2.5 0A9 18.9 0 1 0 20.5 0',
-    ex: 29.73,
-    ey: 26.77,
-    OFF: 10.62,
+    ring_d: 'M84.24 38.57A38 38 0 1 0 84.24 89.43',
+    d1: 'M43 46 V82 M43 46 L33 54',
+    d0: 'M80 64A11 18 0 1 1 58 64A11 18 0 1 1 80 64',
+    ex: 84.24,
+    ey: 89.43,
+    OFF: 56,
   },
   LAY: {
     P: { VW: 360, VH: 640, K: 1.9, WS: 1.08, FX: 180, FY: 255.7, WX: 31.2, WY: 428.2, RS: 0.8 },
@@ -49,7 +49,6 @@ const BRAND = {
 const FONT_STACK = "'Inter', -apple-system, 'Helvetica Neue', Arial, sans-serif";
 const OFF = DATA.BLOB.OFF;
 const HOP = DATA.HOP;
-const WMW = DATA.WMW;
 
 export const LaunchAnimation: React.FC<LaunchAnimationProps> = ({ onDone, theme }) => {
   const uid = useId().replace(/:/g, '');
@@ -114,7 +113,7 @@ export const LaunchAnimation: React.FC<LaunchAnimationProps> = ({ onDone, theme 
     const cam = svg.querySelector<SVGGElement>('#cam');
     const wg = svg.querySelector<SVGGElement>('#wg');
     const wgm = svg.querySelector<SVGGElement>('#wgm');
-    const au = svg.querySelector<SVGTextElement>('#au');
+    const au = svg.querySelector<SVGPathElement>('#au');
     const SW = svg.querySelector<SVGCircleElement>('#sw');
     const SW2 = svg.querySelector<SVGCircleElement>('#sw2');
     const fx = svg.querySelector<SVGGElement>('#fx');
@@ -139,7 +138,7 @@ export const LaunchAnimation: React.FC<LaunchAnimationProps> = ({ onDone, theme 
     const camEl: SVGGElement = cam;
     const wgEl: SVGGElement = wg;
     const wgmEl: SVGGElement = wgm;
-    const auEl: SVGTextElement = au;
+    const auEl: SVGPathElement = au;
     const SWEl: SVGCircleElement = SW;
     const SW2El: SVGCircleElement = SW2;
 
@@ -184,7 +183,7 @@ export const LaunchAnimation: React.FC<LaunchAnimationProps> = ({ onDone, theme 
       const q = ringEl.getPointAtLength ? ringEl.getPointAtLength(RL * io(S(tb, 1, 1.8))) : { x: 29.73, y: 26.77 };
       const s = {
         x: q.x - OFF,
-        y: q.y,
+        y: q.y - DATA.BLOB.OFF,
         a: rnd() * 6.283,
         v: 20 + rnd() * 45,
         tb: tb + D,
@@ -275,7 +274,9 @@ export const LaunchAnimation: React.FC<LaunchAnimationProps> = ({ onDone, theme 
       });
       const qa = out(S(t, 2.45, 2.95));
       auEl.style.opacity = String(0.85 * qa);
-      auEl.setAttribute('transform', `translate(0 ${8 * (1 - qa)})`);
+      // The official subtitle path is authored at x=142; cancel that offset so
+      // its center aligns with the centered wordmark in this stacked lockup.
+      auEl.setAttribute('transform', `translate(-142 ${-75.12 + 8 * (1 - qa)})`);
       const fu2 = S(t, 3 - TS, 3.3 - TS);
       const lb = S(t, 3.3 - TS, 3.45 - TS);
       const dq = S(t, 3.45 - TS, 4.1 - TS);
@@ -433,7 +434,7 @@ export const LaunchAnimation: React.FC<LaunchAnimationProps> = ({ onDone, theme 
         .cc-launch-st .ch { fill: none; stroke-width: 6.8; stroke-linecap: round; stroke-linejoin: round; }
         .cc-launch-st .ch.r { stroke: var(--red); }
         .cc-launch-st .ch.k { stroke: var(--ink); }
-        .cc-launch-st .tag { fill: var(--muted); font: 500 12.5px 'Inter', -apple-system, 'Helvetica Neue', Arial, sans-serif; }
+        .cc-launch-st .tag { fill: var(--muted); }
         .cc-launch-st .sw { fill: none; stroke: var(--ink); }
         .cc-launch-st .sw2 { fill: none; stroke: var(--red); stroke-width: 3; }
         @media (prefers-reduced-motion: reduce) {
@@ -477,13 +478,13 @@ export const LaunchAnimation: React.FC<LaunchAnimationProps> = ({ onDone, theme 
 
           {/* Mark Group */}
           <g id="mk">
-            <g transform="translate(-10.62 0)">
+            <g transform="translate(-56 -64)">
               {/* Digit 10 Pulse Group */}
               <g id="pulse">
                 <g fill="none" stroke="var(--ink)" strokeWidth={BRAND.markStroke} strokeLinecap="round" strokeLinejoin="round">
-                  {/* Brand-sheet numeral: angled cap + straight stem, paired with a broad oval zero. */}
-                  <path id="d1" d="M-8.7 -19.2L-19.3 -10.7M-8.7 -19.2V19.2" />
-                  <ellipse id="d0" cx="18.95" cy="0" rx="11.7" ry="19.2" />
+                  {/* Exact centered 10 geometry from the official brand mark. */}
+                  <path id="d1" d={DATA.BLOB.d1} />
+                  <path id="d0" d={DATA.BLOB.d0} />
                 </g>
               </g>
 
@@ -491,7 +492,7 @@ export const LaunchAnimation: React.FC<LaunchAnimationProps> = ({ onDone, theme 
               <path
                 id="ring"
                 className="cc-c-arc"
-                d="M29.73 -26.77A40 40 0 1 0 29.73 26.77"
+                d={DATA.BLOB.ring_d}
                 fill="none"
                 stroke="var(--red)"
                 strokeWidth={BRAND.markStroke}
@@ -499,12 +500,12 @@ export const LaunchAnimation: React.FC<LaunchAnimationProps> = ({ onDone, theme 
               />
 
               {/* Ripple Ring */}
-              <circle id="rip" cx="29.73" cy="26.77" r="4" fill="none" stroke="var(--red)" strokeWidth="1.6" opacity="0" />
+              <circle id="rip" cx={DATA.BLOB.ex} cy={DATA.BLOB.ey} r="4" fill="none" stroke="var(--red)" strokeWidth="1.6" opacity="0" />
 
               {/* Drawing Pen */}
               <g id="pen">
-                <path className="fi" d="M-5.5 -13V-45Q-5.5 -48.5 -2 -48.5H2Q5.5 -48.5 5.5 -45V-13Z" />
-                <path className="fr" d="M0 0L-5.5 -13H5.5Z" stroke="var(--red)" strokeWidth="1.4" strokeLinejoin="round" />
+                <path className="fi" d="M-5.5 -50Q-5.5 -54 0 -54Q5.5 -54 5.5 -50V-17L1.4 -1H-1.4L-5.5 -17Z" />
+                <path className="fr" d="M-5.5 -17L-1.4 -1H1.4L5.5 -17Z" />
               </g>
             </g>
           </g>
@@ -513,72 +514,24 @@ export const LaunchAnimation: React.FC<LaunchAnimationProps> = ({ onDone, theme 
           <g clipPath={`url(#${cwId})`}>
             <g id="wg">
               <g id="wm" className="cc-wordmark">
-                {/* 'C' in red */}
-                <g className="ch r">
-                  <g transform="translate(-0.00 0)">
-                    <path d="M33.78 -31.66A17.20 17.20 0 1 0 33.78 -9.54" />
+                <g transform="translate(-142 -75.12)">
+                  <g transform="translate(142 35.12) scale(0.86)">
+                    <g className="ch r"><path d="M38.36 6.62A20 20 0 1 0 38.36 33.38" /></g>
+                    <g className="ch r"><circle cx="67.5" cy="26" r="14" /><path d="M81.5 12V40" /></g>
+                    <g className="ch r"><path d="M97.5 0V40" /></g>
+                    <g className="ch k"><path d="M146.36 6.62A20 20 0 1 0 146.36 33.38" /></g>
+                    <g className="ch k"><path d="M162.5 12V40M162.5 28A14 14 0 0 1 176.5 12" /></g>
+                    <g className="ch k"><path d="M186.5 26H214.5A14 14 0 1 0 211.53 34.62" /></g>
+                    <g className="ch k"><circle cx="239.5" cy="26" r="14" /><path d="M253.5 0V40" /></g>
+                    <g className="ch k"><path d="M269.5 12V40" /></g>
+                    <g className="ch k"><path d="M287.5 3V33Q287.5 40 294.5 40H296.5M281.5 12H295.5" /></g>
+                    <g id="dot"><circle cx="269.5" cy="1.5" r="4.34" className="fr" /></g>
                   </g>
-                </g>
-                {/* 'a' in red */}
-                <g className="ch r">
-                  <g transform="translate(40.27 0)">
-                    <circle cx="14.6" cy="-14.6" r="11.20" />
-                    <path d="M25.80 -3.40V-25.80" />
-                  </g>
-                </g>
-                {/* 'l' in red */}
-                <g className="ch r">
-                  <g transform="translate(77.47 0)">
-                    <path d="M3.40 -3.40V-40.60" />
-                  </g>
-                </g>
-                {/* 'C' in ink */}
-                <g className="ch k">
-                  <g transform="translate(90.87 0)">
-                    <path d="M33.78 -31.66A17.20 17.20 0 1 0 33.78 -9.54" />
-                  </g>
-                </g>
-                {/* 'r' in ink */}
-                <g className="ch k">
-                  <g transform="translate(132.05 0)">
-                    <path d="M3.40 -3.40V-15.30A10.5 10.5 0 0 1 19.92 -23.90" />
-                  </g>
-                </g>
-                {/* 'e' in ink */}
-                <g className="ch k">
-                  <g transform="translate(158.57 0)">
-                    <path d="M3.40 -14.6H25.80A11.20 11.20 0 1 0 22.24 -6.41" />
-                  </g>
-                </g>
-                {/* 'd' in ink */}
-                <g className="ch k">
-                  <g transform="translate(193.37 0)">
-                    <circle cx="14.6" cy="-14.6" r="11.20" />
-                    <path d="M25.80 -3.40V-40.60" />
-                  </g>
-                </g>
-                {/* 'i' in ink */}
-                <g className="ch k">
-                  <g transform="translate(230.57 0)">
-                    <path d="M3.40 -3.40V-25.80" />
-                  </g>
-                </g>
-                {/* 't' in ink */}
-                <g className="ch k">
-                  <g transform="translate(253.77 0)">
-                    <path d="M3.40 -34.60V-11.40A8 8 0 0 0 18.33 -7.40M-2.60 -25.80H9.90" />
-                  </g>
-                </g>
-                {/* Dot on 'i' */}
-                <g id="dot">
-                  <circle cx="233.97" cy="-37.6" r="4.8" className="fr" />
                 </g>
               </g>
 
               {/* Subtitle */}
-              <text id="au" x="0" y="27" className="tag cc-subtitle" textLength="275.5" lengthAdjust="spacing">
-                ANNA UNIVERSITY
-              </text>
+              <path id="au" className="tag cc-subtitle" d={ANNA_UNIV_PATH} transform="translate(-142 -75.12)" />
             </g>
           </g>
 

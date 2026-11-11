@@ -6,7 +6,7 @@ echo   CALCREDIT - Debug-Key Signed Release APK Builder
 echo ============================================================
 echo.
 
-set APK_NAME=CalCredit-v1.0.1.apk
+set APK_NAME=CalCredit-v1.0.2.apk
 
 echo [1/5] Building optimized web distribution (dist/)...
 call npm run build
