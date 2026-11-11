@@ -1,6 +1,18 @@
 @import "tailwindcss";
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
+.brand-sheet-logo__auto-dark {
+  display: none;
+}
+
+[data-theme="dark"] .brand-sheet-logo__auto-light {
+  display: none;
+}
+
+[data-theme="dark"] .brand-sheet-logo__auto-dark {
+  display: inline-block;
+}
+
 /* Warm Scholar Typography System - Local Font Declarations */
 @font-face {
   font-family: "Figtree";

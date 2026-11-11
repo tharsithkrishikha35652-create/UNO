@@ -1,4 +1,10 @@
 import type { CSSProperties } from 'react';
+import compactLightUrl from '../../design/calcredit-logo/calcredit_logo_compact_light.svg?url';
+import compactDarkUrl from '../../design/calcredit-logo/calcredit_logo_compact_dark.svg?url';
+import markLightUrl from '../../design/calcredit-logo/calcredit_mark_light.svg?url';
+import markDarkUrl from '../../design/calcredit-logo/calcredit_mark_dark.svg?url';
+import appIconLightUrl from '../../design/calcredit-logo/calcredit_app_icon_light.svg?url';
+import appIconDarkUrl from '../../design/calcredit-logo/calcredit_app_icon_dark.svg?url';
 
 /**
  * CalCredit logo: the single source of truth for the mark and the wordmark.
@@ -35,7 +41,7 @@ export function MarkPlain({ theme }: { theme?: 'light' | 'dark' }) {
       : theme === 'light'
       ? '#1B1815'
       : 'var(--cc-credit, #1B1815)';
-  const cal = '#E23B22'; // Fixed Red (#E23B22) across both modes
+  const cal = theme === 'dark' ? '#FF5440' : '#E23B22';
 
   return (
     <g transform="translate(-3 0)">
@@ -75,7 +81,7 @@ export function MarkPlain({ theme }: { theme?: 'light' | 'dark' }) {
 
 export function MarkTile({ theme }: { theme?: 'light' | 'dark' }) {
   const ink = theme === 'dark' ? '#F5EEDC' : '#1B1815';
-  const cal = '#E23B22';
+  const cal = theme === 'dark' ? '#FF5440' : '#E23B22';
 
   return (
     <>
@@ -120,7 +126,7 @@ export function Wordmark({ theme }: { theme?: 'light' | 'dark' }) {
       : theme === 'light'
       ? '#1B1815'
       : 'var(--cc-credit, #1B1815)';
-  const cal = '#E23B22'; // Fixed Red (#E23B22) across both modes
+  const cal = theme === 'dark' ? '#FF5440' : '#E23B22';
 
   return (
     <>
@@ -175,6 +181,34 @@ export default function CalCreditLogo({
   style,
   theme,
 }: Props) {
+  const hasMark = markSize > 0;
+  const hasWordmark = wordHeight > 0;
+  const compact = hasMark && hasWordmark && !tile;
+  const assetWidth = compact ? Math.max(110, markSize * (448 / 128)) : markSize;
+  const assetHeight = compact ? assetWidth * (528 / 1344) : markSize;
+  const lightAsset = tile
+    ? appIconLightUrl
+    : compact
+      ? compactLightUrl
+      : markLightUrl;
+  const darkAsset = tile
+    ? appIconDarkUrl
+    : compact
+      ? compactDarkUrl
+      : markDarkUrl;
+
+  const renderAsset = (src: string, variantClass = '') => (
+    <img
+      src={src}
+      width={assetWidth}
+      height={assetHeight}
+      alt=""
+      aria-hidden="true"
+      draggable={false}
+      className={`brand-sheet-logo__image shrink-0 ${variantClass}`}
+    />
+  );
+
   return (
     <span
       role="img"
@@ -183,24 +217,20 @@ export default function CalCreditLogo({
       style={{
         display: 'inline-flex',
         alignItems: 'center',
-        gap: markSize > 0 && wordHeight > 0 ? gap : 0,
+        gap: !compact && hasMark && hasWordmark ? gap : 0,
         lineHeight: 0,
         ...style,
       }}
     >
-      {markSize > 0 && (
-        <svg
-          width={markSize}
-          height={markSize}
-          aria-hidden="true"
-          viewBox="0 0 128 128"
-          preserveAspectRatio="xMidYMid meet"
-          className="shrink-0"
-        >
-          {tile ? <MarkTile theme={theme} /> : <MarkPlain theme={theme} />}
-        </svg>
+      {hasMark && (
+        theme
+          ? renderAsset(theme === 'dark' ? darkAsset : lightAsset)
+          : <>
+              {renderAsset(lightAsset, 'brand-sheet-logo__auto-light')}
+              {renderAsset(darkAsset, 'brand-sheet-logo__auto-dark')}
+            </>
       )}
-      {wordHeight > 0 && (
+      {!hasMark && hasWordmark && (
         <svg
           height={wordHeight}
           width={wordHeight * WORD_ASPECT}

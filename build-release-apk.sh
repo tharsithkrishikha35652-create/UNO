@@ -1,25 +1,12 @@
 #!/usr/bin/env bash
 set -e
 
-KEYSTORE_PATH="android/calcredit-release.keystore"
-PROPERTIES_PATH="android/keystore.properties"
+APK_NAME="CalCredit-v1.0.1.apk"
 
 echo "============================================================"
-echo "  CALCREDIT - Production Release APK Builder"
+echo "  CALCREDIT - Debug-Key Signed Release APK Builder"
 echo "============================================================"
 echo ""
-
-if [ ! -f "$KEYSTORE_PATH" ]; then
-    echo "[ERROR] Keystore not found at $KEYSTORE_PATH!"
-    echo "Please run './generate-release-keystore.sh' first."
-    exit 1
-fi
-
-if [ ! -f "$PROPERTIES_PATH" ]; then
-    echo "[ERROR] Signing properties file not found at $PROPERTIES_PATH!"
-    echo "Please run './generate-release-keystore.sh' first."
-    exit 1
-fi
 
 echo "[1/5] Building optimized web distribution (dist/)..."
 npm run build
@@ -44,12 +31,10 @@ fi
 echo ""
 echo "[4/5] Deploying APK to dist and hosting distribution paths..."
 mkdir -p dist/release-apk
-mkdir -p public/release-apk
 mkdir -p release-apk
 
-cp -f "$APK_SOURCE" "dist/release-apk/CalCredit-v1.0.1.apk"
-cp -f "$APK_SOURCE" "public/release-apk/CalCredit-v1.0.1.apk"
-cp -f "$APK_SOURCE" "release-apk/CalCredit-v1.0.1.apk"
+cp -f "$APK_SOURCE" "dist/release-apk/$APK_NAME"
+cp -f "$APK_SOURCE" "release-apk/$APK_NAME"
 
 echo ""
 echo "[5/5] Mandatory Cryptographic Signature Verification..."
@@ -75,16 +60,16 @@ if [ -z "$APKSIGNER_CMD" ]; then
 fi
 
 echo "Running apksigner verification:"
-"$APKSIGNER_CMD" verify --verbose --print-certs "dist/release-apk/CalCredit-v1.0.1.apk"
+"$APKSIGNER_CMD" verify --verbose --print-certs "dist/release-apk/$APK_NAME"
 
 echo ""
 echo "Cryptographic signature verified successfully (v1/v2/v3)."
 echo ""
 echo "Release APK Checksum (SHA-256):"
-sha256sum "dist/release-apk/CalCredit-v1.0.1.apk"
+sha256sum "dist/release-apk/$APK_NAME"
 
 echo ""
 echo "============================================================"
-echo "  [SUCCESS] Production Release APK Verified and Ready!"
-echo "  Hosting Path: dist/release-apk/CalCredit-v1.0.1.apk"
+echo "  [SUCCESS] Debug-key signed APK verified and ready!"
+echo "  Hosting Path: dist/release-apk/$APK_NAME"
 echo "============================================================"

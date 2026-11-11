@@ -2,24 +2,11 @@
 setlocal enabledelayedexpansion
 
 echo ============================================================
-echo   CALCREDIT - Production Release APK Builder
+echo   CALCREDIT - Debug-Key Signed Release APK Builder
 echo ============================================================
 echo.
 
-set KEYSTORE_PATH=android\calcredit-release.keystore
-set PROPERTIES_PATH=android\keystore.properties
-
-if not exist "%KEYSTORE_PATH%" (
-    echo [ERROR] Release keystore not found at %KEYSTORE_PATH%!
-    echo Please run 'generate-release-keystore.bat' to generate a signed keystore first.
-    exit /b 1
-)
-
-if not exist "%PROPERTIES_PATH%" (
-    echo [ERROR] Signing properties file not found at %PROPERTIES_PATH%!
-    echo Please run 'generate-release-keystore.bat' to configure credentials first.
-    exit /b 1
-)
+set APK_NAME=CalCredit-v1.0.1.apk
 
 echo [1/5] Building optimized web distribution (dist/)...
 call npm run build
@@ -46,7 +33,6 @@ cd ..
 if %GRADLE_ERR% neq 0 (
     echo.
     echo [ERROR] Gradle assembleRelease failed!
-    echo Ensure release credentials in %PROPERTIES_PATH% are valid.
     exit /b %GRADLE_ERR%
 )
 
@@ -60,15 +46,13 @@ if not exist "%APK_SOURCE%" (
 echo.
 echo [4/5] Deploying APK to dist and hosting distribution paths...
 if not exist "dist\release-apk" mkdir "dist\release-apk"
-if not exist "public\release-apk" mkdir "public\release-apk"
 if not exist "release-apk" mkdir "release-apk"
 
-copy /Y "%APK_SOURCE%" "dist\release-apk\CalCredit-v1.0.1.apk" >nul
-copy /Y "%APK_SOURCE%" "public\release-apk\CalCredit-v1.0.1.apk" >nul
-copy /Y "%APK_SOURCE%" "release-apk\CalCredit-v1.0.1.apk" >nul
+copy /Y "%APK_SOURCE%" "dist\release-apk\%APK_NAME%" >nul
+copy /Y "%APK_SOURCE%" "release-apk\%APK_NAME%" >nul
 
-if not exist "dist\release-apk\CalCredit-v1.0.1.apk" (
-    echo [ERROR] Failed to place APK in dist\release-apk\CalCredit-v1.0.1.apk!
+if not exist "dist\release-apk\%APK_NAME%" (
+    echo [ERROR] Failed to place APK in dist\release-apk\%APK_NAME%!
     exit /b 1
 )
 
@@ -108,7 +92,7 @@ if not defined APKSIGNER_CMD (
 )
 
 echo Running apksigner verification:
-call "%APKSIGNER_CMD%" verify --verbose --print-certs "dist\release-apk\CalCredit-v1.0.1.apk"
+call "%APKSIGNER_CMD%" verify --verbose --print-certs "dist\release-apk\%APK_NAME%"
 if %ERRORLEVEL% neq 0 (
     echo.
     echo ============================================================
@@ -123,15 +107,14 @@ echo.
 echo Cryptographic signature verified successfully (v1/v2/v3).
 echo.
 echo Release APK Checksum (SHA-256):
-certutil -hashfile "dist\release-apk\CalCredit-v1.0.1.apk" SHA256 | findstr /V ":"
+certutil -hashfile "dist\release-apk\%APK_NAME%" SHA256 | findstr /V ":"
 
 echo.
 echo ============================================================
-echo   [SUCCESS] Production Release APK Verified and Ready!
+echo   [SUCCESS] Debug-key signed APK verified and ready!
 echo ============================================================
 echo Output Locations:
-echo   - dist\release-apk\CalCredit-v1.0.1.apk   (included in Firebase deploy)
-echo   - public\release-apk\CalCredit-v1.0.1.apk (persisted for future builds)
-echo   - release-apk\CalCredit-v1.0.1.apk        (standalone archive)
+echo   - dist\release-apk\%APK_NAME%   (included in Firebase deploy)
+echo   - release-apk\%APK_NAME%        (standalone archive)
 echo.
 pause

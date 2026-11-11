@@ -35,6 +35,18 @@ const Q = 0.76;
 const TS = 0.69;
 const T = (D + 4.5 - TS) * Q; // ~3.77s
 const PEN = 42;
+
+// Brand sheet v2 tokens
+const BRAND = {
+  red: '#E23B22',      // CalCredit Red (light)
+  redDark: '#FF5440',  // Red on dark
+  ink: '#1B1815',
+  cream: '#F5EEDC',
+  paper: '#F7F1E1',
+  // The brand sheet specifies one 8-unit stroke for both the C and the 10.
+  markStroke: 8,
+};
+const FONT_STACK = "'Inter', -apple-system, 'Helvetica Neue', Arial, sans-serif";
 const OFF = DATA.BLOB.OFF;
 const HOP = DATA.HOP;
 const WMW = DATA.WMW;
@@ -158,7 +170,7 @@ export const LaunchAnimation: React.FC<LaunchAnimationProps> = ({ onDone, theme 
         e: document.createElementNS(NS, 'text') as SVGTextElement,
       };
       g.e.setAttribute('text-anchor', 'middle');
-      g.e.setAttribute('font-family', 'system-ui,sans-serif');
+      g.e.setAttribute('font-family', FONT_STACK);
       g.e.setAttribute('font-size', '15');
       g.e.setAttribute('font-weight', '600');
       g.e.setAttribute('class', g.c < 0.3 ? 'gr' : 'gk');
@@ -375,7 +387,7 @@ export const LaunchAnimation: React.FC<LaunchAnimationProps> = ({ onDone, theme 
   }, [finishAnimation]);
 
   const isDark = mountedTheme === 'dark';
-  const bgColor = isDark ? '#14110F' : '#F7F1E1';
+  const bgColor = isDark ? BRAND.ink : BRAND.paper;
 
   return (
     <div
@@ -398,13 +410,13 @@ export const LaunchAnimation: React.FC<LaunchAnimationProps> = ({ onDone, theme 
         backgroundColor: bgColor,
         // CSS variables for launch sequence SVG elements
         ['--sbg' as string]: bgColor,
-        ['--ink' as string]: isDark ? '#F5EEDC' : '#1B1815',
-        ['--red' as string]: '#E23B22',
+        ['--ink' as string]: isDark ? BRAND.cream : BRAND.ink,
+        ['--red' as string]: isDark ? BRAND.redDark : BRAND.red,
         ['--muted' as string]: isDark ? '#A39E90' : '#6B675E',
       }}
     >
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;600&display=swap');
         .cc-launch-st {
           display: block;
           margin: 0 auto;
@@ -421,7 +433,7 @@ export const LaunchAnimation: React.FC<LaunchAnimationProps> = ({ onDone, theme 
         .cc-launch-st .ch { fill: none; stroke-width: 6.8; stroke-linecap: round; stroke-linejoin: round; }
         .cc-launch-st .ch.r { stroke: var(--red); }
         .cc-launch-st .ch.k { stroke: var(--ink); }
-        .cc-launch-st .tag { fill: var(--muted); font: 600 12.5px 'Nunito', system-ui, -apple-system, sans-serif; }
+        .cc-launch-st .tag { fill: var(--muted); font: 500 12.5px 'Inter', -apple-system, 'Helvetica Neue', Arial, sans-serif; }
         .cc-launch-st .sw { fill: none; stroke: var(--ink); }
         .cc-launch-st .sw2 { fill: none; stroke: var(--red); stroke-width: 3; }
         @media (prefers-reduced-motion: reduce) {
@@ -468,9 +480,10 @@ export const LaunchAnimation: React.FC<LaunchAnimationProps> = ({ onDone, theme 
             <g transform="translate(-10.62 0)">
               {/* Digit 10 Pulse Group */}
               <g id="pulse">
-                <g fill="none" stroke="var(--ink)" strokeWidth="9.4" strokeLinecap="round" strokeLinejoin="round">
-                  <path id="d1" d="M-20.5 -12.2L-12.8 -18.9V18.9" />
-                  <path id="d0" d="M20.5 0A9 18.9 0 1 0 2.5 0A9 18.9 0 1 0 20.5 0" />
+                <g fill="none" stroke="var(--ink)" strokeWidth={BRAND.markStroke} strokeLinecap="round" strokeLinejoin="round">
+                  {/* Brand-sheet numeral: angled cap + straight stem, paired with a broad oval zero. */}
+                  <path id="d1" d="M-8.7 -19.2L-19.3 -10.7M-8.7 -19.2V19.2" />
+                  <ellipse id="d0" cx="18.95" cy="0" rx="11.7" ry="19.2" />
                 </g>
               </g>
 
@@ -481,7 +494,7 @@ export const LaunchAnimation: React.FC<LaunchAnimationProps> = ({ onDone, theme 
                 d="M29.73 -26.77A40 40 0 1 0 29.73 26.77"
                 fill="none"
                 stroke="var(--red)"
-                strokeWidth="9.4"
+                strokeWidth={BRAND.markStroke}
                 strokeLinecap="round"
               />
 

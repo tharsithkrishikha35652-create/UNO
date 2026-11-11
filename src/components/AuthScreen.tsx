@@ -524,12 +524,12 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
               </button>
             )}
             {!configurationError && mode === 'login' && (
-              <button type="button" onClick={() => selectMode('reset')} className="font-semibold text-[#1e3a8a] hover:underline">
+              <button type="button" onClick={() => selectMode('reset')} className="bg-transparent font-semibold text-[#1e3a8a] hover:underline">
                 Forgot password?
               </button>
             )}
             {!configurationError && mode === 'reset' ? (
-              <button type="button" onClick={() => selectMode('login')} className="font-semibold text-[#1e3a8a] hover:underline">
+              <button type="button" onClick={() => selectMode('login')} className="bg-transparent font-semibold text-[#1e3a8a] hover:underline">
                 Back to log in
               </button>
             ) : !configurationError ? (
@@ -538,7 +538,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
                 <button
                   type="button"
                   onClick={() => selectMode(mode === 'signup' ? 'login' : 'signup')}
-                  className="font-bold text-[#1e3a8a] hover:underline"
+                  className="bg-transparent font-bold text-[#1e3a8a] hover:underline"
                 >
                   {mode === 'signup' ? 'Log in' : 'Create account'}
                 </button>

@@ -37,7 +37,7 @@ scratch/
 *.zip
 syllabi/
 
-# Keystore files and signing credentials
+# Never commit local signing material
 *.jks
 *.keystore
 keystore.properties

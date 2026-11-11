@@ -2596,7 +2596,7 @@ function AuthenticatedApp({
                   aria-hidden="true"
                 />
               </button>
-              <CalCreditLogo markSize={0} wordHeight={20} gap={0} />
+              <CalCreditLogo markSize={30} wordHeight={18} gap={0} />
             </div>
 
             <div className="hidden min-w-0 max-w-44 items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 sm:flex">
