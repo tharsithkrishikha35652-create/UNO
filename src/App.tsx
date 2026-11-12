@@ -1612,7 +1612,8 @@ function AuthenticatedApp({
   }, []);
 
   const currentSubject = useMemo(() => {
-    const found = subjects.find(
+    // 1. Direct match by currentSubjectId
+    let found = subjects.find(
       (s) => s.id === currentSubjectId && !isGhostPlaceholderCourse(s)
     );
     if (found) {
@@ -1620,6 +1621,39 @@ function AuthenticatedApp({
       const sem = getSubjectSemester(found, currentDepartment);
       if (sem === null || sem === selectedSemester) return found;
     }
+
+    // 2. Flexible prefix match (with or without 'course_' prefix)
+    if (currentSubjectId) {
+      const strippedId = currentSubjectId.replace(/^course_/, "");
+      const altFound = subjects.find(
+        (s) =>
+          !isGhostPlaceholderCourse(s) &&
+          (s.id === strippedId || s.id === `course_${strippedId}`)
+      );
+      if (altFound) {
+        if (selectedSemester === null) return altFound;
+        const sem = getSubjectSemester(altFound, currentDepartment);
+        if (sem === null || sem === selectedSemester) return altFound;
+      }
+
+      // 3. Match via Preset Course for the current department
+      const presets = getPresetCourses(currentDepartment);
+      const matchingPreset = presets.find(
+        (p) =>
+          p.id === currentSubjectId ||
+          `course_${p.id}` === currentSubjectId ||
+          p.id === strippedId ||
+          (Boolean(p.code) && p.code.toUpperCase() === strippedId.toUpperCase())
+      );
+      if (matchingPreset) {
+        const presetSubject = findSubjectForCourse(subjects, matchingPreset);
+        if (presetSubject && !isGhostPlaceholderCourse(presetSubject)) {
+          return presetSubject;
+        }
+      }
+    }
+
+    // 4. Semester fallback ONLY if no match was found
     if (selectedSemester !== null) {
       const semSubject = subjects.find((s) => {
         if (isGhostPlaceholderCourse(s)) return false;
@@ -1632,6 +1666,16 @@ function AuthenticatedApp({
       subjects.find((s) => !isGhostPlaceholderCourse(s)) || DEFAULT_SUBJECT
     );
   }, [subjects, currentSubjectId, selectedSemester, currentDepartment]);
+
+  useEffect(() => {
+    if (
+      currentSubject.id &&
+      currentSubject.id !== "sub_1" &&
+      currentSubject.id !== currentSubjectId
+    ) {
+      setCurrentSubjectId(currentSubject.id);
+    }
+  }, [currentSubject.id, currentSubjectId]);
 
   const hasSubjectSelected = Boolean(
     currentSubject.name && currentSubject.name.trim().length > 0
@@ -1821,36 +1865,40 @@ function AuthenticatedApp({
     const existing = findSubjectForCourse(previous, course);
     if (existing) {
       targetSubjectId = existing.id;
-      if (isHeritageCourse) {
+      let hasChanges = false;
+      let updatedSubject = existing;
+
+      if (!updatedSubject.semester && course.semester) {
+        updatedSubject = { ...updatedSubject, semester: course.semester };
+        hasChanges = true;
+      }
+      if (!updatedSubject.code && course.code) {
+        updatedSubject = { ...updatedSubject, code: course.code };
+        hasChanges = true;
+      }
+      if (isHeritageCourse && updatedSubject.courseType !== "heritage-course") {
         const act1Count = Math.max(1, Number(existing.act1No) || 0);
         const act2Count = Math.max(1, Number(existing.act2No) || 0);
-        return {
-          nextSubjects: previous.map((subject) => {
-            if (subject.id !== existing.id) return subject;
-            return {
-              ...subject,
-              courseType: "heritage-course",
-              act1No: act1Count,
-              act1Scores: syncScoresArray(subject.act1Scores, act1Count),
-              act2No: act2Count,
-              act2Scores: syncScoresArray(subject.act2Scores, act2Count),
-              ...(course.electiveSlot ? { electiveSlot: course.electiveSlot } : {}),
-            };
-          }),
-          targetSubjectId,
+        updatedSubject = {
+          ...updatedSubject,
+          courseType: "heritage-course",
+          act1No: act1Count,
+          act1Scores: syncScoresArray(updatedSubject.act1Scores, act1Count),
+          act2No: act2Count,
+          act2Scores: syncScoresArray(updatedSubject.act2Scores, act2Count),
+          ...(course.electiveSlot ? { electiveSlot: course.electiveSlot } : {}),
         };
+        hasChanges = true;
+      } else if (course.electiveSlot && updatedSubject.electiveSlot !== course.electiveSlot) {
+        updatedSubject = { ...updatedSubject, electiveSlot: course.electiveSlot };
+        hasChanges = true;
       }
-      if (course.electiveSlot) {
-        return {
-          nextSubjects: previous.map((subject) =>
-            subject.id === existing.id
-              ? { ...subject, electiveSlot: course.electiveSlot }
-              : subject
-          ),
-          targetSubjectId,
-        };
-      }
-      return { nextSubjects: previous, targetSubjectId };
+
+      const nextSubjects = hasChanges
+        ? previous.map((s) => (s.id === existing.id ? updatedSubject : s))
+        : previous;
+
+      return { nextSubjects, targetSubjectId };
     }
 
     // If choosing an elective for a specific slot, replace any previous elective subject in that same slot for this semester
@@ -1894,17 +1942,16 @@ function AuthenticatedApp({
     acknowledgeSelection();
     calculationRevisionRef.current += 1;
 
-    let targetSubjectId = `course_${course.id}`;
-    setSubjects((previous) => {
-      const result = applyPresetCourseToSubjects(previous, course, currentDepartment);
-      targetSubjectId = result.targetSubjectId;
-      return result.nextSubjects;
-    });
+    // Synchronously compute the updated subjects list and exact deterministic target ID
+    const result = applyPresetCourseToSubjects(subjects, course, currentDepartment);
+    const targetSubjectId = result.targetSubjectId;
 
+    setSubjects(result.nextSubjects);
     setCurrentSubjectId(targetSubjectId);
     setSelectedSemester(course.semester);
     setActiveTab("calculator");
     setIsDesktopCoursesOpen(false);
+    setIsMobileCoursesOpen(false);
     setShowFeedbackHub(false);
     setIsEditorOpen(true);
     setIsDialogOpen(false);
@@ -1921,10 +1968,8 @@ function AuthenticatedApp({
     acknowledgeSelection();
     calculationRevisionRef.current += 1;
 
-    setSubjects((previous) => {
-      const result = applyPresetCourseToSubjects(previous, course, currentDepartment);
-      return result.nextSubjects;
-    });
+    const result = applyPresetCourseToSubjects(subjects, course, currentDepartment);
+    setSubjects(result.nextSubjects);
   };
 
   const handleOpenElectivePicker = (slot: string) => {
@@ -2798,70 +2843,78 @@ function AuthenticatedApp({
                       : "Choose…"}
                   </span>
                   <ChevronDown
-                    className={`h-3.5 w-3.5 transition-transform ${
+                    className={`h-3.5 w-3.5 transition-transform duration-300 ease-out ${
                       isSemesterMenuOpen ? "rotate-180" : ""
                     }`}
                     aria-hidden="true"
                   />
                 </button>
-                {isSemesterMenuOpen && (
-                  <div
-                    role="listbox"
-                    aria-label="Semester options"
-                    className="absolute right-0 z-40 mt-2 w-36 overflow-hidden rounded-xl border border-[var(--app-divider)] bg-[var(--app-surface)] p-1.5 shadow-lg ring-1 ring-black/5"
-                  >
-                    <button
-                      type="button"
-                      role="option"
-                      aria-selected={selectedSemester === null}
-                      onClick={() => {
-                        handleSemesterChange("");
-                        setIsSemesterMenuOpen(false);
-                      }}
-                      className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-semibold transition-colors ${
-                        selectedSemester === null
-                          ? "bg-[var(--app-soft-accent)] text-[var(--app-action-accent-strong)] font-bold"
-                          : "text-[var(--app-primary-text)] hover:bg-[var(--app-structural-accent)]/10 hover:text-[var(--app-action-accent-strong)]"
-                      }`}
+                <AnimatePresence>
+                  {isSemesterMenuOpen && (
+                    <motion.div
+                      key="header-semester-dropdown"
+                      initial={reduceMotion ? false : { opacity: 0, y: -10, scale: 0.94 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={reduceMotion ? undefined : { opacity: 0, y: -6, scale: 0.95 }}
+                      transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+                      style={{ transformOrigin: "top right" }}
+                      role="listbox"
+                      aria-label="Semester options"
+                      className="absolute right-0 z-40 mt-2 w-36 overflow-hidden rounded-xl border border-[var(--app-divider)] bg-[var(--app-surface)] p-1.5 shadow-lg ring-1 ring-black/5"
                     >
-                      <span>Choose…</span>
-                      {selectedSemester === null && (
-                        <Check
-                          className="h-3.5 w-3.5 text-[var(--app-action-accent-strong)]"
-                          aria-hidden="true"
-                        />
-                      )}
-                    </button>
-                    {[1, 2, 3, 4, 5, 6, 7, 8].map((semester) => {
-                      const isSelected = selectedSemester === semester;
-                      return (
-                        <button
-                          key={semester}
-                          type="button"
-                          role="option"
-                          aria-selected={isSelected}
-                          onClick={() => {
-                            handleSemesterChange(String(semester));
-                            setIsSemesterMenuOpen(false);
-                          }}
-                          className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-semibold transition-colors ${
-                            isSelected
-                              ? "bg-[var(--app-soft-accent)] text-[var(--app-action-accent-strong)] font-bold"
-                              : "text-[var(--app-primary-text)] hover:bg-[var(--app-structural-accent)]/10 hover:text-[var(--app-action-accent-strong)]"
-                          }`}
-                        >
-                          <span>Semester {semester}</span>
-                          {isSelected && (
-                            <Check
-                              className="h-3.5 w-3.5 text-[var(--app-action-accent-strong)]"
-                              aria-hidden="true"
-                            />
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
+                      <button
+                        type="button"
+                        role="option"
+                        aria-selected={selectedSemester === null}
+                        onClick={() => {
+                          handleSemesterChange("");
+                          setIsSemesterMenuOpen(false);
+                        }}
+                        className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-semibold transition-colors ${
+                          selectedSemester === null
+                            ? "bg-[var(--app-soft-accent)] text-[var(--app-action-accent-strong)] font-bold"
+                            : "text-[var(--app-primary-text)] hover:bg-[var(--app-structural-accent)]/10 hover:text-[var(--app-action-accent-strong)]"
+                        }`}
+                      >
+                        <span>Choose…</span>
+                        {selectedSemester === null && (
+                          <Check
+                            className="h-3.5 w-3.5 text-[var(--app-action-accent-strong)]"
+                            aria-hidden="true"
+                          />
+                        )}
+                      </button>
+                      {[1, 2, 3, 4, 5, 6, 7, 8].map((semester) => {
+                        const isSelected = selectedSemester === semester;
+                        return (
+                          <button
+                            key={semester}
+                            type="button"
+                            role="option"
+                            aria-selected={isSelected}
+                            onClick={() => {
+                              handleSemesterChange(String(semester));
+                              setIsSemesterMenuOpen(false);
+                            }}
+                            className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-semibold transition-colors ${
+                              isSelected
+                                ? "bg-[var(--app-soft-accent)] text-[var(--app-action-accent-strong)] font-bold"
+                                : "text-[var(--app-primary-text)] hover:bg-[var(--app-structural-accent)]/10 hover:text-[var(--app-action-accent-strong)]"
+                            }`}
+                          >
+                            <span>Semester {semester}</span>
+                            {isSelected && (
+                              <Check
+                                className="h-3.5 w-3.5 text-[var(--app-action-accent-strong)]"
+                                aria-hidden="true"
+                              />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </label>
 

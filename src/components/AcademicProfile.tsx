@@ -70,6 +70,7 @@ export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
   onSave,
   onCancel,
 }) => {
+  const reduceMotion = useReducedMotion();
   const [studentName, setStudentName] = useState(profile?.studentName ?? '');
   const [rollNumber, setRollNumber] = useState(profile?.rollNumber ?? '');
   const [department, setDepartment] = useState(() => normalizeDept(profile?.department));
@@ -216,41 +217,49 @@ export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
               {DEPARTMENT_OPTIONS.find((d) => d.value === department)?.label || department}
             </span>
             <ChevronDown
-              className={`h-4 w-4 shrink-0 text-slate-500 transition-transform ${isDeptOpen ? 'rotate-180' : ''}`}
+              className={`h-4 w-4 shrink-0 text-slate-500 transition-transform duration-300 ease-out ${isDeptOpen ? 'rotate-180' : ''}`}
               aria-hidden="true"
             />
           </button>
-          {isDeptOpen && (
-            <div
-              role="listbox"
-              aria-label="Department options"
-              className="absolute left-0 right-0 z-50 mt-1.5 max-h-60 overflow-y-auto overscroll-contain pr-1 custom-department-scrollbar rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl ring-1 ring-black/5 animate-[sticky-result-in_140ms_ease-out]"
-            >
-              {DEPARTMENT_OPTIONS.map((opt) => {
-                const isSelected = department === opt.value;
-                return (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    role="option"
-                    aria-selected={isSelected}
-                    onClick={() => {
-                      setDepartment(opt.value);
-                      setIsDeptOpen(false);
-                    }}
-                    className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-semibold transition-colors cursor-pointer ${
-                      isSelected
-                        ? 'bg-blue-50 text-[#172554] font-bold'
-                        : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
-                    }`}
-                  >
-                    <span>{opt.label}</span>
-                    {isSelected && <Check className="h-4 w-4 shrink-0 text-[#172554]" aria-hidden="true" />}
-                  </button>
-                );
-              })}
-            </div>
-          )}
+          <AnimatePresence>
+            {isDeptOpen && (
+              <motion.div
+                key="academic-dept-dropdown"
+                initial={reduceMotion ? false : { opacity: 0, y: -10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={reduceMotion ? undefined : { opacity: 0, y: -6, scale: 0.96 }}
+                transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+                style={{ transformOrigin: 'top' }}
+                role="listbox"
+                aria-label="Department options"
+                className="absolute left-0 right-0 z-50 mt-1.5 max-h-60 overflow-y-auto overscroll-contain pr-1 custom-department-scrollbar rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl ring-1 ring-black/5"
+              >
+                {DEPARTMENT_OPTIONS.map((opt) => {
+                  const isSelected = department === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      role="option"
+                      aria-selected={isSelected}
+                      onClick={() => {
+                        setDepartment(opt.value);
+                        setIsDeptOpen(false);
+                      }}
+                      className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-semibold transition-colors cursor-pointer ${
+                        isSelected
+                          ? 'bg-blue-50 text-[#172554] font-bold'
+                          : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+                      }`}
+                    >
+                      <span>{opt.label}</span>
+                      {isSelected && <Check className="h-4 w-4 shrink-0 text-[#172554]" aria-hidden="true" />}
+                    </button>
+                  );
+                })}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
         </div>
 
@@ -274,41 +283,49 @@ export const AcademicProfileForm: React.FC<AcademicProfileFormProps> = ({
               {semester ? `Semester ${semester}` : 'Choose semester…'}
             </span>
             <ChevronDown
-              className={`h-4 w-4 shrink-0 text-slate-500 transition-transform ${isSemOpen ? 'rotate-180' : ''}`}
+              className={`h-4 w-4 shrink-0 text-slate-500 transition-transform duration-300 ease-out ${isSemOpen ? 'rotate-180' : ''}`}
               aria-hidden="true"
             />
           </button>
-          {isSemOpen && (
-            <div
-              role="listbox"
-              aria-label="Semester options"
-              className="absolute left-0 right-0 z-50 mt-1.5 max-h-60 overflow-y-auto overscroll-contain pr-1 custom-department-scrollbar rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl ring-1 ring-black/5 animate-[sticky-result-in_140ms_ease-out]"
-            >
-              {semesterOptions.map((opt) => {
-                const isSelected = semester === String(opt);
-                return (
-                  <button
-                    key={opt}
-                    type="button"
-                    role="option"
-                    aria-selected={isSelected}
-                    onClick={() => {
-                      setSemester(String(opt));
-                      setIsSemOpen(false);
-                    }}
-                    className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-semibold transition-colors cursor-pointer ${
-                      isSelected
-                        ? 'bg-blue-50 text-[#172554] font-bold'
-                        : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
-                    }`}
-                  >
-                    <span>Semester {opt}</span>
-                    {isSelected && <Check className="h-4 w-4 shrink-0 text-[#172554]" aria-hidden="true" />}
-                  </button>
-                );
-              })}
-            </div>
-          )}
+          <AnimatePresence>
+            {isSemOpen && (
+              <motion.div
+                key="academic-sem-dropdown"
+                initial={reduceMotion ? false : { opacity: 0, y: -10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={reduceMotion ? undefined : { opacity: 0, y: -6, scale: 0.96 }}
+                transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+                style={{ transformOrigin: 'top' }}
+                role="listbox"
+                aria-label="Semester options"
+                className="absolute left-0 right-0 z-50 mt-1.5 max-h-60 overflow-y-auto overscroll-contain pr-1 custom-department-scrollbar rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl ring-1 ring-black/5"
+              >
+                {semesterOptions.map((opt) => {
+                  const isSelected = semester === String(opt);
+                  return (
+                    <button
+                      key={opt}
+                      type="button"
+                      role="option"
+                      aria-selected={isSelected}
+                      onClick={() => {
+                        setSemester(String(opt));
+                        setIsSemOpen(false);
+                      }}
+                      className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-semibold transition-colors cursor-pointer ${
+                        isSelected
+                          ? 'bg-blue-50 text-[#172554] font-bold'
+                          : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
+                      }`}
+                    >
+                      <span>Semester {opt}</span>
+                      {isSelected && <Check className="h-4 w-4 shrink-0 text-[#172554]" aria-hidden="true" />}
+                    </button>
+                  );
+                })}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 

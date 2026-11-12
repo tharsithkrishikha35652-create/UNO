@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { motionVariants } from '../motion';
 import { DynamicScoreBoxes } from './DynamicScoreBoxes';
-import { FileCheck, Pencil, X } from 'lucide-react';
+import { FileCheck, Pencil, X, ChevronDown, FileText, FlaskConical } from 'lucide-react';
 
 interface ContinuousAssessmentSectionProps {
   number: 1 | 2;
@@ -92,6 +92,10 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
   // Current maximum marks: accepts any positive configured value, defaults to 50
   const currentMax = Math.max(1, Number(testMax) || 50);
 
+  // Collapsible dropdown states when estimatedMarks checkbox is selected
+  const [isActivitiesOpen, setIsActivitiesOpen] = useState(false);
+  const [isLabOpen, setIsLabOpen] = useState(false);
+
   // Maximum marks configuration state
   const [isEditingMax, setIsEditingMax] = useState(false);
   const [tempMax, setTempMax] = useState(String(currentMax));
@@ -137,8 +141,179 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
     setMaxError(null);
   };
 
+  const renderTestCategory = (wrapperClassName: string, innerClassName: string = "p-3") => (
+    <div className={wrapperClassName}>
+      <div className={innerClassName}>
+        <div>
+          {/* Header */}
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <div className="text-[#3b4d66] shrink-0">
+                <FileCheck className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-[#d97757] dark:text-[#e08564]">
+                  {testDisplayName ?? `CA Test ${number}`}
+                </h4>
+              </div>
+            </div>
+          </div>
+
+          {/* Test Marks Scored with integrated configurable maximum marks */}
+          <div className="mb-3">
+            <div className="flex items-center justify-between mb-1.5">
+              <label
+                htmlFor={`test-scored-${number}`}
+                className="block text-xs font-bold text-[#172554] dark:text-[#f1f1f3]"
+              >
+                Marks scored:
+              </label>
+            </div>
+
+            <div className="relative max-w-md">
+              <input
+                id={`test-scored-${number}`}
+                data-tour={number === 1 ? "marks-entry" : undefined}
+                type="number"
+                inputMode="decimal"
+                min={0}
+                max={currentMax}
+                step={0.5}
+                value={test === '' ? '' : test}
+                placeholder={`0 - ${currentMax}`}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  onTestChange(
+                    raw === '' ? '' : Math.max(0, Math.min(currentMax, parseFloat(raw) || 0))
+                  );
+                }}
+                className="h-11 w-full min-w-0 pl-3.5 pr-24 text-xl sm:text-2xl font-black text-[#172554] dark:text-[#f1f1f3] bg-white dark:bg-[#161618] border border-[#172554] dark:border-slate-700 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm font-numeric tabular-nums"
+              />
+
+              {/* Right-aligned maximum marks + pencil icon inside existing input border */}
+              <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 shrink-0 select-none">
+                <span className="text-xs sm:text-sm font-bold text-[#d97757] dark:text-[#d97757] font-numeric tabular-nums">
+                  / {currentMax}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTempMax(String(currentMax));
+                    setMaxError(null);
+                    setIsEditingMax(!isEditingMax);
+                  }}
+                  id={`tour-test-max-pencil-${number}`}
+                  data-tour="test-max-pencil"
+                  title="Configure maximum marks"
+                  aria-label={`Configure maximum marks for ${testDisplayName ?? `CA Test ${number}`}`}
+                  className="p-1 rounded text-slate-400 hover:text-[#172554] dark:hover:text-[#f1f1f3] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              {/* Configurable maximum marks popover */}
+              <AnimatePresence>
+                {isEditingMax && (
+                  <motion.div
+                    ref={editMaxRef}
+                    id={`tour-test-max-editor-${number}`}
+                    data-tour="test-max-editor"
+                    initial={reduceMotion ? false : { opacity: 0, y: -4, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={reduceMotion ? undefined : { opacity: 0, y: -4, scale: 0.98 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 top-full mt-1.5 z-30 w-72 max-w-[calc(100vw-2rem)] p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#202024] shadow-lg"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-bold text-[#172554] dark:text-[#f1f1f3]">
+                        Configure Max Marks
+                      </span>
+                      <button
+                        type="button"
+                        id={`tour-test-max-cancel-${number}`}
+                        data-tour="test-max-cancel"
+                        onClick={handleCancelMax}
+                        className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer p-0.5"
+                        aria-label="Cancel editing maximum marks"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <input
+                        id={`tour-test-max-input-${number}`}
+                        data-tour="test-max-input"
+                        type="number"
+                        inputMode="numeric"
+                        min={1}
+                        step={1}
+                        value={tempMax}
+                        readOnly={typeof document !== 'undefined' && document.body.hasAttribute('data-tour-active')}
+                        onChange={(e) => {
+                          if (typeof document !== 'undefined' && document.body.hasAttribute('data-tour-active')) return;
+                          setTempMax(e.target.value);
+                          setMaxError(null);
+                        }}
+                        placeholder="e.g. 25, 30, 50"
+                        className="h-9 w-full px-2.5 text-sm font-bold border border-[#172554] dark:border-slate-600 rounded-lg bg-white dark:bg-[#161618] text-[#172554] dark:text-[#f1f1f3] focus:outline-hidden font-numeric tabular-nums"
+                        autoFocus={!(typeof document !== 'undefined' && document.body.hasAttribute('data-tour-active'))}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleSaveMax();
+                          if (e.key === 'Escape') handleCancelMax();
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleSaveMax}
+                        className="h-9 px-3 bg-[#172554] dark:bg-[#d97757] text-white text-xs font-bold rounded-lg hover:opacity-90 transition-opacity cursor-pointer shrink-0"
+                      >
+                        Save
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCancelMax}
+                        className="h-9 px-2.5 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                    {maxError && (
+                      <p className="mt-1.5 text-[11px] font-semibold text-rose-600 dark:text-rose-400">
+                        {maxError}
+                      </p>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+        </div>
+
+        {/* Marks Contributed for Total at bottom of Category 1 */}
+        <div className="mt-4 pt-1 border-t border-slate-100 dark:border-slate-800 max-w-md">
+          <div className="flex items-baseline justify-between text-[#172554] dark:text-[#f1f1f3]">
+            <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
+              Marks Contributed:
+            </span>
+            <div className="flex items-baseline gap-1">
+              <span className="text-lg font-black tabular-nums font-numeric text-[#172554] dark:text-[#f1f1f3]">
+                {testPoints.toFixed(2)}
+              </span>
+              <span className="text-base font-bold text-[#d97757] dark:text-[#d97757] font-numeric tabular-nums">
+                / {testWeight}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <motion.section
+      layout
       variants={reduceMotion ? undefined : motionVariants.card}
       initial={reduceMotion ? false : "initial"}
       animate="animate"
@@ -158,221 +333,234 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
       </div>
 
       {/* Categories separated by simple vertical formal navy line */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-200 dark:divide-slate-700">
-        {/* Category 1: Written Examination */}
-        <div className={`${testColumnClass} p-2.5 sm:p-3 flex flex-col justify-between bg-white dark:bg-[#202024]`}>
-          <div className="p-3">
-          <div>
-            {/* Header */}
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <div className="text-[#3b4d66] shrink-0">
-                  <FileCheck className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-[#d97757] dark:text-[#e08564]">
-                    {testDisplayName ?? `CA Test ${number}`}
-                  </h4>
-                </div>
-              </div>
-            </div>
+      <AnimatePresence mode="wait" initial={false}>
+        {estimatedMarks ? (
+          <motion.div
+            key="ca-estimated-dropdowns-view"
+            initial={reduceMotion ? false : { opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={reduceMotion ? undefined : { opacity: 0, y: -6 }}
+            transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+            className="divide-y divide-slate-200 dark:divide-slate-700 bg-white dark:bg-[#202024]"
+          >
+            {/* Category 1: Written Examination (Clean Top Section) */}
+            {renderTestCategory("p-1 sm:p-2 bg-white dark:bg-[#202024]")}
 
-            {/* Test Marks Scored with integrated configurable maximum marks */}
-            <div className="mb-3">
-              <div className="flex items-center justify-between mb-1.5">
-                <label
-                  htmlFor={`test-scored-${number}`}
-                  className="block text-xs font-bold text-[#172554] dark:text-[#f1f1f3]"
+            {/* Category 2: Assignments / Activities - Collapsible Dropdown */}
+            {hasActivities && (
+              <div className="border-t border-slate-200 dark:border-slate-700">
+                <button
+                  type="button"
+                  onClick={() => setIsActivitiesOpen(!isActivitiesOpen)}
+                  aria-expanded={isActivitiesOpen}
+                  className={`w-full flex items-center justify-between px-3.5 py-3 sm:px-4 text-left transition-colors duration-300 cursor-pointer focus-visible:outline-2 ${
+                    isActivitiesOpen
+                      ? 'bg-[#3b4d66] hover:bg-[#324257] text-white focus-visible:outline-white'
+                      : 'bg-white dark:bg-[#202024] hover:bg-slate-50 dark:hover:bg-[#252529] text-[#172554] dark:text-[#f1f1f3] focus-visible:outline-[#172554]'
+                  }`}
                 >
-                  Marks scored:
-                </label>
-              </div>
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className={`shrink-0 transition-colors duration-300 ${isActivitiesOpen ? 'text-white' : 'text-[#3b4d66] dark:text-slate-300'}`}>
+                      <FileText className="w-4 h-4" />
+                    </div>
+                    <span className={`text-xs sm:text-sm font-bold truncate transition-colors duration-300 ${isActivitiesOpen ? 'text-white' : 'text-[#172554] dark:text-[#f1f1f3]'}`}>
+                      {activityTitle ?? 'Assignments / Activities'}
+                    </span>
+                    <span className={`inline-flex items-baseline gap-1 px-2 py-0.5 rounded-md text-xs font-bold transition-colors duration-300 ${
+                      isActivitiesOpen
+                        ? 'bg-white/15 border border-white/20 text-white'
+                        : 'bg-slate-100 dark:bg-[#161618] border border-slate-200 dark:border-slate-700 text-[#172554] dark:text-[#f1f1f3]'
+                    }`}>
+                      <span className={`font-numeric tabular-nums font-black text-xs sm:text-sm transition-colors duration-300 ${isActivitiesOpen ? 'text-white' : 'text-[#172554] dark:text-[#f1f1f3]'}`}>
+                        {actPoints.toFixed(2)}
+                      </span>
+                      <span className={`font-numeric tabular-nums text-[11px] font-bold transition-colors duration-300 ${isActivitiesOpen ? 'text-amber-200' : 'text-[#d97757] dark:text-[#d97757]'}`}>
+                        / {actWeight}
+                      </span>
+                    </span>
+                  </div>
 
-              <div className="relative">
-                <input
-                  id={`test-scored-${number}`}
-                  data-tour={number === 1 ? "marks-entry" : undefined}
-                  type="number"
-                  inputMode="decimal"
-                  min={0}
-                  max={currentMax}
-                  step={0.5}
-                  value={test === '' ? '' : test}
-                  placeholder={`0 - ${currentMax}`}
-                  onChange={(e) => {
-                    const raw = e.target.value;
-                    onTestChange(
-                      raw === '' ? '' : Math.max(0, Math.min(currentMax, parseFloat(raw) || 0))
-                    );
-                  }}
-                  className="h-11 w-full min-w-0 pl-3.5 pr-24 text-xl sm:text-2xl font-black text-[#172554] dark:text-[#f1f1f3] bg-white dark:bg-[#161618] border border-[#172554] dark:border-slate-700 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm font-numeric tabular-nums"
-                />
+                  <div className="flex items-center gap-2 shrink-0 ml-2">
+                    <ChevronDown
+                      className={`w-4 h-4 transition-all duration-300 ease-out ${
+                        isActivitiesOpen ? 'rotate-180 text-white' : 'text-[#3b4d66] dark:text-slate-400'
+                      }`}
+                      aria-hidden="true"
+                    />
+                  </div>
+                </button>
 
-                {/* Right-aligned maximum marks + pencil icon inside existing input border */}
-                <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 shrink-0 select-none">
-                  <span className="text-xs sm:text-sm font-bold text-[#d97757] dark:text-[#d97757] font-numeric tabular-nums">
-                    / {currentMax}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setTempMax(String(currentMax));
-                      setMaxError(null);
-                      setIsEditingMax(!isEditingMax);
-                    }}
-                    id={`tour-test-max-pencil-${number}`}
-                    data-tour="test-max-pencil"
-                    title="Configure maximum marks"
-                    aria-label={`Configure maximum marks for ${testDisplayName ?? `CA Test ${number}`}`}
-                    className="p-1 rounded text-slate-400 hover:text-[#172554] dark:hover:text-[#f1f1f3] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-                  >
-                    <Pencil className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-
-                {/* Configurable maximum marks popover */}
-                <AnimatePresence>
-                  {isEditingMax && (
+                <AnimatePresence initial={false}>
+                  {isActivitiesOpen && (
                     <motion.div
-                      ref={editMaxRef}
-                      id={`tour-test-max-editor-${number}`}
-                      data-tour="test-max-editor"
-                      initial={reduceMotion ? false : { opacity: 0, y: -4, scale: 0.98 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={reduceMotion ? undefined : { opacity: 0, y: -4, scale: 0.98 }}
-                      transition={{ duration: 0.15 }}
-                      className="absolute right-0 top-full mt-1.5 z-30 w-72 max-w-[calc(100vw-2rem)] p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#202024] shadow-lg"
+                      key="ca-activities-dropdown"
+                      initial={reduceMotion ? false : { height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={reduceMotion ? undefined : { height: 0, opacity: 0 }}
+                      transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+                      className="overflow-hidden border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-[#202024]"
                     >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-bold text-[#172554] dark:text-[#f1f1f3]">
-                          Configure Max Marks
-                        </span>
-                        <button
-                          type="button"
-                          id={`tour-test-max-cancel-${number}`}
-                          data-tour="test-max-cancel"
-                          onClick={handleCancelMax}
-                          className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer p-0.5"
-                          aria-label="Cancel editing maximum marks"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <input
-                          id={`tour-test-max-input-${number}`}
-                          data-tour="test-max-input"
-                          type="number"
-                          inputMode="numeric"
-                          min={1}
-                          step={1}
-                          value={tempMax}
-                          readOnly={typeof document !== 'undefined' && document.body.hasAttribute('data-tour-active')}
-                          onChange={(e) => {
-                            if (typeof document !== 'undefined' && document.body.hasAttribute('data-tour-active')) return;
-                            setTempMax(e.target.value);
-                            setMaxError(null);
-                          }}
-                          placeholder="e.g. 25, 30, 50"
-                          className="h-9 w-full px-2.5 text-sm font-bold border border-[#172554] dark:border-slate-600 rounded-lg bg-white dark:bg-[#161618] text-[#172554] dark:text-[#f1f1f3] focus:outline-hidden font-numeric tabular-nums"
-                          autoFocus={!(typeof document !== 'undefined' && document.body.hasAttribute('data-tour-active'))}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') handleSaveMax();
-                            if (e.key === 'Escape') handleCancelMax();
-                          }}
+                      <div className="p-2.5 sm:p-3">
+                        <DynamicScoreBoxes
+                          title={activityTitle ?? 'Assignments / Activities'}
+                          category="assignment"
+                          count={actNo}
+                          onCountChange={onActNoChange}
+                          scores={actScores}
+                          onScoresChange={onActScoresChange}
+                          startIndex={actStartIndex}
+                          maxMarkPerBox={actMaxPerBox}
+                          onMaxMarkPerBoxChange={onActMaxPerBoxChange}
+                          weight={actWeight}
+                          calculatedPoints={actPoints}
+                          caName={`CA ${number}`}
+                          estimatedMarks={estimatedMarks}
+                          minimumCount={minimumActivityCount}
+                          maximumCount={maximumActivityCount}
+                          scoreLabel={activityScoreLabel}
                         />
-                        <button
-                          type="button"
-                          onClick={handleSaveMax}
-                          className="h-9 px-3 bg-[#172554] dark:bg-[#d97757] text-white text-xs font-bold rounded-lg hover:opacity-90 transition-opacity cursor-pointer shrink-0"
-                        >
-                          Save
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleCancelMax}
-                          className="h-9 px-2.5 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
-                        >
-                          Cancel
-                        </button>
                       </div>
-                      {maxError && (
-                        <p className="mt-1.5 text-[11px] font-semibold text-rose-600 dark:text-rose-400">
-                          {maxError}
-                        </p>
-                      )}
                     </motion.div>
                   )}
                 </AnimatePresence>
               </div>
-            </div>
-          </div>
+            )}
 
-          {/* Marks Contributed for Total at bottom of Category 1 */}
-          <div className="mt-4 pt-1 border-t border-slate-100 dark:border-slate-800">
-            <div className="flex items-baseline justify-between text-[#172554] dark:text-[#f1f1f3]">
-              <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                Marks Contributed:
-              </span>
-              <div className="flex items-baseline gap-1">
-                <span className="text-lg font-black tabular-nums font-numeric text-[#172554] dark:text-[#f1f1f3]">
-                  {testPoints.toFixed(2)}
-                </span>
-                <span className="text-base font-bold text-[#d97757] dark:text-[#d97757] font-numeric tabular-nums">
-                  / {testWeight}
-                </span>
+            {/* Category 3: Laboratory Practical - Collapsible Dropdown */}
+            {hasLab && (
+              <div className="border-t border-slate-200 dark:border-slate-700">
+                <button
+                  type="button"
+                  onClick={() => setIsLabOpen(!isLabOpen)}
+                  aria-expanded={isLabOpen}
+                  className={`w-full flex items-center justify-between px-3.5 py-3 sm:px-4 text-left transition-colors duration-300 cursor-pointer focus-visible:outline-2 ${
+                    isLabOpen
+                      ? 'bg-[#3b4d66] hover:bg-[#324257] text-white focus-visible:outline-white'
+                      : 'bg-white dark:bg-[#202024] hover:bg-slate-50 dark:hover:bg-[#252529] text-[#172554] dark:text-[#f1f1f3] focus-visible:outline-[#172554]'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className={`shrink-0 transition-colors duration-300 ${isLabOpen ? 'text-white' : 'text-[#3b4d66] dark:text-slate-300'}`}>
+                      <FlaskConical className="w-4 h-4" />
+                    </div>
+                    <span className={`text-xs sm:text-sm font-bold truncate transition-colors duration-300 ${isLabOpen ? 'text-white' : 'text-[#172554] dark:text-[#f1f1f3]'}`}>
+                      {_isSelfDevelopment ? 'Lab' : 'Lab Practicals'}
+                    </span>
+                    <span className={`inline-flex items-baseline gap-1 px-2 py-0.5 rounded-md text-xs font-bold transition-colors duration-300 ${
+                      isLabOpen
+                        ? 'bg-white/15 border border-white/20 text-white'
+                        : 'bg-slate-100 dark:bg-[#161618] border border-slate-200 dark:border-slate-700 text-[#172554] dark:text-[#f1f1f3]'
+                    }`}>
+                      <span className={`font-numeric tabular-nums font-black text-xs sm:text-sm transition-colors duration-300 ${isLabOpen ? 'text-white' : 'text-[#172554] dark:text-[#f1f1f3]'}`}>
+                        {labPoints.toFixed(2)}
+                      </span>
+                      <span className={`font-numeric tabular-nums text-[11px] font-bold transition-colors duration-300 ${isLabOpen ? 'text-amber-200' : 'text-[#d97757] dark:text-[#d97757]'}`}>
+                        / {labWeight}
+                      </span>
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0 ml-2">
+                    <ChevronDown
+                      className={`w-4 h-4 transition-all duration-300 ease-out ${
+                        isLabOpen ? 'rotate-180 text-white' : 'text-[#3b4d66] dark:text-slate-400'
+                      }`}
+                      aria-hidden="true"
+                    />
+                  </div>
+                </button>
+
+                <AnimatePresence initial={false}>
+                  {isLabOpen && (
+                    <motion.div
+                      key="ca-lab-dropdown"
+                      initial={reduceMotion ? false : { height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={reduceMotion ? undefined : { height: 0, opacity: 0 }}
+                      transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+                      className="overflow-hidden border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-[#202024]"
+                    >
+                      <div className="p-2.5 sm:p-3">
+                        <DynamicScoreBoxes
+                          title="Lab Practical Evaluation"
+                          category="lab"
+                          count={labNo}
+                          onCountChange={onLabNoChange}
+                          scores={labScores}
+                          onScoresChange={onLabScoresChange}
+                          startIndex={labStartIndex}
+                          maxMarkPerBox={labMaxPerBox}
+                          onMaxMarkPerBoxChange={onLabMaxPerBoxChange}
+                          weight={labWeight}
+                          calculatedPoints={labPoints}
+                          caName={`CA ${number}`}
+                          estimatedMarks={estimatedMarks}
+                        />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-            </div>
-          </div>
-          </div>
-        </div>
+            )}
+          </motion.div>
+        ) : (
+          <motion.div
+            key="ca-standard-grid-view"
+            initial={reduceMotion ? false : { opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={reduceMotion ? undefined : { opacity: 0, y: -6 }}
+            transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+            className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-200 dark:divide-slate-700"
+          >
+            {renderTestCategory(`${testColumnClass} p-2.5 sm:p-3 flex flex-col justify-between bg-white dark:bg-[#202024]`)}
 
-        {/* Category 2: Assignments / Activities */}
-        {hasActivities && (
-          <div className="lg:col-span-4 p-2.5 sm:p-3 bg-white dark:bg-[#202024]">
-            <DynamicScoreBoxes
-              title={activityTitle ?? 'Assignments / Activities'}
-              category="assignment"
-              count={actNo}
-              onCountChange={onActNoChange}
-              scores={actScores}
-              onScoresChange={onActScoresChange}
-              startIndex={actStartIndex}
-              maxMarkPerBox={actMaxPerBox}
-              onMaxMarkPerBoxChange={onActMaxPerBoxChange}
-              weight={actWeight}
-              calculatedPoints={actPoints}
-              caName={`CA ${number}`}
-              estimatedMarks={estimatedMarks}
-              minimumCount={minimumActivityCount}
-              maximumCount={maximumActivityCount}
-              scoreLabel={activityScoreLabel}
-            />
-          </div>
-        )}
+            {/* Category 2: Assignments / Activities */}
+            {hasActivities && (
+              <div className="lg:col-span-4 p-2.5 sm:p-3 bg-white dark:bg-[#202024]">
+                <DynamicScoreBoxes
+                  title={activityTitle ?? 'Assignments / Activities'}
+                  category="assignment"
+                  count={actNo}
+                  onCountChange={onActNoChange}
+                  scores={actScores}
+                  onScoresChange={onActScoresChange}
+                  startIndex={actStartIndex}
+                  maxMarkPerBox={actMaxPerBox}
+                  onMaxMarkPerBoxChange={onActMaxPerBoxChange}
+                  weight={actWeight}
+                  calculatedPoints={actPoints}
+                  caName={`CA ${number}`}
+                  estimatedMarks={estimatedMarks}
+                  minimumCount={minimumActivityCount}
+                  maximumCount={maximumActivityCount}
+                  scoreLabel={activityScoreLabel}
+                />
+              </div>
+            )}
 
-        {/* Category 3: Laboratory Practical */}
-        {hasLab && (
-          <div className="lg:col-span-4 p-2.5 sm:p-3 bg-white dark:bg-[#202024]">
-            <DynamicScoreBoxes
-              title="Lab Practical Evaluation"
-              category="lab"
-              count={labNo}
-              onCountChange={onLabNoChange}
-              scores={labScores}
-              onScoresChange={onLabScoresChange}
-              startIndex={labStartIndex}
-              maxMarkPerBox={labMaxPerBox}
-              onMaxMarkPerBoxChange={onLabMaxPerBoxChange}
-              weight={labWeight}
-              calculatedPoints={labPoints}
-              caName={`CA ${number}`}
-              estimatedMarks={estimatedMarks}
-            />
-          </div>
+            {/* Category 3: Laboratory Practical */}
+            {hasLab && (
+              <div className="lg:col-span-4 p-2.5 sm:p-3 bg-white dark:bg-[#202024]">
+                <DynamicScoreBoxes
+                  title="Lab Practical Evaluation"
+                  category="lab"
+                  count={labNo}
+                  onCountChange={onLabNoChange}
+                  scores={labScores}
+                  onScoresChange={onLabScoresChange}
+                  startIndex={labStartIndex}
+                  maxMarkPerBox={labMaxPerBox}
+                  onMaxMarkPerBoxChange={onLabMaxPerBoxChange}
+                  weight={labWeight}
+                  calculatedPoints={labPoints}
+                  caName={`CA ${number}`}
+                  estimatedMarks={estimatedMarks}
+                />
+              </div>
+            )}
+          </motion.div>
         )}
-      </div>
+      </AnimatePresence>
     </motion.section>
   );
 };

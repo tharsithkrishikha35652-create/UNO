@@ -290,50 +290,58 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
             >
               <span>Semester {selectedSemester}</span>
               <ChevronDown
-                className={`h-4 w-4 text-slate-500 transition-transform ${
+                className={`h-4 w-4 text-slate-500 transition-transform duration-300 ease-out ${
                   isSemesterMenuOpen ? "rotate-180" : ""
                 }`}
                 aria-hidden="true"
               />
             </button>
 
-            {isSemesterMenuOpen && (
-              <div
-                role="listbox"
-                aria-label="Calculate through semester options"
-                className="absolute left-0 z-40 mt-1.5 w-full min-w-44 overflow-hidden rounded-xl border border-[var(--app-divider)] bg-[var(--app-surface)] p-1.5 shadow-lg ring-1 ring-black/5 animate-[sticky-result-in_160ms_ease-out]"
-              >
-                {SEMESTERS.map((semester) => {
-                  const isSelected = selectedSemester === semester;
-                  return (
-                    <button
-                      key={semester}
-                      type="button"
-                      role="option"
-                      aria-selected={isSelected}
-                      onClick={() => {
-                        setSelectedSemester(semester);
-                        cachedSelectedSemester = semester;
-                        setIsSemesterMenuOpen(false);
-                      }}
-                      className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-semibold transition-colors cursor-pointer ${
-                        isSelected
-                          ? "bg-[var(--app-soft-accent)] text-[var(--app-action-accent-strong)] font-bold"
-                          : "text-[var(--app-primary-text)] hover:bg-[var(--app-structural-accent)]/10 hover:text-[var(--app-action-accent-strong)]"
-                      }`}
-                    >
-                      <span>Semester {semester}</span>
-                      {isSelected && (
-                        <Check
-                          className="h-3.5 w-3.5 text-[var(--app-action-accent-strong)]"
-                          aria-hidden="true"
-                        />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+            <AnimatePresence>
+              {isSemesterMenuOpen && (
+                <motion.div
+                  key="cgpa-semester-dropdown"
+                  initial={reduceMotion ? false : { opacity: 0, y: -10, scale: 0.94 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={reduceMotion ? undefined : { opacity: 0, y: -6, scale: 0.95 }}
+                  transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+                  style={{ transformOrigin: "top" }}
+                  role="listbox"
+                  aria-label="Calculate through semester options"
+                  className="absolute left-0 z-40 mt-1.5 w-full min-w-44 overflow-hidden rounded-xl border border-[var(--app-divider)] bg-[var(--app-surface)] p-1.5 shadow-lg ring-1 ring-black/5"
+                >
+                  {SEMESTERS.map((semester) => {
+                    const isSelected = selectedSemester === semester;
+                    return (
+                      <button
+                        key={semester}
+                        type="button"
+                        role="option"
+                        aria-selected={isSelected}
+                        onClick={() => {
+                          setSelectedSemester(semester);
+                          cachedSelectedSemester = semester;
+                          setIsSemesterMenuOpen(false);
+                        }}
+                        className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-semibold transition-colors cursor-pointer ${
+                          isSelected
+                            ? "bg-[var(--app-soft-accent)] text-[var(--app-action-accent-strong)] font-bold"
+                            : "text-[var(--app-primary-text)] hover:bg-[var(--app-structural-accent)]/10 hover:text-[var(--app-action-accent-strong)]"
+                        }`}
+                      >
+                        <span>Semester {semester}</span>
+                        {isSelected && (
+                          <Check
+                            className="h-3.5 w-3.5 text-[var(--app-action-accent-strong)]"
+                            aria-hidden="true"
+                          />
+                        )}
+                      </button>
+                    );
+                  })}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
 

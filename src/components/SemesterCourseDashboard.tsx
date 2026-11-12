@@ -153,7 +153,11 @@ export const SemesterCourseDashboard: React.FC<SemesterCourseDashboardProps> = (
         animate="animate"
       >
         {courses.map(({ course, subject, progress }) => {
-          const isSelected = subject?.id === selectedSubjectId;
+          const isSelected =
+            (Boolean(subject) && (subject!.id === selectedSubjectId || `course_${subject!.id}` === selectedSubjectId || subject!.id === selectedSubjectId.replace(/^course_/, ''))) ||
+            course.id === selectedSubjectId ||
+            `course_${course.id}` === selectedSubjectId ||
+            (Boolean(course.code) && Boolean(subject?.code) && course.code.toUpperCase() === subject?.code.toUpperCase() && subject?.id === selectedSubjectId);
 
           return (
             <motion.li

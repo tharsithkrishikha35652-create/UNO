@@ -127,6 +127,28 @@
 }
 
 @layer base {
+  *,
+  *::before,
+  *::after {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  input,
+  textarea,
+  [contenteditable="true"],
+  [contenteditable="true"] * {
+    -webkit-touch-callout: default;
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  img {
+    -webkit-user-drag: none;
+    user-drag: none;
+  }
+
   html,
   body,
   input,
@@ -168,6 +190,21 @@
   input[type="number"]::-webkit-outer-spin-button {
     margin: 0;
     -webkit-appearance: none;
+  }
+
+  /* Password visibility toggle button inside inputs - completely transparent with no square background */
+  button[aria-label*="password" i],
+  button[aria-label*="Password"] {
+    background-color: transparent !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Hide native Edge/IE password reveal icons */
+  input::-ms-reveal,
+  input::-ms-clear {
+    display: none;
   }
 
   :where(*::-webkit-scrollbar) {

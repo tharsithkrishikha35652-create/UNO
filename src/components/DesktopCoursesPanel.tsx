@@ -73,6 +73,7 @@ export const DesktopCoursesPanel: React.FC<DesktopCoursesPanelProps> = ({
   onAssignElective,
   onCalculateGpa,
 }) => {
+  const reduceMotion = useReducedMotion();
   const [expandedElectiveSlot, setExpandedElectiveSlot] = useState<string | null>(null);
   const [electiveQuery, setElectiveQuery] = useState('');
 
@@ -148,8 +149,17 @@ export const DesktopCoursesPanel: React.FC<DesktopCoursesPanelProps> = ({
           </button>
         </div>
 
-        {expanded && (
-          <div className="border-t border-slate-200 p-4 pt-3">
+        <AnimatePresence initial={false}>
+          {expanded && (
+            <motion.div
+              key={`desktop-elective-dropdown-${slot}`}
+              initial={reduceMotion ? false : { height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={reduceMotion ? undefined : { height: 0, opacity: 0 }}
+              transition={{ duration: 0.36, ease: [0.22, 1, 0.36, 1] }}
+              className="overflow-hidden border-t border-slate-200"
+            >
+              <div className="p-4 pt-3">
             {/* Elective Search Input */}
             <div className="mb-3">
               <div className="relative">
@@ -244,8 +254,10 @@ export const DesktopCoursesPanel: React.FC<DesktopCoursesPanelProps> = ({
                 })
               )}
             </ul>
-          </div>
-        )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </li>
     );
   };
@@ -271,23 +283,31 @@ export const DesktopCoursesPanel: React.FC<DesktopCoursesPanelProps> = ({
             Core Courses
           </h2>
           <ul className="divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white overflow-hidden">
-            {courses.map(({ course, subject, progress }) => (
-              <li key={course.id}>
-                <button
-                  type="button"
-                  onClick={() => { acknowledgeSelection(); onSelectCourse(course); }}
-                  aria-pressed={subject?.id === selectedSubjectId}
-                  className={`flex min-h-14 w-full items-center justify-between gap-4 px-4 py-3 text-left transition-colors focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[#172554] ${
-                    subject?.id === selectedSubjectId ? 'bg-blue-50/80' : 'hover:bg-slate-50'
-                  }`}
-                >
-                  <span className="min-w-0">
-                    <span className="block truncate text-sm font-bold text-[#172554]">{course.name}</span>
-                  </span>
-                  <CourseProgressStatus progress={progress} />
-                </button>
-              </li>
-            ))}
+            {courses.map(({ course, subject, progress }) => {
+              const isSelected =
+                (Boolean(subject) && (subject!.id === selectedSubjectId || `course_${subject!.id}` === selectedSubjectId || subject!.id === selectedSubjectId.replace(/^course_/, ''))) ||
+                course.id === selectedSubjectId ||
+                `course_${course.id}` === selectedSubjectId ||
+                (Boolean(course.code) && Boolean(subject?.code) && course.code.toUpperCase() === subject?.code.toUpperCase() && subject?.id === selectedSubjectId);
+
+              return (
+                <li key={course.id}>
+                  <button
+                    type="button"
+                    onClick={() => { acknowledgeSelection(); onSelectCourse(course); }}
+                    aria-pressed={isSelected}
+                    className={`flex min-h-14 w-full items-center justify-between gap-4 px-4 py-3 text-left transition-colors focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[#172554] ${
+                      isSelected ? 'bg-blue-50/80' : 'hover:bg-slate-50'
+                    }`}
+                  >
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-bold text-[#172554]">{course.name}</span>
+                    </span>
+                    <CourseProgressStatus progress={progress} />
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         </section>
 

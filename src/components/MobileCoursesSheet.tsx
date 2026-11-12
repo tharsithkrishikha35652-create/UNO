@@ -214,17 +214,17 @@ const MobileCoursesSheetBody: React.FC<MobileCoursesSheetProps> = ({
           return;
         }
 
-        // Dragging DOWN
-        if (deltaY > 8) {
+        // Dragging DOWN to dismiss sheet (requires deliberate pull beyond touch slop)
+        if (deltaY > 20) {
           // If at the top of the course list (or outside it), begin dragging sheet down
           if (currentScrollTop <= 0 || startScrollTop <= 0) {
             isDragging = true;
             didDragRef.current = true;
-            touchStartY = touch.clientY - 8;
+            touchStartY = touch.clientY - 20;
           } else {
             return;
           }
-        } else if (deltaY < -8) {
+        } else if (deltaY < -10) {
           // Dragging UP - user is scrolling down into the courses list
           canDrag = false;
           return;
@@ -243,6 +243,7 @@ const MobileCoursesSheetBody: React.FC<MobileCoursesSheetProps> = ({
     const handleTouchEnd = (e: TouchEvent) => {
       if (!isDragging) {
         canDrag = false;
+        didDragRef.current = false;
         return;
       }
 
@@ -448,8 +449,17 @@ const MobileCoursesSheetBody: React.FC<MobileCoursesSheetProps> = ({
           </button>
         </div>
 
-        {isExpanded && (
-          <div className="elective-options-expansion border-t border-slate-200 dark:border-slate-700 p-3 pt-2">
+        <AnimatePresence initial={false}>
+          {isExpanded && (
+            <motion.div
+              key={`mobile-elective-dropdown-${slot}`}
+              initial={reduceMotion ? false : { height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={reduceMotion ? undefined : { height: 0, opacity: 0 }}
+              transition={{ duration: 0.36, ease: [0.22, 1, 0.36, 1] }}
+              className="overflow-hidden border-t border-slate-200 dark:border-slate-700"
+            >
+              <div className="p-3 pt-2">
             {/* Elective Search Input */}
             <div className="mb-2.5">
               <div className="relative">
@@ -550,8 +560,10 @@ const MobileCoursesSheetBody: React.FC<MobileCoursesSheetProps> = ({
                 })
               )}
             </ul>
-          </div>
-        )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </li>
     );
   };
@@ -668,30 +680,43 @@ const MobileCoursesSheetBody: React.FC<MobileCoursesSheetProps> = ({
                       Core Courses
                     </h3>
                     <ul className="divide-y divide-slate-200 dark:divide-slate-700 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#161618]">
-                      {visibleCourses.map(({ course, subject, progress }) => (
-                        <li key={course.id}>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              acknowledgeSelection();
-                              onSelectCourse(course);
-                            }}
-                            aria-pressed={subject?.id === selectedSubjectId}
-                            className={`flex min-h-14 w-full items-center justify-between gap-3 px-3 py-2.5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[#172554] dark:focus-visible:outline-[#e08564] ${
-                              subject?.id === selectedSubjectId
-                                ? 'bg-blue-50/80 dark:bg-blue-950/40'
-                                : 'hover:bg-slate-50 dark:hover:bg-[#202024]'
-                            }`}
-                          >
-                            <span className="min-w-0">
-                              <span className="block truncate text-sm font-bold text-[#172554] dark:text-[#f1f1f3]">
-                                {course.name}
+                      {visibleCourses.map(({ course, subject, progress }) => {
+                        const isSelected =
+                          (Boolean(subject) && (subject!.id === selectedSubjectId || `course_${subject!.id}` === selectedSubjectId || subject!.id === selectedSubjectId.replace(/^course_/, ''))) ||
+                          course.id === selectedSubjectId ||
+                          `course_${course.id}` === selectedSubjectId ||
+                          (Boolean(course.code) && Boolean(subject?.code) && course.code.toUpperCase() === subject?.code.toUpperCase() && subject?.id === selectedSubjectId);
+
+                        return (
+                          <li key={course.id}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                acknowledgeSelection();
+                                onSelectCourse(course);
+                              }}
+                              aria-pressed={isSelected}
+                              className={`flex min-h-14 w-full items-center justify-between gap-3 px-3 py-2.5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[#172554] dark:focus-visible:outline-[#e08564] ${
+                                isSelected
+                                  ? 'bg-blue-50/80 dark:bg-blue-950/40 font-bold'
+                                  : 'hover:bg-slate-50 dark:hover:bg-[#202024]'
+                              }`}
+                            >
+                              <span className="min-w-0">
+                                <span className="block truncate text-sm font-bold text-[#172554] dark:text-[#f1f1f3]">
+                                  {course.name}
+                                </span>
+                                {course.code && (
+                                  <span className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                                    {course.code}
+                                  </span>
+                                )}
                               </span>
-                            </span>
-                            <ProgressIndicator progress={progress} />
-                          </button>
-                        </li>
-                      ))}
+                              <ProgressIndicator progress={progress} />
+                            </button>
+                          </li>
+                        );
+                      })}
                     </ul>
                   </section>
                 )}

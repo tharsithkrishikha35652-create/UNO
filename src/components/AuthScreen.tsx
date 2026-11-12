@@ -461,9 +461,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
                       onClick={() => setShowPassword((visible) => !visible)}
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
                       title={showPassword ? 'Hide password' : 'Show password'}
-                      className="absolute inset-y-0 right-0 inline-flex w-11 items-center justify-center text-slate-500 hover:text-[#172554] focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[#172554]"
+                      className="absolute inset-y-0 right-0 inline-flex w-11 items-center justify-center !bg-transparent bg-transparent border-0 shadow-none text-slate-500 hover:text-[#172554] focus:outline-none focus-visible:outline-2 focus-visible:outline-[#172554] cursor-pointer transition-colors"
                     >
-                      {showPassword ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
+                      {showPassword ? <EyeOff className="h-5 w-5" aria-hidden="true" /> : <Eye className="h-5 w-5" aria-hidden="true" />}
                     </button>
                   </div>
                 </div>

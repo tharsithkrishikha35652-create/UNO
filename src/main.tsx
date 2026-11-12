@@ -8,6 +8,14 @@ SplashScreen.hide().catch(() => {});
 
 // Pre-initialize safe-area insets on mobile Android environments
 if (typeof window !== 'undefined') {
+  // Prevent context menu (long press callout) on non-editable elements in mobile/webview
+  document.addEventListener('contextmenu', (e) => {
+    const target = e.target as HTMLElement | null;
+    if (target && target.closest('input, textarea, [contenteditable="true"]')) {
+      return;
+    }
+    e.preventDefault();
+  });
   try {
     const androidBridge = (window as unknown as {
       AndroidInsets?: {

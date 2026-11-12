@@ -1,8 +1,12 @@
 import { describe, expect, it } from 'vitest';
+import React from 'react';
+import { renderToString } from 'react-dom/server';
 import {
   calculateNeededTheoryMark,
   calculateTargetGradeEseRequirement,
+  EndSemesterSection,
 } from '../src/components/EndSemesterSection';
+import { ContinuousAssessmentSection } from '../src/components/ContinuousAssessmentSection';
 import { calculateMarks, DEFAULT_SUBJECT, GRADE_SCALE } from '../src/calculatorUtils';
 import { isTargetSimulatorReady, applyEstimatedScores } from '../src/components/GPACalculator';
 import { SubjectData } from '../src/types';
@@ -225,7 +229,7 @@ describe('target grade simulator theory requirement', () => {
   });
 });
 
-describe('isTargetSimulatorReady display gate', () => {
+describe('isTargetSimulatorReady readiness gate', () => {
   const baseTheoryCourse: SubjectData = {
     id: 'sub-math',
     name: 'Calculus',
@@ -246,11 +250,11 @@ describe('isTargetSimulatorReady display gate', () => {
     ese: '',
   };
 
-  it('does NOT display when Test 2 mark has not been entered', () => {
+  it('is NOT ready (shows informational message) when Test 2 mark has not been entered', () => {
     expect(isTargetSimulatorReady(baseTheoryCourse, false)).toBe(false);
   });
 
-  it('does NOT display when assignments are missing and estimates are off', () => {
+  it('is NOT ready (shows informational message) when assignments are missing and estimates are off', () => {
     const courseWithTests: SubjectData = {
       ...baseTheoryCourse,
       test2: 46,
@@ -259,7 +263,7 @@ describe('isTargetSimulatorReady display gate', () => {
     expect(isTargetSimulatorReady(courseWithTests, false)).toBe(false);
   });
 
-  it('displays when both CA tests and all assignments are entered for a theory course', () => {
+  it('is ready (fully functional) when both CA tests and all assignments are entered for a theory course', () => {
     const completeTheoryCourse: SubjectData = {
       ...baseTheoryCourse,
       test2: 46,
@@ -267,7 +271,7 @@ describe('isTargetSimulatorReady display gate', () => {
     expect(isTargetSimulatorReady(completeTheoryCourse, false)).toBe(true);
   });
 
-  it('displays when tests are entered and assignments are covered by estimates', () => {
+  it('is ready (fully functional) when tests are entered and assignments are covered by estimates', () => {
     const courseWithEstimates: SubjectData = {
       ...baseTheoryCourse,
       test2: 46,
@@ -302,11 +306,11 @@ describe('isTargetSimulatorReady display gate', () => {
       eseLabMax: 100,
     };
 
-    it('does NOT display if ESE practical is not entered and estimates are off', () => {
+    it('is NOT ready if ESE practical is not entered and estimates are off', () => {
       expect(isTargetSimulatorReady(splitCourse, false)).toBe(false);
     });
 
-    it('displays if ESE practical mark has been entered', () => {
+    it('is ready if ESE practical mark has been entered', () => {
       const withEseLab: SubjectData = {
         ...splitCourse,
         eseLab: 85,
@@ -314,7 +318,7 @@ describe('isTargetSimulatorReady display gate', () => {
       expect(isTargetSimulatorReady(withEseLab, false)).toBe(true);
     });
 
-    it('displays when estimate checkbox is enabled because it applies to ESE practical', () => {
+    it('is ready when estimate checkbox is enabled because it applies to ESE practical', () => {
       expect(isTargetSimulatorReady(splitCourse, true)).toBe(true);
     });
 
@@ -322,5 +326,121 @@ describe('isTargetSimulatorReady display gate', () => {
       const estimated = applyEstimatedScores(splitCourse, 85);
       expect(estimated.eseLab).toBe(85); // 85% of 100 max
     });
+
+    it('requires the exact informational message when previous marks are incomplete', () => {
+      const expectedMessage = 'Enter all previous assessment marks to use the Target Grade Simulator.';
+      expect(expectedMessage).toBe('Enter all previous assessment marks to use the Target Grade Simulator.');
+    });
+  });
+});
+
+describe('Target Grade Simulator - Always Visible UI and Messages', () => {
+  it('renders informational message when previous assessment marks are incomplete', () => {
+    const html = renderToString(
+      React.createElement(EndSemesterSection, {
+        isSimulatorReady: false,
+        ese: '',
+        onEseChange: () => {},
+        esePoints: 0,
+        internalTotal: 0,
+        onCalculate: () => {},
+      })
+    );
+    expect(html).toContain('Target Grade Simulator');
+    expect(html).toContain('Enter all previous assessment marks to use the Target Grade Simulator.');
+    expect(html).not.toContain('Needs &gt;100 - Unattainable');
+  });
+
+  it('renders target grade calculation table when isSimulatorReady is true', () => {
+    const html = renderToString(
+      React.createElement(EndSemesterSection, {
+        isSimulatorReady: true,
+        ese: '',
+        onEseChange: () => {},
+        esePoints: 0,
+        internalTotal: 38.4,
+        eseTheoryWeight: 60,
+        onCalculate: () => {},
+      })
+    );
+    expect(html).toContain('Target Grade Simulator');
+    expect(html).toContain('Need <span');
+    expect(html).toContain('in ESE');
+    expect(html).not.toContain('Enter all previous assessment marks to use the Target Grade Simulator.');
+  });
+});
+
+describe('ContinuousAssessmentSection - Collapsible Dropdown UI', () => {
+  it('displays compact dropdown bars when estimatedMarks is true without displaying Contributed Marks label in the bar', () => {
+    const html = renderToString(
+      React.createElement(ContinuousAssessmentSection, {
+        number: 1,
+        title: 'Continuous Assessment 1',
+        testMax: 50,
+        test: 45,
+        onTestMaxChange: () => {},
+        onTestChange: () => {},
+        testPoints: 14.4,
+        testWeight: 15,
+        actNo: 2,
+        onActNoChange: () => {},
+        actScores: [10, 10],
+        onActScoresChange: () => {},
+        actPoints: 2.5,
+        actWeight: 2.5,
+        actStartIndex: 1,
+        labNo: 2,
+        onLabNoChange: () => {},
+        labScores: [10, 10],
+        onLabScoresChange: () => {},
+        labPoints: 7.5,
+        labWeight: 7.5,
+        labStartIndex: 1,
+        estimatedMarks: true,
+      })
+    );
+
+    expect(html).toContain('Assignments / Activities');
+    expect(html).toContain('Lab Practicals');
+    // The collapsed dropdown bar buttons must NOT contain the words "Contributed Marks"
+    const buttonMatches = html.match(/<button[^>]*>[\s\S]*?<\/button>/g) || [];
+    const collapsibleBarButtons = buttonMatches.filter(b => b.includes('Assignments / Activities') || b.includes('Lab Practicals'));
+    expect(collapsibleBarButtons.length).toBe(2);
+    collapsibleBarButtons.forEach((btn) => {
+      expect(btn).not.toContain('Contributed Marks');
+      expect(btn).not.toContain('contributed marks');
+    });
+  });
+
+  it('displays standard expanded grid when estimatedMarks is false', () => {
+    const html = renderToString(
+      React.createElement(ContinuousAssessmentSection, {
+        number: 1,
+        title: 'Continuous Assessment 1',
+        testMax: 50,
+        test: 45,
+        onTestMaxChange: () => {},
+        onTestChange: () => {},
+        testPoints: 14.4,
+        testWeight: 15,
+        actNo: 2,
+        onActNoChange: () => {},
+        actScores: [10, 10],
+        onActScoresChange: () => {},
+        actPoints: 2.5,
+        actWeight: 2.5,
+        actStartIndex: 1,
+        labNo: 2,
+        onLabNoChange: () => {},
+        labScores: [10, 10],
+        onLabScoresChange: () => {},
+        labPoints: 7.5,
+        labWeight: 7.5,
+        labStartIndex: 1,
+        estimatedMarks: false,
+      })
+    );
+
+    expect(html).toContain('Marks Contributed:');
   });
 });
