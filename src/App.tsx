@@ -50,6 +50,7 @@ import {
   calculateEstimatedSemesterGpa,
   GPACalculator,
   hasEstimateableComponents,
+  isTargetSimulatorReady,
   subjectMarksComplete,
 } from "./components/GPACalculator";
 import { MobileBottomNavigation } from "./components/MobileBottomNavigation";
@@ -3884,6 +3885,12 @@ function AuthenticatedApp({
                                   (currentSubject.eseLab === "" ||
                                     currentSubject.eseLab === undefined)
                                 }
+                                estimatePercentage={estimatePercentage}
+                                isSimulatorReady={isTargetSimulatorReady(
+                                  currentSubject,
+                                  currentSubjectUsesEstimates
+                                )}
+                                isTourActive={isTourActive}
                               />
                             )}
                           </>

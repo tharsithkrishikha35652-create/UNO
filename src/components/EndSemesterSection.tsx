@@ -43,25 +43,37 @@ const EseMaximumControl: React.FC<EseMaximumControlProps> = ({ id, label, value,
 };
 
 interface NeededTheoryMarkInput {
-  neededTotalEse: number;
+  targetMinScore?: number;
+  internalTotal?: number;
+  neededTotalEse?: number;
   theoryWeight: number;
   theoryMax: number;
-  labPoints: number;
-  labWeight: number;
-  hasEnteredLabMark: boolean;
+  labPoints?: number;
+  labWeight?: number;
+  hasEnteredLabMark?: boolean;
 }
 
 export function calculateNeededTheoryMark({
+  targetMinScore,
+  internalTotal = 0,
   neededTotalEse,
   theoryWeight,
   theoryMax,
-  labPoints,
-  labWeight,
+  labPoints = 0,
+  labWeight = 0,
   hasEnteredLabMark,
 }: NeededTheoryMarkInput): number {
   if (theoryWeight <= 0) return 0;
-  const labContribution = hasEnteredLabMark ? labPoints : labWeight * 0.9;
-  return Math.ceil((Math.max(0, neededTotalEse - labContribution) / theoryWeight) * theoryMax);
+  const totalEseNeeded =
+    neededTotalEse !== undefined
+      ? neededTotalEse
+      : Math.max(0, (targetMinScore ?? 0) - internalTotal);
+  const labContribution =
+    hasEnteredLabMark !== undefined
+      ? (hasEnteredLabMark ? labPoints : labWeight * 0.9)
+      : labPoints;
+  const neededFromTheory = Math.max(0, totalEseNeeded - labContribution);
+  return Math.ceil((neededFromTheory / theoryWeight) * theoryMax);
 }
 
 export interface TargetGradeEseRequirementInput {
@@ -126,6 +138,9 @@ interface EndSemesterSectionProps {
   eseLabWeight?: number;
   internalTotal: number;
   estimatedLabMark?: boolean;
+  estimatePercentage?: number;
+  isSimulatorReady?: boolean;
+  isTourActive?: boolean;
 }
 
 export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
@@ -150,6 +165,9 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
   eseLabWeight = 0,
   internalTotal,
   estimatedLabMark = false,
+  estimatePercentage = 80,
+  isSimulatorReady = false,
+  isTourActive = false,
 }) => {
   const eseWeight = eseTheoryWeight + eseLabWeight;
   const numericEseMax = Math.max(1, Number(eseTheoryMax) || 100);
@@ -158,6 +176,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
   const isSplit = hasTheory && hasLab; // theory + practical
   const isPracticalOnly = !hasTheory && hasLab; // practical exam is the whole ESE
   const labName = isPracticalOnly || courseType === 'self-development' ? 'Practical' : 'Lab';
+  const shouldShowSimulator = Boolean(isSimulatorReady || isTourActive);
 
   const handleEseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value;
@@ -230,7 +249,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-200">
           {/* Column 1: ESE Theory (only when the course has a theory exam) */}
           {hasTheory && (
-          <div className="lg:col-span-4 p-3 sm:p-4 flex flex-col justify-between bg-white">
+          <div className={`${shouldShowSimulator ? 'lg:col-span-4' : 'lg:col-span-6'} p-3 sm:p-4 flex flex-col justify-between bg-white`}>
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <div className="text-[#3b4d66] shrink-0">
@@ -288,7 +307,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
           )}
 
           {/* Column 2: ESE Lab / Practical exam with User Input Max Marks */}
-          <div className={`${hasTheory ? 'lg:col-span-4' : 'lg:col-span-6'} p-3 sm:p-4 flex flex-col justify-between bg-white`}>
+          <div className={`${shouldShowSimulator ? (hasTheory ? 'lg:col-span-4' : 'lg:col-span-6') : (hasTheory ? 'lg:col-span-6' : 'lg:col-span-12')} p-3 sm:p-4 flex flex-col justify-between bg-white`}>
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <div className="text-[#3b4d66] shrink-0">
@@ -308,6 +327,11 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
               >
                 {labName} marks scored:
               </label>
+              {estimatedLabMark && (
+                <span className="block text-[11px] font-semibold text-amber-800 mb-1.5">
+                  Estimated at <strong className="font-numeric tabular-nums">{estimatePercentage}%</strong> (applied via estimate checkbox)
+                </span>
+              )}
               <div className="relative mb-3">
                 <input
                   id="ese-lab-input"
@@ -316,16 +340,18 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                   min={0}
                   max={numericLabMax}
                   step={0.5}
-                  value={eseLab === '' || eseLab === undefined ? '' : eseLab}
+                  value={hasEnteredLabMark ? eseLab : estimatedLabMark ? String(Math.round(((numericLabMax * estimatePercentage) / 100) * 10) / 10) : ''}
+                  disabled={estimatedLabMark}
+                  readOnly={estimatedLabMark}
                   placeholder={`Enter ${labName.toLowerCase()} marks (0 - ${numericLabMax})`}
                   onChange={handleLabChange}
-                  className="h-11 w-full rounded-lg py-2 pl-3 pr-20 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm tabular-nums font-numeric"
+                  className={`h-11 w-full rounded-lg py-2 pl-3 pr-20 text-base font-bold text-[#172554] bg-white border border-[#172554] focus:outline-hidden focus:ring-1 focus:ring-[#172554] placeholder:text-slate-400 placeholder:font-normal placeholder:text-sm tabular-nums font-numeric ${estimatedLabMark ? 'bg-amber-50/50 cursor-not-allowed opacity-90' : ''}`}
                 />
                 <EseMaximumControl
                   id="ese-lab-max"
                   label={`Maximum marks for ESE ${labName.toLowerCase()}`}
                   value={numericLabMax}
-                  onChange={onEseLabMaxChange ? handleLabMaxChange : undefined}
+                  onChange={!estimatedLabMark && onEseLabMaxChange ? handleLabMaxChange : undefined}
                 />
               </div>
 
@@ -353,8 +379,9 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
           </div>
 
           {/* Column 3: Simulator & Combined ESE Breakdown */}
+          {shouldShowSimulator && (
           <div className={`${hasTheory ? 'lg:col-span-4' : 'lg:col-span-6'} p-3 sm:p-4 bg-white flex flex-col justify-between`}>
-            <details className="group">
+            <details className="group" open>
               <summary id="tour-target-grade-simulator" data-tour="target-grade-simulator" className="flex cursor-pointer list-none items-center gap-2 py-1 focus-visible:outline-2 focus-visible:outline-[#172554]">
                 <div className="text-[#d97757] shrink-0">
                   <Target className="w-5 h-5" />
@@ -364,7 +391,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                     Target Grade Simulator
                   </h4>
                   <span className="text-[11px] font-semibold text-slate-500">
-                    {isPracticalOnly ? `ESE Requirement` : `Combined ESE Requirement`}
+                    {hasTheory ? 'ESE Theory Requirement' : 'Practical Exam Requirement'}
                   </span>
                 </div>
                 <ChevronDown className="ml-auto h-4 w-4 shrink-0 text-[#3b4d66] transition-transform group-open:rotate-180" aria-hidden="true" />
@@ -383,70 +410,86 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
 
               <div className="mt-3 rounded-xl border border-[#172554] divide-y divide-[#172554] text-xs font-medium mb-3 overflow-hidden">
                 {GRADE_SCALE.filter((g) => g.letter !== 'U').map((g) => {
-                  const gradeNeededTotalEse = Math.max(0, g.minScore - internalTotal);
-                  const neededTotalEse = Math.max(gradeNeededTotalEse, minTotalEse);
-                  const isAlreadySecured = eseWeight <= 0 && internalTotal >= g.minScore;
-                  const isImpossible = neededTotalEse > eseWeight;
+                  if (hasTheory) {
+                    const gradeNeededTotalEse = Math.max(0, g.minScore - internalTotal);
+                    const neededTotalEse = Math.max(gradeNeededTotalEse, minTotalEse);
+                    const neededTheoryPoints = Math.max(0, neededTotalEse - eseLabPoints);
+                    const neededTheoryMark = Math.ceil((neededTheoryPoints / eseTheoryWeight) * numericEseMax);
+                    const isImpossible = neededTheoryMark > numericEseMax;
+                    const isAlreadySecured = eseTheoryWeight <= 0 && internalTotal + eseLabPoints >= g.minScore && eseLabPoints >= minTotalEse;
 
-                  // Theory course: needed from Theory assuming current practical marks.
-                  // Practical-only course: needed from the practical exam itself.
-                  const approxScale = hasTheory ? numericEseMax : numericLabMax;
-                  const approxName = hasTheory ? 'Theory' : 'Practical';
-                  const approxNeeded = hasTheory
-                    ? calculateNeededTheoryMark({
-                        neededTotalEse,
-                        theoryWeight: eseTheoryWeight,
-                        theoryMax: numericEseMax,
-                        labPoints: eseLabPoints,
-                        labWeight: eseLabWeight,
-                        hasEnteredLabMark,
-                      })
-                    : Math.ceil((neededTotalEse / eseLabWeight) * numericLabMax);
+                    return (
+                      <div
+                        key={g.letter}
+                        className="flex items-center justify-between p-2 hover:bg-slate-50 transition-colors"
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-6 font-black text-sm text-[#172554]">{g.letter}</span>
+                          <span className="text-[#172554] font-semibold text-[11px] font-numeric tabular-nums">{g.minScore}+</span>
+                        </div>
 
-                  return (
-                    <div
-                      key={g.letter}
-                      className="flex items-center justify-between p-2 hover:bg-slate-50 transition-colors"
-                    >
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-6 font-black text-sm text-[#172554]">{g.letter}</span>
-                        <span className="text-[#172554] font-semibold text-[11px]">{g.minScore}+</span>
+                        <div className="text-right">
+                          {isAlreadySecured ? (
+                            <span className="text-[#172554] font-bold bg-slate-200 px-1.5 py-0.5 rounded-md border border-[#172554] text-[10px]">
+                              Already Secured
+                            </span>
+                          ) : isImpossible ? (
+                            <span className="text-rose-700 font-bold text-[10px]">
+                              Needs &gt;{numericEseMax} in Theory - Unattainable
+                            </span>
+                          ) : (
+                            <span className="text-[#172554] font-bold text-[11px]">
+                              Need <span className="underline decoration-2 text-[#1e3a8a] font-numeric tabular-nums">{neededTheoryMark}</span> / {numericEseMax} in ESE Theory
+                            </span>
+                          )}
+                        </div>
                       </div>
+                    );
+                  } else {
+                    const isAlreadySecured = internalTotal >= g.minScore;
+                    const neededLabPoints = Math.max(0, g.minScore - internalTotal);
+                    const neededLabMark = Math.ceil((neededLabPoints / eseLabWeight) * numericLabMax);
+                    const isImpossible = neededLabMark > numericLabMax;
 
-                      <div className="text-right">
-                        {isAlreadySecured ? (
-                          <span className="text-[#172554] font-bold bg-slate-200 px-1.5 py-0.5 rounded-md border border-[#172554] text-[10px]">
-                            Secured
-                          </span>
-                        ) : isImpossible ? (
-                          <span className="text-rose-700 font-bold text-[10px]">
-                            Needs &gt;{eseWeight} in ESE
-                          </span>
-                        ) : (
-                          <span className="text-[#172554] font-bold text-[11px]">
-                            Need <strong className="text-[#1e3a8a] font-numeric tabular-nums">{neededTotalEse.toFixed(1)}</strong>/{eseWeight} in ESE
-                            {approxNeeded <= approxScale && (
-                              <span className="block text-[10px] font-normal text-slate-600">
-                                ~{approxNeeded}/{approxScale} in {approxName}
-                                {hasTheory && !hasEnteredLabMark ? ' (assuming 90% lab)' : ''}
-                              </span>
-                            )}
-                          </span>
-                        )}
+                    return (
+                      <div
+                        key={g.letter}
+                        className="flex items-center justify-between p-2 hover:bg-slate-50 transition-colors"
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-6 font-black text-sm text-[#172554]">{g.letter}</span>
+                          <span className="text-[#172554] font-semibold text-[11px] font-numeric tabular-nums">{g.minScore}+</span>
+                        </div>
+
+                        <div className="text-right">
+                          {isAlreadySecured ? (
+                            <span className="text-[#172554] font-bold bg-slate-200 px-1.5 py-0.5 rounded-md border border-[#172554] text-[10px]">
+                              Already Secured
+                            </span>
+                          ) : isImpossible ? (
+                            <span className="text-rose-700 font-bold text-[10px]">
+                              Needs &gt;{numericLabMax} in Practical - Unattainable
+                            </span>
+                          ) : (
+                            <span className="text-[#172554] font-bold text-[11px]">
+                              Need <span className="underline decoration-2 text-[#1e3a8a] font-numeric tabular-nums">{neededLabMark}</span> / {numericLabMax} in Practical
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
+                    );
+                  }
                 })}
               </div>
             </details>
-
           </div>
+          )}
         </div>
       ) : (
-        /* --- Theory-only ESE: Standard 2-Column Layout (Theory + Target Simulator) --- */
+        /* --- Theory-only ESE: Standard Layout (Theory + Target Simulator) --- */
         <div className="grid grid-cols-1 md:grid-cols-12 divide-y md:divide-y-0 md:divide-x divide-[#172554]">
           {/* Main ESE Input Section */}
-          <div className="md:col-span-6 p-3 sm:p-4 flex flex-col justify-between bg-white">
+          <div className={`${shouldShowSimulator ? 'md:col-span-6' : 'md:col-span-12'} p-3 sm:p-4 flex flex-col justify-between bg-white`}>
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <div className="text-[#3b4d66] shrink-0">
@@ -507,8 +550,9 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
           </div>
 
           {/* Target Grade "What-If" Planner */}
+          {shouldShowSimulator && (
           <div className="md:col-span-6 p-3 sm:p-4 bg-white flex flex-col justify-between">
-            <details className="group">
+            <details className="group" open>
               <summary id="tour-target-grade-simulator" data-tour="target-grade-simulator" className="flex cursor-pointer list-none items-center gap-2 py-1 focus-visible:outline-2 focus-visible:outline-[#172554]">
                 <div className="text-[#d97757] shrink-0">
                   <Target className="w-5 h-5" />
@@ -554,7 +598,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                           </span>
                         ) : (
                           <span className="text-[#172554] font-bold">
-                            Need <span className="underline decoration-2 text-[#1e3a8a]">{neededEse}</span> / {numericEseMax} in ESE
+                            Need <span className="underline decoration-2 text-[#1e3a8a] font-numeric tabular-nums">{neededEse}</span> / {numericEseMax} in ESE
                           </span>
                         )}
                       </div>
@@ -565,6 +609,7 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
 
             </details>
           </div>
+          )}
         </div>
       )}
 

@@ -243,6 +243,60 @@ export function hasEstimateableComponents(subject: SubjectData): boolean {
     return weights.actWeight > 0 || weights.labWeight > 0 || weights.eseLabWeight > 0;
 }
 
+export function isTargetSimulatorReady(
+  subject: SubjectData | null | undefined,
+  includeEstimates = false
+): boolean {
+  if (!subject || !subject.name?.trim()) return false;
+
+  const courseType = getCourseType(subject);
+  const weights = getCourseWeights(courseType);
+
+  if (weights.eseWeight <= 0) return false;
+
+  // 1. Marks for both CAs (tests) must be entered
+  if (weights.testWeight > 0) {
+    if (!entered(subject.test1) || !entered(subject.test2)) {
+      return false;
+    }
+  }
+
+  // 2. All assignments must be entered (or estimated via checkbox)
+  if (weights.actWeight > 0) {
+    if (!includeEstimates) {
+      if (!entered(subject.act1No) || !entered(subject.act2No)) return false;
+      const act1Count = Math.floor(Number(subject.act1No) || 0);
+      const act2Count = Math.floor(Number(subject.act2No) || 0);
+      if (act1Count <= 0 || act2Count <= 0) return false;
+      if (!scoresComplete(act1Count, subject.act1Scores)) return false;
+      if (!scoresComplete(act2Count, subject.act2Scores)) return false;
+    }
+  }
+
+  // 3. All CA lab practicals must be entered (or estimated via checkbox)
+  if (weights.labWeight > 0) {
+    if (!includeEstimates) {
+      if (!entered(subject.lab1No) || !entered(subject.lab2No)) return false;
+      const lab1Count = Math.floor(Number(subject.lab1No) || 0);
+      const lab2Count = Math.floor(Number(subject.lab2No) || 0);
+      if (lab1Count <= 0 || lab2Count <= 0) return false;
+      if (!scoresComplete(lab1Count, subject.lab1Scores)) return false;
+      if (!scoresComplete(lab2Count, subject.lab2Scores)) return false;
+    }
+  }
+
+  // 4. End Semester Lab Practical (if course has one AND has ESE theory)
+  // Checkbox for estimated lab/activity average must also apply to end semester practical.
+  // If not estimated, the student must have entered the ESE practical mark.
+  if (weights.eseLabWeight > 0 && weights.eseTheoryWeight > 0) {
+    if (!entered(subject.eseLab) && !includeEstimates) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 export function isGpaReady(
   subjects: SubjectData[],
   includeEstimates = false,

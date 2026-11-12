@@ -4,6 +4,8 @@ import {
   calculateTargetGradeEseRequirement,
 } from '../src/components/EndSemesterSection';
 import { calculateMarks, DEFAULT_SUBJECT, GRADE_SCALE } from '../src/calculatorUtils';
+import { isTargetSimulatorReady, applyEstimatedScores } from '../src/components/GPACalculator';
+import { SubjectData } from '../src/types';
 
 describe('Target Grade Simulator - ESE Minimum Passing Requirement', () => {
   const internalTotal = 38.4;
@@ -173,39 +175,152 @@ describe('target grade simulator theory requirement (legacy)', () => {
   it('assumes 90% of the ESE lab contribution when no lab mark is entered', () => {
     expect(
       calculateNeededTheoryMark({
-        neededTotalEse: 32,
+        neededTotalEse: 35,
         theoryWeight: 40,
         theoryMax: 100,
         labPoints: 0,
-        labWeight: 10,
+        labWeight: 20,
         hasEnteredLabMark: false,
       })
-    ).toBe(58);
+    ).toBe(43);
+  });
+});
+
+describe('target grade simulator theory requirement', () => {
+  it('calculates the exact theory mark needed using lab contribution', () => {
+    expect(
+      calculateNeededTheoryMark({
+        neededTotalEse: 32,
+        theoryWeight: 40,
+        theoryMax: 100,
+        labPoints: 8,
+      })
+    ).toBe(60);
   });
 
-  it('uses the entered lab contribution instead of the assumption', () => {
+  it('calculates theory marks using entered lab contribution', () => {
+    // Total ESE needed: 32 points. User scored 4 points in lab.
+    // Remaining from theory: 28 points out of 40 weight.
+    // Scaled mark out of 100: (28 / 40) * 100 = 70.
     expect(
       calculateNeededTheoryMark({
         neededTotalEse: 32,
         theoryWeight: 40,
         theoryMax: 100,
         labPoints: 4,
-        labWeight: 10,
-        hasEnteredLabMark: true,
       })
     ).toBe(70);
   });
 
-  it('returns zero theory marks when the ESE target is already covered', () => {
+  it('returns zero theory marks when the target is already secured by internals and lab', () => {
     expect(
       calculateNeededTheoryMark({
-        neededTotalEse: 8,
+        targetMinScore: 60,
+        internalTotal: 55,
+        labPoints: 8,
         theoryWeight: 40,
         theoryMax: 100,
-        labPoints: 0,
-        labWeight: 10,
-        hasEnteredLabMark: false,
       })
     ).toBe(0);
+  });
+});
+
+describe('isTargetSimulatorReady display gate', () => {
+  const baseTheoryCourse: SubjectData = {
+    id: 'sub-math',
+    name: 'Calculus',
+    code: 'MA23101',
+    courseType: 'theory',
+    test1: 45,
+    test1Max: 50,
+    test2: '',
+    test2Max: 50,
+    act1No: 2,
+    act1Scores: [10, 10],
+    act2No: 2,
+    act2Scores: [10, 10],
+    lab1No: 0,
+    lab1Scores: [],
+    lab2No: 0,
+    lab2Scores: [],
+    ese: '',
+  };
+
+  it('does NOT display when Test 2 mark has not been entered', () => {
+    expect(isTargetSimulatorReady(baseTheoryCourse, false)).toBe(false);
+  });
+
+  it('does NOT display when assignments are missing and estimates are off', () => {
+    const courseWithTests: SubjectData = {
+      ...baseTheoryCourse,
+      test2: 46,
+      act2Scores: [10, ''], // missing second assignment
+    };
+    expect(isTargetSimulatorReady(courseWithTests, false)).toBe(false);
+  });
+
+  it('displays when both CA tests and all assignments are entered for a theory course', () => {
+    const completeTheoryCourse: SubjectData = {
+      ...baseTheoryCourse,
+      test2: 46,
+    };
+    expect(isTargetSimulatorReady(completeTheoryCourse, false)).toBe(true);
+  });
+
+  it('displays when tests are entered and assignments are covered by estimates', () => {
+    const courseWithEstimates: SubjectData = {
+      ...baseTheoryCourse,
+      test2: 46,
+      act1No: '',
+      act1Scores: [],
+      act2No: '',
+      act2Scores: [],
+    };
+    expect(isTargetSimulatorReady(courseWithEstimates, true)).toBe(true);
+  });
+
+  describe('courses with End Semester Practical (split ESE)', () => {
+    const splitCourse: SubjectData = {
+      id: 'sub-c-prog',
+      name: 'Programming in C',
+      code: 'CS23102',
+      courseType: '2-0-4', // ESE Theory 40M + ESE Lab 10M
+      test1: 40,
+      test1Max: 50,
+      test2: 42,
+      test2Max: 50,
+      act1No: 1,
+      act1Scores: [10],
+      act2No: 1,
+      act2Scores: [10],
+      lab1No: 3,
+      lab1Scores: [10, 10, 10],
+      lab2No: 3,
+      lab2Scores: [10, 10, 10],
+      ese: '',
+      eseLab: '',
+      eseLabMax: 100,
+    };
+
+    it('does NOT display if ESE practical is not entered and estimates are off', () => {
+      expect(isTargetSimulatorReady(splitCourse, false)).toBe(false);
+    });
+
+    it('displays if ESE practical mark has been entered', () => {
+      const withEseLab: SubjectData = {
+        ...splitCourse,
+        eseLab: 85,
+      };
+      expect(isTargetSimulatorReady(withEseLab, false)).toBe(true);
+    });
+
+    it('displays when estimate checkbox is enabled because it applies to ESE practical', () => {
+      expect(isTargetSimulatorReady(splitCourse, true)).toBe(true);
+    });
+
+    it('applies the estimate percentage to ESE practical in applyEstimatedScores', () => {
+      const estimated = applyEstimatedScores(splitCourse, 85);
+      expect(estimated.eseLab).toBe(85); // 85% of 100 max
+    });
   });
 });
