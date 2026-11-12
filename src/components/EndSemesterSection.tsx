@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
 import { motionVariants } from '../motion';
-import { GraduationCap, Target, FlaskConical, ChevronDown, Calculator, LoaderCircle, Pencil } from 'lucide-react';
+import { GraduationCap, Target, FlaskConical, ChevronDown, Calculator, LoaderCircle, Pencil, AlertCircle } from 'lucide-react';
 import { GRADE_SCALE } from '../calculatorUtils';
 import { CourseType } from '../types';
 import { MaxMarksInput } from './MaxMarksInput';
@@ -62,6 +62,46 @@ export function calculateNeededTheoryMark({
   if (theoryWeight <= 0) return 0;
   const labContribution = hasEnteredLabMark ? labPoints : labWeight * 0.9;
   return Math.ceil((Math.max(0, neededTotalEse - labContribution) / theoryWeight) * theoryMax);
+}
+
+export interface TargetGradeEseRequirementInput {
+  targetMinScore: number;
+  internalTotal: number;
+  eseTheoryWeight: number;
+  numericEseMax?: number;
+  minPassPercentage?: number;
+}
+
+export interface TargetGradeEseRequirementResult {
+  minEsePass: number;
+  gradeNeededEse: number;
+  neededEse: number;
+  isImpossible: boolean;
+  isAlreadySecured: boolean;
+}
+
+export function calculateTargetGradeEseRequirement({
+  targetMinScore,
+  internalTotal,
+  eseTheoryWeight,
+  numericEseMax = 100,
+  minPassPercentage = 45,
+}: TargetGradeEseRequirementInput): TargetGradeEseRequirementResult {
+  const minEsePass = eseTheoryWeight > 0 ? Math.ceil((minPassPercentage / 100) * numericEseMax) : 0;
+  const gradeNeededEse = eseTheoryWeight > 0
+    ? Math.ceil(((targetMinScore - internalTotal) / eseTheoryWeight) * numericEseMax)
+    : 0;
+  const neededEse = Math.max(gradeNeededEse, minEsePass);
+  const isImpossible = neededEse > numericEseMax;
+  const isAlreadySecured = eseTheoryWeight <= 0 && internalTotal >= targetMinScore;
+
+  return {
+    minEsePass,
+    gradeNeededEse,
+    neededEse,
+    isImpossible,
+    isAlreadySecured,
+  };
 }
 
 interface EndSemesterSectionProps {
@@ -155,6 +195,17 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
   const numericLabMax = Math.max(1, eseLabMax === '' || eseLabMax === undefined ? 100 : Number(eseLabMax) || 100);
   const numericLab = eseLab === '' || eseLab === undefined ? 0 : Number(eseLab) || 0;
   const hasEnteredLabMark = eseLab !== '' && eseLab !== undefined && Number.isFinite(Number(eseLab));
+  const hasEnteredEse = ese !== '' && ese !== undefined && Number.isFinite(Number(ese));
+  const theoryMinEsePass = eseTheoryWeight > 0 ? Math.ceil(0.45 * numericEseMax) : 0;
+  const isTheoryEseBelowPass = hasEnteredEse && Number(ese) < theoryMinEsePass;
+
+  const minTotalEse = 0.45 * eseWeight;
+  const minLabPass = Math.ceil(0.45 * numericLabMax);
+  const allRequiredEseEntered = (!hasTheory || hasEnteredEse) && (!hasLab || hasEnteredLabMark);
+  const isSplitEseBelowPass =
+    (isSplit && allRequiredEseEntered && esePoints < minTotalEse) ||
+    (isPracticalOnly && hasEnteredLabMark && Number(eseLab) < minLabPass);
+
   const reduceMotion = useReducedMotion();
 
   return (
@@ -277,6 +328,13 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                   onChange={onEseLabMaxChange ? handleLabMaxChange : undefined}
                 />
               </div>
+
+              {isPracticalOnly && hasEnteredLabMark && Number(eseLab) < minLabPass && (
+                <div className="mb-3 rounded-lg bg-rose-50 border border-rose-200 px-3 py-2 text-rose-700 text-xs font-semibold flex items-center gap-1.5" role="alert">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" aria-hidden="true" />
+                  <span>Below minimum ESE practical passing mark ({minLabPass}/{numericLabMax} marks — 45%)</span>
+                </div>
+              )}
             </div>
 
             <div className="pt-4 border-t border-slate-200 mt-4">
@@ -312,10 +370,22 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                 <ChevronDown className="ml-auto h-4 w-4 shrink-0 text-[#3b4d66] transition-transform group-open:rotate-180" aria-hidden="true" />
               </summary>
 
+              {isSplitEseBelowPass && (
+                <div className="mt-2 rounded-lg bg-rose-50 border border-rose-200 px-2.5 py-1.5 text-rose-700 text-[11px] font-semibold flex items-center gap-1.5" role="alert">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0 text-rose-600" aria-hidden="true" />
+                  <span>
+                    {isPracticalOnly
+                      ? `Current Practical ESE (${Number(eseLab)}/${numericLabMax}) is below the minimum passing requirement of ${minLabPass} (45%).`
+                      : `Current ESE contribution (${esePoints.toFixed(2)}/${eseWeight.toFixed(2)}) is below the minimum 45% passing requirement (${minTotalEse.toFixed(2)} points).`}
+                  </span>
+                </div>
+              )}
+
               <div className="mt-3 rounded-xl border border-[#172554] divide-y divide-[#172554] text-xs font-medium mb-3 overflow-hidden">
                 {GRADE_SCALE.filter((g) => g.letter !== 'U').map((g) => {
-                  const neededTotalEse = Math.max(0, g.minScore - internalTotal);
-                  const isAlreadySecured = internalTotal >= g.minScore;
+                  const gradeNeededTotalEse = Math.max(0, g.minScore - internalTotal);
+                  const neededTotalEse = Math.max(gradeNeededTotalEse, minTotalEse);
+                  const isAlreadySecured = eseWeight <= 0 && internalTotal >= g.minScore;
                   const isImpossible = neededTotalEse > eseWeight;
 
                   // Theory course: needed from Theory assuming current practical marks.
@@ -414,6 +484,12 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                 />
               </div>
 
+              {isTheoryEseBelowPass && (
+                <div className="mb-3 rounded-lg bg-rose-50 border border-rose-200 px-3 py-2 text-rose-700 text-xs font-semibold flex items-center gap-1.5" role="alert">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" aria-hidden="true" />
+                  <span>Below minimum ESE passing mark ({theoryMinEsePass}/{numericEseMax} marks — 45%)</span>
+                </div>
+              )}
             </div>
 
             {/* Marks Contributed for Total at bottom */}
@@ -441,11 +517,21 @@ export const EndSemesterSection: React.FC<EndSemesterSectionProps> = ({
                 <ChevronDown className="ml-auto h-4 w-4 shrink-0 text-[#3b4d66] transition-transform group-open:rotate-180" aria-hidden="true" />
               </summary>
 
+              {isTheoryEseBelowPass && (
+                <div className="mt-2 rounded-lg bg-rose-50 border border-rose-200 px-2.5 py-1.5 text-rose-700 text-[11px] font-semibold flex items-center gap-1.5" role="alert">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0 text-rose-600" aria-hidden="true" />
+                  <span>Current ESE ({Number(ese)}/{numericEseMax}) does not meet the 45% passing requirement ({theoryMinEsePass}).</span>
+                </div>
+              )}
+
               <div className="mt-3 rounded-xl border border-[#172554] divide-y divide-[#172554] text-xs font-medium overflow-hidden">
                 {GRADE_SCALE.filter((g) => g.letter !== 'U').map((g) => {
-                  const neededEse = Math.max(0, Math.ceil(((g.minScore - internalTotal) / eseTheoryWeight) * numericEseMax));
-                  const isAlreadySecured = internalTotal >= g.minScore;
-                  const isImpossible = neededEse > numericEseMax;
+                  const { neededEse, isImpossible, isAlreadySecured } = calculateTargetGradeEseRequirement({
+                    targetMinScore: g.minScore,
+                    internalTotal,
+                    eseTheoryWeight,
+                    numericEseMax,
+                  });
 
                   return (
                     <div
