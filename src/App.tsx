@@ -70,6 +70,7 @@ import { createPortal } from "react-dom";
 import { ThemeToggle, type AppTheme } from "./components/ThemeToggle";
 import CalCreditLogo from "./components/CalCreditLogo";
 import LaunchAnimation from "./components/LaunchAnimation";
+import { AmbientWallpaper } from "./components/AmbientWallpaper";
 import { CGPAHub } from "./components/CGPAHub";
 import { GPA_COURSES, getGpaCourses, getAllGpaCourses } from "./gpaCourses";
 import { AuthScreen, GOOGLE_REDIRECT_PENDING_KEY } from "./components/AuthScreen";
@@ -966,6 +967,7 @@ export default function App() {
 
   return (
     <>
+      <AmbientWallpaper />
       <div style={{ display: launching ? 'none' : undefined }} className="contents">
         {content}
       </div>

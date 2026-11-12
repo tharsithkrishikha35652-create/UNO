@@ -101,8 +101,8 @@ Engineering curricula encompass varying course structures with differing ratios 
 
 ### 6. "Warm Scholar" Dual-Theme Aesthetic
 Designed to feel like an intentional university utility rather than a generic SaaS dashboard:
-- **Light Theme**: Warm cream backdrop (`#FAF8F5`) layered with delicate peach and slate decorative educational elements (`warm-scholar-bg.png`).
-- **Dark Theme**: Charcoal/navy base (`#161618`) accented with muted copper, deep slate academic motifs, and subtle coordinate grids (`dark-scholar-bg.png`).
+- **Light Theme**: Warm cream backdrop (`#FAF8F5`) layered with delicate peach and slate decorative educational elements (`background_light.svg` with live V6 ambient animation).
+- **Dark Theme**: Charcoal/navy base (`#161618`) accented with muted copper, deep slate academic motifs, and subtle coordinate grids (`background_dark.svg` with live V6 ambient animation).
 - Strict typography using **Figtree Variable** for crisp form inputs and **Inter (data) and Newsreader** serif accents for editorial elegance.
 - Intentional sentence-case labeling throughout, preserving technical acronyms (`CA1`, `CA2`, `ESE`, `GPA`, `CGPA`, `CEG`).
 
@@ -165,8 +165,8 @@ The Credits view features a bespoke, vector-accurate architectural elevation of 
 UNO/
 ├── .agents/                    # Agentic developer workflows and skill definitions
 ├── public/                     # Static assets (favicons, official wallpaper art)
-│   ├── warm-scholar-bg.png     # Official Warm Scholar light backdrop
-│   └── dark-scholar-bg.png     # Official Dark Scholar navy/copper backdrop
+│   ├── background_light.svg    # Official Warm Scholar V6 vector artwork (light mode)
+│   └── background_dark.svg     # Official Midnight Scholar V6 vector artwork (dark mode)
 ├── src/
 │   ├── __tests__/              # Comprehensive Vitest unit test suites
 │   │   ├── calculatorUtils.test.ts # Mark boundary, 0/max, edge-case & 45% ESE tests
