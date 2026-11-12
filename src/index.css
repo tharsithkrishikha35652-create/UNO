@@ -816,7 +816,7 @@ html.theme-switching #root .transition-colors {
   opacity: 0.25;
   background: radial-gradient(ellipse at 23% 24%, #fff0d9 0%, transparent 43%),
               radial-gradient(ellipse at 78% 74%, #e5a67a 0%, transparent 47%);
-  animation: v6BgBreath 11s ease-in-out infinite;
+  animation: v6BgBreath 8s ease-in-out infinite;
 }
 
 :root[data-theme="dark"] #calcredit-ambient-bg .breath-layer,
@@ -827,8 +827,8 @@ html.theme-switching #root .transition-colors {
 }
 
 @keyframes v6BgBreath {
-  0%, 100% { transform: scale(0.99); opacity: 0.18; }
-  50% { transform: scale(1.025); opacity: 0.36; }
+  0%, 100% { transform: scale(0.96); opacity: 0.20; }
+  50% { transform: scale(1.05); opacity: 0.46; }
 }
 
 /* Decorative Sparks */
@@ -836,8 +836,8 @@ html.theme-switching #root .transition-colors {
   position: absolute;
   width: 9px;
   height: 9px;
-  opacity: 0.7;
-  animation: v6Spark 4s ease-in-out infinite;
+  opacity: 0.8;
+  animation: v6Spark 2.8s ease-in-out infinite;
   pointer-events: none;
 }
 
@@ -864,100 +864,102 @@ html.theme-switching #root .transition-colors {
   background: #e2a17e;
 }
 
-#calcredit-ambient-bg .spark.s1 { top: 16%; left: 72%; animation-delay: -1s; }
-#calcredit-ambient-bg .spark.s2 { top: 56%; left: 9%;  animation-delay: -2.2s; }
-#calcredit-ambient-bg .spark.s3 { top: 68%; right: 8%; animation-delay: -0.4s; }
-#calcredit-ambient-bg .spark.s4 { top: 38%; right: 15%; animation-delay: -3s; }
+#calcredit-ambient-bg .spark.s1 { top: 16%; left: 72%; animation-delay: -0.7s; }
+#calcredit-ambient-bg .spark.s2 { top: 56%; left: 9%;  animation-delay: -1.5s; }
+#calcredit-ambient-bg .spark.s3 { top: 68%; right: 8%; animation-delay: -0.3s; }
+#calcredit-ambient-bg .spark.s4 { top: 38%; right: 15%; animation-delay: -2.1s; }
 
 @keyframes v6Spark {
-  0%, 100% { opacity: 0.35; transform: scale(0.8); }
-  50% { opacity: 1; transform: scale(1.25); }
+  0%, 100% { opacity: 0.15; transform: scale(0.65) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1.4) rotate(45deg); }
 }
 
-/* V6 Live Artwork Elements: Independent, hardware-accelerated SVG transforms */
+/* V6 Live Artwork Elements: Noticeable, organic, hardware-accelerated SVG transforms */
 
-/* Graduation cap tassel: string and brush swing naturally like a tensioned pendulum pivoted at (488, 155) */
+/* Graduation cap tassel: clear, rhythmic pendulum swing pivoted at (488, 155) */
 #calcredit-ambient-bg .cap-tassel {
   transform-box: view-box;
   transform-origin: 488px 155px;
-  animation: v6TasselPendulum 3.1s cubic-bezier(0.42, 0, 0.58, 1) infinite;
+  animation: v6TasselPendulum 2.4s cubic-bezier(0.37, 0, 0.63, 1) infinite;
 }
 
 @keyframes v6TasselPendulum {
-  0%, 100% { transform: rotate(-8deg); }
-  50% { transform: rotate(9deg); }
+  0%, 100% { transform: rotate(-18deg); }
+  50% { transform: rotate(20deg); }
 }
 
-/* Bottom-left organic shapes: independent floating */
+/* Bottom-left organic shapes: noticeable, independent drifting float */
 #calcredit-ambient-bg .left-art-piece {
   transform-box: view-box;
   transform-origin: 120px 810px;
-  animation: v6LeftShapeDrift 9s ease-in-out infinite;
+  animation: v6LeftShapeDrift 6.5s cubic-bezier(0.45, 0, 0.55, 1) infinite;
 }
 
 #calcredit-ambient-bg .left-art-piece.left-art-2 {
-  animation-delay: -3.5s;
+  animation-duration: 7.5s;
+  animation-delay: -3.2s;
 }
 
 @keyframes v6LeftShapeDrift {
-  0%, 100% { transform: translate(0, 0) rotate(0deg); }
-  50% { transform: translate(5px, -7px) rotate(0.7deg); }
+  0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+  50% { transform: translate(14px, -18px) rotate(2.2deg) scale(1.03); }
 }
 
-/* Bottom-right organic shapes: independent floating */
+/* Bottom-right organic shapes: noticeable, independent drifting float */
 #calcredit-ambient-bg .right-art-piece {
   transform-box: view-box;
   transform-origin: 560px 850px;
-  animation: v6RightShapeDrift 10.5s ease-in-out infinite;
+  animation: v6RightShapeDrift 7.2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
 }
 
 #calcredit-ambient-bg .right-art-piece.right-art-2 {
-  animation-delay: -4.5s;
+  animation-duration: 8.2s;
+  animation-delay: -3.8s;
 }
 
 @keyframes v6RightShapeDrift {
-  0%, 100% { transform: translate(0, 0) rotate(0deg); }
-  50% { transform: translate(-5px, -8px) rotate(-0.65deg); }
+  0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+  50% { transform: translate(-16px, -20px) rotate(-2.5deg) scale(1.03); }
 }
 
-/* Top-left organic shape: subtle breathing */
+/* Top-left organic shape: noticeable expansion & breathing */
 #calcredit-ambient-bg .top-left-art {
   transform-box: view-box;
   transform-origin: 90px 80px;
-  animation: v6TopShapeBreath 8.5s ease-in-out infinite;
+  animation: v6TopShapeBreath 6s ease-in-out infinite;
 }
 
 @keyframes v6TopShapeBreath {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.025); }
+  0%, 100% { transform: scale(1) translate(0, 0); }
+  50% { transform: scale(1.06) translate(8px, 6px); }
 }
 
-/* Books stack: gentle floating */
+/* Books stack: clearly visible floating hover */
 #calcredit-ambient-bg .book-stack {
   transform-box: view-box;
   transform-origin: 65px 375px;
-  animation: v6BooksFloat 7.8s ease-in-out infinite;
+  animation: v6BooksFloat 5.4s ease-in-out infinite;
 }
 
 @keyframes v6BooksFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-14px) rotate(-1.8deg); }
 }
 
-/* Stars: staggered twinkling */
+/* Stars: clearly noticeable twinkling and pulse */
 #calcredit-ambient-bg .svg-star {
   transform-box: fill-box;
   transform-origin: center;
-  animation: v6SvgStarTwinkle 4.2s ease-in-out infinite;
+  animation: v6SvgStarTwinkle 2.6s ease-in-out infinite;
 }
 
-#calcredit-ambient-bg .svg-star.star-2 { animation-delay: -1.2s; }
-#calcredit-ambient-bg .svg-star.star-3 { animation-delay: -2.4s; }
-#calcredit-ambient-bg .svg-star.star-4 { animation-delay: -3.5s; }
+#calcredit-ambient-bg .svg-star.star-2 { animation-delay: -0.7s; }
+#calcredit-ambient-bg .svg-star.star-3 { animation-delay: -1.4s; }
+#calcredit-ambient-bg .svg-star.star-4 { animation-delay: -2.1s; }
 
 @keyframes v6SvgStarTwinkle {
-  0%, 100% { opacity: 0.55; }
-  50% { opacity: 1; }
+  0%, 100% { opacity: 0.25; transform: scale(0.75); }
+  50% { opacity: 1; transform: scale(1.35); }
 }
 
 /* Paused state when app is backgrounded to preserve mobile battery & GPU */
