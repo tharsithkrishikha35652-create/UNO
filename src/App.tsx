@@ -872,7 +872,49 @@ export default function App() {
         <CreditsScreen />
       </div>
     );
-  } else if (typeof window !== "undefined" && window.location.search.includes("screen=profile")) {
+  } else if (import.meta.env.DEV && typeof window !== "undefined" && window.location.search.includes("screen=courses")) {
+    content = (
+      <div className="min-h-screen p-4 bg-white text-slate-900 relative">
+        <header className="p-4 border-b border-slate-200">
+          <h1 className="text-xl font-bold">Matrices and Calculus</h1>
+          <p className="text-sm text-slate-600">Total 50.40/100 · Grade U</p>
+        </header>
+        <div className="p-4 space-y-4">
+          <div className="p-4 border rounded-xl bg-slate-50">
+            <h2 className="font-bold">CA Test 1</h2>
+            <p>Score: 50 / 50</p>
+          </div>
+          <div className="p-4 border rounded-xl bg-slate-50">
+            <h2 className="font-bold">CA Test 2</h2>
+            <p>Score: 45 / 50</p>
+          </div>
+        </div>
+        <MobileCoursesSheet
+          isOpen={true}
+          semester={1}
+          courses={[
+            {
+              course: { id: "ma3151", name: "Matrices and Calculus", code: "MA3151", type: "Theory", courseType: "theory", semester: 1 },
+              subject: null,
+              progress: "In progress",
+            },
+            {
+              course: { id: "ph3151", name: "Engineering Physics", code: "PH3151", type: "Theory", courseType: "theory", semester: 1 },
+              subject: null,
+              progress: "In progress",
+            },
+          ]}
+          electiveSlots={[]}
+          electiveOptions={{}}
+          selectedSubjectId="ma3151"
+          allCoursesCalculated={false}
+          onClose={() => {}}
+          onSelectCourse={() => {}}
+          onCalculateGpa={() => {}}
+        />
+      </div>
+    );
+  } else if (import.meta.env.DEV && typeof window !== "undefined" && window.location.search.includes("screen=profile")) {
     content = (
       <div className="min-h-screen p-4 bg-slate-900">
         <ProfileDrawer

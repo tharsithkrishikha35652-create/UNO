@@ -575,24 +575,25 @@ const MobileCoursesSheetBody: React.FC<MobileCoursesSheetProps> = ({
         tabIndex={-1}
         aria-label="Close courses"
         onClick={onClose}
-        className="absolute inset-0 h-full w-full bg-slate-950/55"
+        className="absolute inset-0 h-full w-full bg-transparent border-0 p-0 cursor-pointer"
         variants={reduceMotion ? undefined : motionVariants.backdrop}
         initial={reduceMotion ? { opacity: 1 } : 'initial'}
         animate="animate"
         exit="exit"
       >
         <motion.div
-          className="h-full w-full bg-slate-950/55"
+          className="h-full w-full bg-slate-950/45 backdrop-blur-sm"
           style={{ opacity: backdropDragOpacity }}
         />
       </motion.button>
 
       {/* Slide-in and slide-out wrapper */}
       <motion.div
-        className="absolute inset-x-0 bottom-0 flex max-h-[85dvh] flex-col"
+        className="absolute inset-x-0 bottom-0 flex max-h-[85dvh] flex-col mobile-sheet-wrapper"
         initial={reduceMotion ? { y: 0 } : { y: '100%' }}
         animate={{ y: 0, transition: reduceMotion ? { duration: 0 } : { duration: 0.3, ease: [0.16, 1, 0.3, 1] } }}
         exit={reduceMotion ? { y: 0 } : { y: '100%', transition: { duration: 0.18, ease: [0.4, 0, 1, 1] } }}
+        style={{ willChange: 'transform' }}
       >
         <motion.section
           id="mobile-courses-sheet"
@@ -606,6 +607,7 @@ const MobileCoursesSheetBody: React.FC<MobileCoursesSheetProps> = ({
           className="flex max-h-[85dvh] flex-col rounded-t-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#202024] shadow-2xl select-none"
           style={{
             y: dragY,
+            willChange: 'transform',
             paddingBottom: 'var(--safe-area-bottom, env(safe-area-inset-bottom, 0px))',
           }}
           onClickCapture={(e) => {

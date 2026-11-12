@@ -471,12 +471,16 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
         aria-label="Close profile"
         tabIndex={-1}
         onClick={onClose}
-        className="absolute inset-0 h-full w-full bg-slate-950/55"
+        className="absolute inset-0 h-full w-full bg-transparent border-0 p-0 cursor-pointer"
         variants={reduceMotion ? undefined : motionVariants.backdrop}
         initial={reduceMotion ? { opacity: 1 } : 'initial'}
         animate="animate"
         exit={reduceMotion ? undefined : 'exit'}
-      />
+      >
+        <motion.div
+          className="h-full w-full bg-slate-950/45 backdrop-blur-sm"
+        />
+      </motion.button>
       <motion.aside
         id="academic-profile-drawer"
         role="dialog"
@@ -487,6 +491,7 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
         animate={{ x: 0 }}
         exit={reduceMotion ? undefined : { x: '-100%' }}
         transition={reduceMotion ? { duration: 0 } : transitions.overlay}
+        style={{ willChange: 'transform' }}
       >
         <header className="shrink-0 flex items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-[#161618] px-3.5 sm:px-4 py-2 pt-[calc(0.5rem+var(--safe-area-top))]">
           <div className="flex items-center gap-2.5">
@@ -499,7 +504,7 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
               </>
             ) : (
               <h2 id="academic-profile-title" className="flex items-center">
-                <CalCreditLogo markSize={28} wordHeight={16} subtitle />
+                <CalCreditLogo markSize={37.5} wordHeight={19} subtitle />
               </h2>
             )}
           </div>
@@ -516,7 +521,7 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
           </div>
         </header>
 
-        <div className="min-h-0 flex-1 overflow-y-auto custom-department-scrollbar p-4 sm:p-5 space-y-4 pb-[calc(1.5rem+var(--safe-area-bottom))] transition-[padding] duration-300 ease-out sm:pb-6">
+        <div className="min-h-0 flex-1 overflow-y-auto custom-department-scrollbar p-4 sm:p-5 space-y-4 pb-[calc(1.5rem+var(--safe-area-bottom))] sm:pb-6 overscroll-contain">
           {editing ? (
             <AcademicProfileForm
               profile={profile}

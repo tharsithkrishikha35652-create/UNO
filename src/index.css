@@ -330,12 +330,51 @@
   box-shadow: var(--shadow-overlay);
 }
 
+/* Hardware-accelerated mobile overlays & drawers (native 60/120fps compositing) */
+#academic-profile-drawer,
+#mobile-courses-sheet {
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  contain: layout paint;
+}
+
+.mobile-sheet-wrapper {
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
 #academic-profile-drawer {
   border-radius: 0 var(--radius-overlay) var(--radius-overlay) 0;
 }
 
 #mobile-courses-sheet {
   border-radius: var(--radius-overlay) var(--radius-overlay) 0 0;
+}
+
+/* Mobile-optimized box-shadows to prevent continuous GPU shadow re-rasterization */
+@media (max-width: 768px) {
+  #academic-profile-drawer {
+    box-shadow: 4px 0 20px -2px rgba(0, 0, 0, 0.28) !important;
+  }
+  #mobile-courses-sheet {
+    box-shadow: 0 -4px 20px -2px rgba(0, 0, 0, 0.28) !important;
+  }
+}
+
+/* Ensure hardware-accelerated frosted glass backdrop blur across WebKit and Chromium */
+.backdrop-blur-sm {
+  -webkit-backdrop-filter: blur(4px) !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+/* Ensure backdrop overlay buttons remain 100% transparent and never inherit --app-background */
+#root button[aria-label="Close courses"],
+button[aria-label="Close courses"],
+#root button[aria-label="Close profile"],
+button[aria-label="Close profile"] {
+  background-color: transparent !important;
 }
 
 input[type="number"] {

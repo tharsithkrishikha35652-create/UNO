@@ -132,4 +132,38 @@ test.describe('CalCredit Brand & Launch Animation Suite', () => {
     await page.waitForTimeout(300);
     await page.screenshot({ path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/verify_profile_drawer_logo_dark.png' });
   });
+
+  test('courses sheet renders frosted glass blurred backdrop over underlying app', async ({ page }) => {
+    await page.setViewportSize({ width: 412, height: 922 });
+    await page.addInitScript(() => {
+      window.sessionStorage.setItem('calcredit_launch_played', 'true');
+    });
+
+    await page.goto('/?screen=courses');
+    await page.waitForTimeout(600);
+
+    const coursesSheet = page.locator('#mobile-courses-sheet');
+    await expect(coursesSheet).toBeVisible();
+
+    // Verify backdrop button is transparent
+    const backdropBtn = page.locator('button[aria-label="Close courses"]').first();
+    await expect(backdropBtn).toBeVisible();
+    const bg = await backdropBtn.evaluate((el) => window.getComputedStyle(el).backgroundColor);
+    expect(bg).toMatch(/rgba\(0,\s*0,\s*0,\s*0\)|transparent/);
+
+    // Verify underlying content is mounted behind the backdrop
+    const underlyingHeading = page.locator('h1:has-text("Matrices and Calculus")');
+    await expect(underlyingHeading).toBeAttached();
+
+    // Take screenshot to inspect the frosted blur
+    await page.screenshot({ path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/verify_courses_sheet_blur.png' });
+
+    // Test in Dark Mode as well
+    await page.evaluate(() => {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      document.documentElement.classList.add('dark');
+    });
+    await page.waitForTimeout(300);
+    await page.screenshot({ path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/verify_courses_sheet_blur_dark.png' });
+  });
 });

@@ -195,8 +195,16 @@ export default function CalCreditLogo({
   const hasMark = markSize > 0;
   const hasWordmark = wordHeight > 0;
   const compact = hasMark && hasWordmark && !tile;
-  const assetWidth = compact ? Math.max(110, markSize * (448 / 128)) : markSize;
-  const assetHeight = compact ? assetWidth * (528 / 1344) : markSize;
+  const assetWidth = compact
+    ? hasSubtitle
+      ? Math.max(130, markSize * 4.0)
+      : Math.max(110, markSize * (448 / 128))
+    : markSize;
+  const assetHeight = compact
+    ? hasSubtitle
+      ? assetWidth * (100 / 406)
+      : assetWidth * (528 / 1344)
+    : markSize;
   const lightAsset = tile
     ? appIconLightUrl
     : compact
