@@ -871,6 +871,31 @@ export default function App() {
         <CreditsScreen />
       </div>
     );
+  } else if (typeof window !== "undefined" && window.location.search.includes("screen=profile")) {
+    content = (
+      <div className="min-h-screen p-4 bg-slate-900">
+        <ProfileDrawer
+          isOpen={true}
+          onClose={() => {}}
+          profile={{
+            studentName: "Raghu Nandan S",
+            rollNumber: "2026123013",
+            department: "CSE",
+          }}
+          initialSemester={1}
+          email="danraghu2008@gmail.com"
+          guestMode={false}
+          onSave={async () => {}}
+          theme={theme}
+          onToggleTheme={toggleTheme}
+          onOpenGrades={() => {}}
+          onOpenFeedback={() => {}}
+          onOpenCredits={() => {}}
+          onLogout={() => {}}
+          logoutPending={false}
+        />
+      </div>
+    );
   } else if (!user) {
     content = (
       <AuthScreen
@@ -898,7 +923,9 @@ export default function App() {
 
   return (
     <>
-      {content}
+      <div style={{ display: launching ? 'none' : undefined }} className="contents">
+        {content}
+      </div>
       {launching &&
         createPortal(
           <LaunchAnimation
@@ -1773,13 +1800,11 @@ function AuthenticatedApp({
     setShowFeedbackHub(false);
   };
 
-  const handleOpenPresetCourse = (course: PresetCourse) => {
-    if (undoToast) {
-      setUndoToast(null);
-      if (undoTimeoutRef.current) window.clearTimeout(undoTimeoutRef.current);
-    }
-    acknowledgeSelection();
-    calculationRevisionRef.current += 1;
+  const applyPresetCourseToSubjects = (
+    previous: SubjectData[],
+    course: PresetCourse,
+    department: Department
+  ): { nextSubjects: SubjectData[]; targetSubjectId: string } => {
     const isHeritageCourse =
       getCourseType({
         ...DEFAULT_SUBJECT,
@@ -1792,14 +1817,14 @@ function AuthenticatedApp({
     const stableId = `course_${course.id}`;
     let targetSubjectId = stableId;
 
-    setSubjects((previous) => {
-      const existing = findSubjectForCourse(previous, course);
-      if (existing) {
-        targetSubjectId = existing.id;
-        if (isHeritageCourse) {
-          const act1Count = Math.max(1, Number(existing.act1No) || 0);
-          const act2Count = Math.max(1, Number(existing.act2No) || 0);
-          return previous.map((subject) => {
+    const existing = findSubjectForCourse(previous, course);
+    if (existing) {
+      targetSubjectId = existing.id;
+      if (isHeritageCourse) {
+        const act1Count = Math.max(1, Number(existing.act1No) || 0);
+        const act2Count = Math.max(1, Number(existing.act2No) || 0);
+        return {
+          nextSubjects: previous.map((subject) => {
             if (subject.id !== existing.id) return subject;
             return {
               ...subject,
@@ -1810,49 +1835,69 @@ function AuthenticatedApp({
               act2Scores: syncScoresArray(subject.act2Scores, act2Count),
               ...(course.electiveSlot ? { electiveSlot: course.electiveSlot } : {}),
             };
-          });
-        }
-        if (course.electiveSlot) {
-          return previous.map((subject) =>
+          }),
+          targetSubjectId,
+        };
+      }
+      if (course.electiveSlot) {
+        return {
+          nextSubjects: previous.map((subject) =>
             subject.id === existing.id
               ? { ...subject, electiveSlot: course.electiveSlot }
               : subject
-          );
-        }
-        return previous;
+          ),
+          targetSubjectId,
+        };
       }
+      return { nextSubjects: previous, targetSubjectId };
+    }
 
-      // If choosing an elective for a specific slot, replace any previous elective subject in that same slot for this semester
-      let filteredPrevious = previous;
-      if (course.electiveSlot && course.semester) {
-        filteredPrevious = previous.filter((s) => {
-          const sPreset = findPresetForSubject(s, currentDepartment);
-          const sSlot = s.electiveSlot || sPreset?.electiveSlot;
-          const sSem = s.semester ?? sPreset?.semester;
-          return !(sSlot === course.electiveSlot && sSem === course.semester);
-        });
-      }
+    // If choosing an elective for a specific slot, replace any previous elective subject in that same slot for this semester
+    let filteredPrevious = previous;
+    if (course.electiveSlot && course.semester) {
+      filteredPrevious = previous.filter((s) => {
+        const sPreset = findPresetForSubject(s, department);
+        const sSlot = s.electiveSlot || sPreset?.electiveSlot;
+        const sSem = s.semester ?? sPreset?.semester;
+        return !(sSlot === course.electiveSlot && sSem === course.semester);
+      });
+    }
 
-      const newSubject: SubjectData = {
-        ...DEFAULT_SUBJECT,
-        id: stableId,
-        name: course.name,
-        code: course.code,
-        semester: course.semester,
-        courseType: isHeritageCourse ? "heritage-course" : course.courseType,
-        electiveSlot: course.electiveSlot,
-        ...(course.courseType === "universal-human-values"
-          ? { act1No: 1, act1Scores: [""], act2No: 1, act2Scores: [""] }
-          : {}),
-        ...(isHeritageCourse
-          ? { act1No: 1, act1Scores: [""], act2No: 1, act2Scores: [""] }
-          : {}),
-        ...(course.courseType === "self-learning"
-          ? { selfLearningPassMark: 50 }
-          : {}),
-      };
-      targetSubjectId = newSubject.id;
-      return [...filteredPrevious, newSubject];
+    const newSubject: SubjectData = {
+      ...DEFAULT_SUBJECT,
+      id: stableId,
+      name: course.name,
+      code: course.code,
+      semester: course.semester,
+      courseType: isHeritageCourse ? "heritage-course" : course.courseType,
+      electiveSlot: course.electiveSlot,
+      ...(course.courseType === "universal-human-values"
+        ? { act1No: 1, act1Scores: [""], act2No: 1, act2Scores: [""] }
+        : {}),
+      ...(isHeritageCourse
+        ? { act1No: 1, act1Scores: [""], act2No: 1, act2Scores: [""] }
+        : {}),
+      ...(course.courseType === "self-learning"
+        ? { selfLearningPassMark: 50 }
+        : {}),
+    };
+    targetSubjectId = newSubject.id;
+    return { nextSubjects: [...filteredPrevious, newSubject], targetSubjectId };
+  };
+
+  const handleOpenPresetCourse = (course: PresetCourse) => {
+    if (undoToast) {
+      setUndoToast(null);
+      if (undoTimeoutRef.current) window.clearTimeout(undoTimeoutRef.current);
+    }
+    acknowledgeSelection();
+    calculationRevisionRef.current += 1;
+
+    let targetSubjectId = `course_${course.id}`;
+    setSubjects((previous) => {
+      const result = applyPresetCourseToSubjects(previous, course, currentDepartment);
+      targetSubjectId = result.targetSubjectId;
+      return result.nextSubjects;
     });
 
     setCurrentSubjectId(targetSubjectId);
@@ -1865,6 +1910,20 @@ function AuthenticatedApp({
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
+  };
+
+  const handleAssignElectiveCourse = (course: PresetCourse) => {
+    if (undoToast) {
+      setUndoToast(null);
+      if (undoTimeoutRef.current) window.clearTimeout(undoTimeoutRef.current);
+    }
+    acknowledgeSelection();
+    calculationRevisionRef.current += 1;
+
+    setSubjects((previous) => {
+      const result = applyPresetCourseToSubjects(previous, course, currentDepartment);
+      return result.nextSubjects;
+    });
   };
 
   const handleOpenElectivePicker = (slot: string) => {
@@ -3050,7 +3109,7 @@ function AuthenticatedApp({
                       selectedSubjectId={isEditorOpen ? currentSubjectId : ""}
                       allCoursesCalculated={allSemesterCoursesCalculated}
                       onSelectCourse={handleOpenPresetCourse}
-                      onSelectElective={handleOpenElectivePicker}
+                      onAssignElective={handleAssignElectiveCourse}
                       onCalculateGpa={() => {
                         setIsDesktopCoursesOpen(false);
                         setActiveTab("gpa");
@@ -4034,6 +4093,7 @@ function AuthenticatedApp({
           setIsMobileCoursesOpen(false);
           handleOpenPresetCourse(course);
         }}
+        onSelectElective={handleAssignElectiveCourse}
         onCalculateGpa={() => {
           setIsMobileCoursesOpen(false);
           setActiveTab("gpa");

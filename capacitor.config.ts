@@ -11,7 +11,7 @@ const config: CapacitorConfig = {
       serverClientId: '1021203430303-8jvshisq9hq4h2br0q9621mb225b5hfl.apps.googleusercontent.com',
     },
     SplashScreen: {
-      launchAutoHide: false,
+      launchAutoHide: true,
       launchShowDuration: 0,
       backgroundColor: '#F7F1E1',
     },

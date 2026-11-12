@@ -5,10 +5,12 @@
   display: none;
 }
 
+.dark .brand-sheet-logo__auto-light,
 [data-theme="dark"] .brand-sheet-logo__auto-light {
   display: none;
 }
 
+.dark .brand-sheet-logo__auto-dark,
 [data-theme="dark"] .brand-sheet-logo__auto-dark {
   display: inline-block;
 }

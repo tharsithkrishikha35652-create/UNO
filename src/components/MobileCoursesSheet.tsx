@@ -31,6 +31,7 @@ interface MobileCoursesSheetProps {
   allCoursesCalculated: boolean;
   onClose: () => void;
   onSelectCourse: (course: PresetCourse) => void;
+  onSelectElective?: (course: PresetCourse) => void;
   onCalculateGpa: () => void;
 }
 
@@ -87,6 +88,7 @@ const MobileCoursesSheetBody: React.FC<MobileCoursesSheetProps> = ({
   selectedSubjectId,
   onClose,
   onSelectCourse,
+  onSelectElective,
 }) => {
   const reduceMotion = useReducedMotion();
   const dialogRef = useRef<HTMLElement>(null);
@@ -510,7 +512,11 @@ const MobileCoursesSheetBody: React.FC<MobileCoursesSheetProps> = ({
                         disabled={isChosenInOtherSlot}
                         onClick={() => {
                           acknowledgeSelection();
-                          onSelectCourse(option);
+                          if (onSelectElective) {
+                            onSelectElective(option);
+                          } else {
+                            onSelectCourse(option);
+                          }
                           setExpandedElectiveSlot(null);
                         }}
                         className={`flex min-h-12 w-full items-center justify-between gap-3 rounded-lg border px-3 py-2 text-left transition-colors focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[#172554] dark:focus-visible:outline-[#e08564] ${

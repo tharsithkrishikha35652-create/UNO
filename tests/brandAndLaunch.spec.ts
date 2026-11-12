@@ -98,4 +98,38 @@ test.describe('CalCredit Brand & Launch Animation Suite', () => {
     });
     expect(creditsOverflow.overflows).toBe(false);
   });
+
+  test('profile drawer renders single-element horizontal logo with Anna University', async ({ page }) => {
+    await page.setViewportSize({ width: 412, height: 922 });
+    await page.addInitScript(() => {
+      window.sessionStorage.setItem('calcredit_launch_played', 'true');
+    });
+
+    await page.goto('/?screen=profile');
+    await page.waitForTimeout(600);
+
+    const profileDrawer = page.locator('#academic-profile-title');
+    await expect(profileDrawer).toBeVisible();
+
+    // Ensure the logo image src contains calcredit_logo_horizontal
+    const logoImg = profileDrawer.locator('img.brand-sheet-logo__image');
+    await expect(logoImg.first()).toBeAttached();
+    const srcs = await logoImg.evaluateAll((imgs) => imgs.map((i) => (i as HTMLImageElement).src));
+    expect(srcs.some((s) => s.includes('horizontal'))).toBe(true);
+
+    // Verify no separate disconnected span exists
+    const separateSpan = profileDrawer.locator('span.text-slate-500');
+    await expect(separateSpan).toHaveCount(0);
+
+    // Take screenshot for visual verification
+    await page.screenshot({ path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/verify_profile_drawer_logo.png' });
+
+    // Test in Dark Mode as well
+    await page.evaluate(() => {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      document.documentElement.classList.add('dark');
+    });
+    await page.waitForTimeout(300);
+    await page.screenshot({ path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/verify_profile_drawer_logo_dark.png' });
+  });
 });

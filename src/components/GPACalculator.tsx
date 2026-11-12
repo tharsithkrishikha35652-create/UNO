@@ -489,12 +489,21 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
   ] as const;
 
   const currentExplicitCourses = semesterCourses.map((course) => {
+    const subject = findCourseSubject(subjects, course, deptPresets);
     const key = course.code || course.name;
     const chosenGrade = explicitGrades[key] || 'S';
     const opt = GRADE_OPTIONS.find((g) => g.letter === chosenGrade) ?? GRADE_OPTIONS[0];
+    const isElective = Boolean(course.electiveSlot);
+    const hasSelectedElective = Boolean(
+      subject && subject.name.trim().toLowerCase() !== course.name.trim().toLowerCase()
+    );
+    const displayName = hasSelectedElective ? subject!.name : course.name;
+    const displayCode = hasSelectedElective && subject?.code ? subject.code : course.code;
     return {
-      code: course.code,
-      name: course.name,
+      code: displayCode,
+      name: displayName,
+      slotLabel: isElective ? course.name : undefined,
+      hasSelectedElective,
       credits: course.credits,
       grade: opt.letter,
       gradePoint: opt.point,
@@ -915,18 +924,29 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
 
             {/* Courses List */}
             <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3 divide-y divide-slate-100">
-              {semesterCourses.map((course) => {
-                const key = course.code || course.name;
+              {currentExplicitCourses.map((course, idx) => {
+                const rawCourse = semesterCourses[idx] || course;
+                const key = rawCourse.code || rawCourse.name;
                 const currentGrade = explicitGrades[key] || 'S';
                 return (
                   <div key={key} className="pt-3 first:pt-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="min-w-0 pr-2">
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <span className="font-bold text-sm text-[#172554]">{course.name}</span>
                         <span className="shrink-0 rounded bg-slate-100 border border-slate-200 px-1.5 py-0.5 text-[10px] font-bold text-slate-700">
                           <span className="tabular-nums font-numeric">{course.credits}</span> Credits
                         </span>
                       </div>
+                      {course.slotLabel && course.hasSelectedElective && (
+                        <p className="text-[11px] font-semibold text-slate-500 mt-0.5">
+                          {course.slotLabel}
+                        </p>
+                      )}
+                      {course.slotLabel && !course.hasSelectedElective && (
+                        <p className="text-[11px] font-medium text-amber-600 mt-0.5">
+                          Elective not chosen yet (using default credits)
+                        </p>
+                      )}
                     </div>
 
                     {/* Grade Selector Button Group */}

@@ -18,7 +18,8 @@ interface DesktopCoursesPanelProps {
   selectedSubjectId: string;
   allCoursesCalculated: boolean;
   onSelectCourse: (course: PresetCourse) => void;
-  onSelectElective: (slot: string) => void;
+  onSelectElective?: (course: PresetCourse) => void;
+  onAssignElective?: (course: PresetCourse) => void;
   onCalculateGpa: () => void;
 }
 
@@ -69,6 +70,7 @@ export const DesktopCoursesPanel: React.FC<DesktopCoursesPanelProps> = ({
   allCoursesCalculated,
   onSelectCourse,
   onSelectElective,
+  onAssignElective,
   onCalculateGpa,
 }) => {
   const [expandedElectiveSlot, setExpandedElectiveSlot] = useState<string | null>(null);
@@ -206,7 +208,12 @@ export const DesktopCoursesPanel: React.FC<DesktopCoursesPanelProps> = ({
                         type="button"
                         disabled={isChosenInOtherSlot}
                         onClick={() => {
-                          onSelectCourse(option);
+                          const assignHandler = onAssignElective || onSelectElective;
+                          if (assignHandler) {
+                            assignHandler(option);
+                          } else {
+                            onSelectCourse(option);
+                          }
                           setExpandedElectiveSlot(null);
                         }}
                         className={`flex min-h-12 w-full items-center justify-between gap-3 rounded-lg border px-3 py-2 text-left transition-colors focus-visible:outline-2 focus-visible:outline-[#172554] ${

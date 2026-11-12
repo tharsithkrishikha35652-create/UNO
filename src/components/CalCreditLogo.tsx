@@ -1,6 +1,8 @@
 import type { CSSProperties } from 'react';
 import compactLightUrl from '../../design/calcredit-logo/calcredit_logo_compact_light.svg?url';
 import compactDarkUrl from '../../design/calcredit-logo/calcredit_logo_compact_dark.svg?url';
+import horizontalLightUrl from '../../design/calcredit-logo/calcredit_logo_horizontal_light.svg?url';
+import horizontalDarkUrl from '../../design/calcredit-logo/calcredit_logo_horizontal_dark.svg?url';
 import markLightUrl from '../../design/calcredit-logo/calcredit_mark_light.svg?url';
 import markDarkUrl from '../../design/calcredit-logo/calcredit_mark_dark.svg?url';
 import appIconLightUrl from '../../design/calcredit-logo/calcredit_app_icon_light.svg?url';
@@ -29,10 +31,16 @@ export type Props = {
   style?: CSSProperties;
   /** Theme override: 'light' | 'dark' */
   theme?: 'light' | 'dark';
+  /**
+   * Include the official "ANNA UNIVERSITY" vector subtitle beneath "CalCredit".
+   * Loads the single-element horizontal vector file (design/calcredit-logo/calcredit_logo_horizontal_*.svg).
+   */
+  subtitle?: boolean;
+  showSubtitle?: boolean;
 };
 
-// Aspect ratio for wordmark (width 288, height 49 => ~5.8776)
-const WORD_ASPECT = 288 / 49;
+// Aspect ratio for wordmark (width 300, height 48 => 6.25)
+const WORD_ASPECT = 300 / 48;
 
 export function MarkPlain({ theme }: { theme?: 'light' | 'dark' }) {
   const ink =
@@ -41,7 +49,7 @@ export function MarkPlain({ theme }: { theme?: 'light' | 'dark' }) {
       : theme === 'light'
       ? '#1B1815'
       : 'var(--cc-credit, #1B1815)';
-  const cal = theme === 'dark' ? '#FF5440' : '#E23B22';
+  const cal = '#E23B22';
 
   return (
     <g transform="translate(-3 0)">
@@ -81,7 +89,7 @@ export function MarkPlain({ theme }: { theme?: 'light' | 'dark' }) {
 
 export function MarkTile({ theme }: { theme?: 'light' | 'dark' }) {
   const ink = theme === 'dark' ? '#F5EEDC' : '#1B1815';
-  const cal = theme === 'dark' ? '#FF5440' : '#E23B22';
+  const cal = '#E23B22';
 
   return (
     <>
@@ -126,7 +134,7 @@ export function Wordmark({ theme }: { theme?: 'light' | 'dark' }) {
       : theme === 'light'
       ? '#1B1815'
       : 'var(--cc-credit, #1B1815)';
-  const cal = theme === 'dark' ? '#FF5440' : '#E23B22';
+  const cal = '#E23B22';
 
   return (
     <>
@@ -180,7 +188,10 @@ export default function CalCreditLogo({
   className,
   style,
   theme,
+  subtitle = false,
+  showSubtitle = false,
 }: Props) {
+  const hasSubtitle = Boolean(subtitle || showSubtitle);
   const hasMark = markSize > 0;
   const hasWordmark = wordHeight > 0;
   const compact = hasMark && hasWordmark && !tile;
@@ -189,12 +200,16 @@ export default function CalCreditLogo({
   const lightAsset = tile
     ? appIconLightUrl
     : compact
-      ? compactLightUrl
+      ? hasSubtitle
+        ? horizontalLightUrl
+        : compactLightUrl
       : markLightUrl;
   const darkAsset = tile
     ? appIconDarkUrl
     : compact
-      ? compactDarkUrl
+      ? hasSubtitle
+        ? horizontalDarkUrl
+        : compactDarkUrl
       : markDarkUrl;
 
   const renderAsset = (src: string, variantClass = '') => (
@@ -235,7 +250,7 @@ export default function CalCreditLogo({
           height={wordHeight}
           width={wordHeight * WORD_ASPECT}
           aria-hidden="true"
-          viewBox="14 -4 288 49"
+          viewBox="0 -4 300 48"
           preserveAspectRatio="xMidYMid meet"
           className="shrink-0"
         >

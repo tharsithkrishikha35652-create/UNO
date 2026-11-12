@@ -481,11 +481,8 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
                 </h2>
               </>
             ) : (
-              <h2 id="academic-profile-title" className="flex flex-col items-start gap-0.5">
-                <CalCreditLogo markSize={26} wordHeight={16} gap={6} />
-                <span className="pl-8 text-[8px] font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
-                  Anna University
-                </span>
+              <h2 id="academic-profile-title" className="flex items-center">
+                <CalCreditLogo markSize={28} wordHeight={16} subtitle />
               </h2>
             )}
           </div>

@@ -3,7 +3,6 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { transitions } from '../motion';
 import { FlaskConical, FileText } from 'lucide-react';
 import { NumberStepper } from './NumberStepper';
-import { MaxMarksInput } from './MaxMarksInput';
 
 interface DynamicScoreBoxesProps {
   title: string;
@@ -115,22 +114,6 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
 
           {/* Stepper for number of items */}
           <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
-            {onMaxMarkPerBoxChange && (
-              <MaxMarksInput
-                id={`max-score-${category}-${caName.replace(/\s+/g, '-').toLowerCase()}`}
-                label={`Maximum marks for each ${accessibleItemLabel.toLowerCase()} in ${caName}`}
-                value={maxMarkPerBox}
-                onChange={(value) => {
-                  const nextMax = Math.max(1, Number(value) || numericMaxMarkPerBox);
-                  onMaxMarkPerBoxChange(value);
-                  if (!estimatedMarks) {
-                    onScoresChange(scores.map((score) =>
-                      score === '' ? '' : Math.min(nextMax, Math.max(0, Number(score) || 0))
-                    ));
-                  }
-                }}
-              />
-            )}
             <label
               htmlFor={`count-${category}-${caName}`}
               className="text-xs font-bold text-[#172554] dark:text-[#f1f1f3]"

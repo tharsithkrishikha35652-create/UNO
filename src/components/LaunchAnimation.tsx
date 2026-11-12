@@ -31,19 +31,18 @@ const out = (u: number) => 1 - Math.pow(1 - u, 3);
 const back = (u: number) => 1 + 2.7 * Math.pow(u - 1, 3) + 1.7 * Math.pow(u - 1, 2);
 
 const D = 1.15;
-const Q = 0.76;
+const Q = 0.72;
 const TS = 0.69;
-const T = (D + 4.5 - TS) * Q; // ~3.77s
+const T = (D + 4.5 - TS) * Q; // ~3.57s
 const PEN = 42;
 
-// Brand sheet v2 tokens
+// Brand tokens: fixed #E23B22 across light & dark modes
 const BRAND = {
-  red: '#E23B22',      // CalCredit Red (light)
-  redDark: '#FF5440',  // Red on dark
+  red: '#E23B22',
   ink: '#1B1815',
   cream: '#F5EEDC',
   paper: '#F7F1E1',
-  // The brand sheet specifies one 8-unit stroke for both the C and the 10.
+  darkBg: '#14110F',
   markStroke: 8,
 };
 const FONT_STACK = "'Inter', -apple-system, 'Helvetica Neue', Arial, sans-serif";
@@ -55,7 +54,6 @@ export const LaunchAnimation: React.FC<LaunchAnimationProps> = ({ onDone, theme 
   const sgId = `sg_${uid}`;
   const cwId = `cw_${uid}`;
   const mskId = `msk_${uid}`;
-  const wmId = `wm_${uid}`;
 
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -160,6 +158,7 @@ export const LaunchAnimation: React.FC<LaunchAnimationProps> = ({ onDone, theme 
     const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
     const NS = 'http://www.w3.org/2000/svg';
 
+    // Grade tokens (GR) that gather inward
     const GR = Array.from({ length: 28 }, () => {
       const g = {
         a: rnd() * 6.283,
@@ -180,10 +179,10 @@ export const LaunchAnimation: React.FC<LaunchAnimationProps> = ({ onDone, theme 
 
     const SK = Array.from({ length: 34 }, (_, j) => {
       const tb = 1 + (0.8 * j) / 34;
-      const q = ringEl.getPointAtLength ? ringEl.getPointAtLength(RL * io(S(tb, 1, 1.8))) : { x: 29.73, y: 26.77 };
+      const q = ringEl.getPointAtLength ? ringEl.getPointAtLength(RL * io(S(tb, 1, 1.8))) : { x: 84.24, y: 89.43 };
       const s = {
         x: q.x - OFF,
-        y: q.y - DATA.BLOB.OFF,
+        y: q.y - 64,
         a: rnd() * 6.283,
         v: 20 + rnd() * 45,
         tb: tb + D,
@@ -249,12 +248,15 @@ export const LaunchAnimation: React.FC<LaunchAnimationProps> = ({ onDone, theme 
       mkEl.setAttribute('transform', `translate(${px} ${py}) scale(${s})`);
       mkEl.style.opacity = String(out(S(t, 0, 0.25)));
       cwrEl.setAttribute('x', L.P ? '-1000' : String(px + 50 * L.K));
+
       dr(d1El, L1, io(S(t, 0.35, 0.72)));
       dr(d0El, L0, io(S(t, 0.62, 1)));
+
       const p = io(S(t, 1, 1.8));
       dr(ringEl, RL, p);
+
       const a = out(S(t, 0.78, 1));
-      const pt = ringEl.getPointAtLength ? ringEl.getPointAtLength(RL * p) : { x: 29.73, y: 26.77 };
+      const pt = ringEl.getPointAtLength ? ringEl.getPointAtLength(RL * p) : { x: 84.24, y: 89.43 };
       const fu = S(t, 1.8, 2.2);
       const rot =
         PEN +
@@ -263,20 +265,22 @@ export const LaunchAnimation: React.FC<LaunchAnimationProps> = ({ onDone, theme 
         (fu > 0 && fu < 1 ? (1 - fu) * Math.sin(fu * Math.PI * 3) * 9 : 0);
       penEl.setAttribute('transform', `translate(${pt.x} ${pt.y - 18 * (1 - a)}) rotate(${rot})`);
       penEl.style.opacity = String(a);
+
       pulseEl.setAttribute('transform', `scale(${1 + 0.05 * Math.sin(S(t, 1.85, 2.3) * Math.PI)})`);
       const u3 = S(t, 1.8, 2.3);
       ripEl.setAttribute('r', String(4 + 28 * out(u3)));
       ripEl.style.opacity = String(u3 > 0 && u3 < 1 ? (1 - u3) * 0.8 : 0);
+
       chs.forEach((e, i) => {
         const q = S(t, 1.95 + 0.02 * i, 2.45 + 0.02 * i);
         e.setAttribute('transform', `translate(0 ${8 * (1 - out(q))})`);
         e.style.opacity = String(out(q));
       });
+
       const qa = out(S(t, 2.45, 2.95));
       auEl.style.opacity = String(0.85 * qa);
-      // The official subtitle path is authored at x=142; cancel that offset so
-      // its center aligns with the centered wordmark in this stacked lockup.
       auEl.setAttribute('transform', `translate(-142 ${-75.12 + 8 * (1 - qa)})`);
+
       const fu2 = S(t, 3 - TS, 3.3 - TS);
       const lb = S(t, 3.3 - TS, 3.45 - TS);
       const dq = S(t, 3.45 - TS, 4.1 - TS);
@@ -292,6 +296,7 @@ export const LaunchAnimation: React.FC<LaunchAnimationProps> = ({ onDone, theme 
         55 * (1 - fu2 * fu2);
       dotEl.setAttribute('transform', `translate(${dx} ${dy})`);
       dotEl.style.opacity = String(out(S(t, 3 - TS, 3.1 - TS)));
+
       const sq = S(t, 4.05 - TS, 4.5 - TS);
       shEl.setAttribute('x', String(-70 + 0.325 * L.WY + sq * (L.VW + 140)));
       shEl.style.opacity = String(sq > 0 && sq < 1 ? 1 : 0);
@@ -310,9 +315,11 @@ export const LaunchAnimation: React.FC<LaunchAnimationProps> = ({ onDone, theme 
         );
         g.e.style.opacity = String(out(S(t, 0, 0.25)) * (1 - S(t, D - 0.3, D)) * (0.25 + 0.4 * g.c));
       });
+
       const w2 = S(t, D - 0.05, D + 0.6);
       SW2El.setAttribute('r', String(20 + 140 * out(w2)));
       SW2El.style.opacity = String(w2 > 0 && w2 < 1 ? (1 - w2) * 0.8 : 0);
+
       const tI = D + 1.8;
       const d = t - tI;
       const sy = d > 0 ? Math.exp(-d * 9) * Math.sin(d * 55) * 1.5 : 0;
@@ -322,6 +329,7 @@ export const LaunchAnimation: React.FC<LaunchAnimationProps> = ({ onDone, theme 
           -L.CY + sy
         })`
       );
+
       SK.forEach((s) => {
         const ag = t - s.tb;
         const ok = ag > 0 && ag < 0.7;
@@ -329,6 +337,7 @@ export const LaunchAnimation: React.FC<LaunchAnimationProps> = ({ onDone, theme 
         s.e.setAttribute('cy', String(L.CY + 0.95 * L.K * s.y + Math.sin(s.a) * s.v * ag + 60 * ag * ag));
         s.e.style.opacity = String(ok ? 1 - ag / 0.7 : 0);
       });
+
       const q = S(t, tI, tI + 0.9);
       SWEl.setAttribute('r', String(40 + 280 * out(q)));
       SWEl.setAttribute('stroke-width', String(0.5 + 3 * (1 - q)));
@@ -344,6 +353,9 @@ export const LaunchAnimation: React.FC<LaunchAnimationProps> = ({ onDone, theme 
     layout();
     window.addEventListener('resize', layout);
 
+    // Initial render pass so frame 0 is drawn synchronously before paint
+    R(0);
+
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     if (prefersReducedMotion) {
@@ -358,15 +370,16 @@ export const LaunchAnimation: React.FC<LaunchAnimationProps> = ({ onDone, theme 
     }
 
     let rafId: number;
+    let completionTimer: number | null = null;
     const startTime = performance.now();
 
     const loop = (now: number) => {
       const elapsed = (now - startTime) / 1000;
       if (elapsed >= T) {
         R(T);
-        setTimeout(() => {
+        completionTimer = window.setTimeout(() => {
           finishAnimation();
-        }, 180);
+        }, 140);
         return;
       }
       R(elapsed);
@@ -383,12 +396,15 @@ export const LaunchAnimation: React.FC<LaunchAnimationProps> = ({ onDone, theme 
     return () => {
       cancelAnimationFrame(rafId);
       clearTimeout(failsafe);
+      if (completionTimer) clearTimeout(completionTimer);
       window.removeEventListener('resize', layout);
+      GR.forEach((g) => g.e.remove());
+      SK.forEach((s) => s.e.remove());
     };
   }, [finishAnimation]);
 
   const isDark = mountedTheme === 'dark';
-  const bgColor = isDark ? BRAND.ink : BRAND.paper;
+  const bgColor = isDark ? BRAND.darkBg : BRAND.paper;
 
   return (
     <div
@@ -409,10 +425,9 @@ export const LaunchAnimation: React.FC<LaunchAnimationProps> = ({ onDone, theme 
       }`}
       style={{
         backgroundColor: bgColor,
-        // CSS variables for launch sequence SVG elements
         ['--sbg' as string]: bgColor,
         ['--ink' as string]: isDark ? BRAND.cream : BRAND.ink,
-        ['--red' as string]: isDark ? BRAND.redDark : BRAND.red,
+        ['--red' as string]: BRAND.red,
         ['--muted' as string]: isDark ? '#A39E90' : '#6B675E',
       }}
     >
@@ -437,6 +452,14 @@ export const LaunchAnimation: React.FC<LaunchAnimationProps> = ({ onDone, theme 
         .cc-launch-st .tag { fill: var(--muted); }
         .cc-launch-st .sw { fill: none; stroke: var(--ink); }
         .cc-launch-st .sw2 { fill: none; stroke: var(--red); stroke-width: 3; }
+        .cc-launch-st #mk,
+        .cc-launch-st #au,
+        .cc-launch-st .ch,
+        .cc-launch-st #dot,
+        .cc-launch-st #sh,
+        .cc-launch-st #pen {
+          opacity: 0;
+        }
         @media (prefers-reduced-motion: reduce) {
           .cc-launch-st #ring,
           .cc-launch-st #d1,
@@ -474,15 +497,15 @@ export const LaunchAnimation: React.FC<LaunchAnimationProps> = ({ onDone, theme 
         <rect className="bg" x="-2000" y="-2000" width="6000" height="6000" />
 
         <g id="cam">
+          {/* Grade tokens gathering container */}
           <g id="fx" />
 
-          {/* Mark Group */}
+          {/* Mark Group: centered at (OFF, 64) */}
           <g id="mk">
-            <g transform="translate(-56 -64)">
+            <g transform={`translate(-${OFF} -64)`}>
               {/* Digit 10 Pulse Group */}
               <g id="pulse">
                 <g fill="none" stroke="var(--ink)" strokeWidth={BRAND.markStroke} strokeLinecap="round" strokeLinejoin="round">
-                  {/* Exact centered 10 geometry from the official brand mark. */}
                   <path id="d1" d={DATA.BLOB.d1} />
                   <path id="d0" d={DATA.BLOB.d0} />
                 </g>

@@ -1,6 +1,10 @@
 import {createRoot} from 'react-dom/client';
+import { SplashScreen } from '@capacitor/splash-screen';
 import App from './App.tsx';
 import './index.css';
+
+// Immediately dismiss native splash screen so the web launch animation runs seamlessly
+SplashScreen.hide().catch(() => {});
 
 // Pre-initialize safe-area insets on mobile Android environments
 if (typeof window !== 'undefined') {
