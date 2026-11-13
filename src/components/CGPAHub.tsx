@@ -12,7 +12,6 @@ import { motionVariants } from "../motion";
 
 interface SemesterResultInput {
   gpa: string;
-  credits: string;
   uhvGradePoint: string;
 }
 
@@ -79,24 +78,26 @@ const getUhvSemCgpaCredits = (department?: string): number => {
   return 25;
 };
 
-const getInitialSemesterInputs = (
+export const getSemesterFixedCredits = (
+  semester: number,
   department?: string
-): Record<number, SemesterResultInput> => {
-  const courses = getGpaCourses(department);
+): number => {
   const uhvSem = getUhvSemester(department);
-  const uhvCgpaCredits = getUhvSemCgpaCredits(department);
+  if (semester === uhvSem) {
+    return getUhvSemCgpaCredits(department);
+  }
+  const courses = getGpaCourses(department);
+  const semCourses = courses.filter((course) => course.semester === semester);
+  const total = semCourses.reduce((sum, course) => sum + course.credits, 0);
+  return total > 0 ? total : 21;
+};
+
+const getInitialSemesterInputs = (): Record<number, SemesterResultInput> => {
   return Object.fromEntries(
     SEMESTERS.map((semester) => [
       semester,
       {
         gpa: "",
-        credits: String(
-          semester === uhvSem
-            ? uhvCgpaCredits
-            : courses
-                .filter((course) => course.semester === semester)
-                .reduce((total, course) => total + course.credits, 0)
-        ),
         uhvGradePoint: "",
       },
     ])
@@ -120,23 +121,11 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
   const [semesterInputs, setSemesterInputs] = useState(() => {
     const key = department || 'CSE';
     if (!cachedSemesterInputsByDept[key]) {
-      cachedSemesterInputsByDept[key] = getInitialSemesterInputs(department);
+      cachedSemesterInputsByDept[key] = getInitialSemesterInputs();
     }
     return cachedSemesterInputsByDept[key];
   });
 
-  useEffect(() => {
-    setSemesterInputs((prev) => {
-      const defaults = getInitialSemesterInputs(department);
-      const updated = { ...prev };
-      for (const sem of SEMESTERS) {
-        if (!updated[sem].gpa) {
-          updated[sem] = { ...updated[sem], credits: defaults[sem].credits };
-        }
-      }
-      return updated;
-    });
-  }, [department]);
   const [showUhvHelp, setShowUhvHelp] = useState(false);
   const [isSemesterMenuOpen, setIsSemesterMenuOpen] = useState(false);
   const uhvHelpRef = useRef<HTMLDivElement>(null);
@@ -178,9 +167,9 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
   const validEntries = useMemo(
     () =>
       completedSemesters.map((semester) => {
-        const gpa = Number(semesterInputs[semester].gpa);
-        const credits = Number(semesterInputs[semester].credits);
-        const uhvGradePointValue = semesterInputs[semester].uhvGradePoint ?? "";
+        const gpa = Number(semesterInputs[semester]?.gpa);
+        const credits = getSemesterFixedCredits(semester, department);
+        const uhvGradePointValue = semesterInputs[semester]?.uhvGradePoint ?? "";
         const uhvGradePoint = Number(uhvGradePointValue);
         return {
           semester,
@@ -188,12 +177,10 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
           credits,
           uhvGradePoint,
           valid:
-            semesterInputs[semester].gpa.trim() !== "" &&
+            Boolean(semesterInputs[semester]?.gpa?.trim()) &&
             Number.isFinite(gpa) &&
             gpa >= 0 &&
             gpa <= 10 &&
-            semesterInputs[semester].credits.trim() !== "" &&
-            Number.isFinite(credits) &&
             credits > 0 &&
             (semester !== uhvSem ||
               (uhvGradePointValue.trim() !== "" &&
@@ -202,7 +189,7 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
                 uhvGradePoint <= 10)),
         };
       }),
-    [completedSemesters, semesterInputs]
+    [completedSemesters, semesterInputs, department, uhvSem]
   );
 
   const allInputsValid = validEntries.every((entry) => entry.valid);
@@ -239,6 +226,9 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
       return next;
     });
   };
+
+  const getDropdownSemesterLabel = (sem: number): string =>
+    sem === 8 ? "All Semesters (Semesters 1 – 8)" : `Semester ${sem}`;
 
   return (
     <section
@@ -288,7 +278,7 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
               }}
               className="flex min-h-11 w-full items-center justify-between rounded-xl border border-[var(--app-divider)] bg-[var(--app-surface)] px-3.5 py-2.5 text-sm font-semibold text-[var(--app-primary-text)] shadow-xs transition-colors hover:border-[var(--app-action-accent)] focus:border-[var(--app-action-accent)] focus:outline-2 focus:outline-[var(--app-action-accent)] cursor-pointer"
             >
-              <span>Semester {selectedSemester}</span>
+              <span>{getDropdownSemesterLabel(selectedSemester)}</span>
               <ChevronDown
                 className={`h-4 w-4 text-slate-500 transition-transform duration-300 ease-out ${
                   isSemesterMenuOpen ? "rotate-180" : ""
@@ -329,7 +319,7 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
                             : "text-[var(--app-primary-text)] hover:bg-[var(--app-structural-accent)]/10 hover:text-[var(--app-action-accent-strong)]"
                         }`}
                       >
-                        <span>Semester {semester}</span>
+                        <span>{getDropdownSemesterLabel(semester)}</span>
                         {isSelected && (
                           <Check
                             className="h-3.5 w-3.5 text-[var(--app-action-accent-strong)]"
@@ -346,157 +336,147 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
         </div>
 
         <div className="mt-5 space-y-3">
-          {completedSemesters.map((semester) => (
-            <div
-              key={semester}
-              className="grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 sm:grid-cols-[minmax(0,1fr)_1fr_1fr] sm:items-end"
-            >
-              <h2 className="text-sm font-bold text-[#172554]">
-                Semester {semester}
-              </h2>
-              <label className="block">
-                <span className="mb-1 block text-xs font-semibold text-slate-600">
-                  {semester === uhvSem
-                    ? "Semester GPA (including UHV)"
-                    : "Semester GPA"}
-                </span>
-                <input
-                  type="number"
-                  min={0}
-                  max={10}
-                  step={0.01}
-                  inputMode="decimal"
-                  aria-label={`Semester ${semester} GPA`}
-                  aria-invalid={exceedsMaximumGpa(semesterInputs[semester].gpa)}
-                  aria-describedby={
-                    exceedsMaximumGpa(semesterInputs[semester].gpa)
-                      ? `semester-${semester}-gpa-error`
-                      : undefined
-                  }
-                  placeholder="0.00 – 10.00"
-                  value={semesterInputs[semester].gpa}
-                  onChange={(event) =>
-                    updateInput(semester, "gpa", event.currentTarget.value)
-                  }
-                  className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 font-numeric tabular-nums focus:border-[#172554] focus:outline-2 focus:outline-[#172554]"
-                />
-                {exceedsMaximumGpa(semesterInputs[semester].gpa) && (
-                  <span
-                    id={`semester-${semester}-gpa-error`}
-                    className="mt-1 block text-xs font-semibold text-rose-700"
-                    role="alert"
-                  >
-                    Please enter a valid GPA from 0 to 10.
-                  </span>
-                )}
-              </label>
-              <div className="block">
-                <div className="mb-1 flex items-center justify-between gap-1 text-xs font-semibold text-slate-600">
-                  <label htmlFor={`semester-${semester}-credits`}>
-                    {semester === uhvSem
-                      ? "Credits counted (UHV excluded)"
-                      : "Credits counted"}
-                  </label>
-                  {semester === uhvSem && (
-                    <div
-                      className="relative inline-flex items-center"
-                      ref={uhvHelpRef}
-                    >
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowUhvHelp((prev) => !prev);
-                        }}
-                        className="cursor-pointer rounded-full p-0.5 text-slate-400 transition-colors hover:text-[#172554] focus:text-[#172554] focus:outline-hidden"
-                        aria-label={`How Semester ${uhvSem} UHV credits and GPA work`}
-                        aria-expanded={showUhvHelp}
-                        aria-controls="uhv-help-popover"
-                      >
-                        <HelpCircle className="h-4 w-4" aria-hidden="true" />
-                      </button>
-                      {showUhvHelp && (
-                        <div
-                          id="uhv-help-popover"
-                          role="tooltip"
-                          className="absolute right-0 top-full mt-1.5 z-40 w-72 sm:w-80 max-w-[calc(100vw-2rem)] rounded-lg border border-slate-300 bg-white p-3.5 shadow-xl text-xs text-slate-700 space-y-2 animate-[sticky-result-in_160ms_ease-out]"
-                        >
-                          <div className="flex items-center justify-between pb-1 border-b border-slate-100">
-                            <p className="font-bold text-[#172554]">
-                              Semester {ROMAN_SEMESTERS[uhvSem] || uhvSem} CGPA &amp; UHV
-                            </p>
-                            <button
-                              type="button"
-                              onClick={() => setShowUhvHelp(false)}
-                              className="cursor-pointer px-1 text-xs font-bold text-slate-400 hover:text-slate-700"
-                              aria-label="Close help"
-                            >
-                              ✕
-                            </button>
-                          </div>
-                          <p className="leading-relaxed text-[11px] font-semibold text-[#172554]">
-                            UHV is included in GPA calculation, but excluded in
-                            CGPA calculation.
-                          </p>
-                          <p className="leading-relaxed text-[11px] text-slate-600">
-                            Semester {ROMAN_SEMESTERS[uhvSem] || uhvSem} is counted as{" "}
-                            <strong><span className="font-numeric tabular-nums">{uhvSemCgpaCredits}</span> CGPA credits</strong>. Enter its GPA
-                            including UHV and the UHV grade point; the hub
-                            subtracts UHV’s two-credit contribution.
-                          </p>
-                          <p className="leading-relaxed text-[11px] text-slate-500">
-                            UHV remains included in the Semester {ROMAN_SEMESTERS[uhvSem] || uhvSem} GPA Hub
-                            calculation.
-                          </p>
-                        </div>
+          {completedSemesters.map((semester) => {
+            const semCredits = getSemesterFixedCredits(semester, department);
+            return (
+              <div
+                key={semester}
+                className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#202024] p-3.5 sm:p-4 space-y-2.5"
+              >
+                {/* Header line with Semester title and fixed Regulation Credits */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h2 className="text-sm font-bold text-[#172554] dark:text-[#f1f1f3]">
+                      Semester {semester}
+                    </h2>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-white dark:bg-[#161618] border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-numeric tabular-nums">
+                      {semCredits} credits
+                      {semester === uhvSem && (
+                        <span className="text-[10px] text-slate-400 font-normal hidden sm:inline">(UHV excluded)</span>
                       )}
-                    </div>
+                    </span>
+                    {semester === uhvSem && (
+                      <div
+                        className="relative inline-flex items-center"
+                        ref={uhvHelpRef}
+                      >
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowUhvHelp((prev) => !prev);
+                          }}
+                          className="cursor-pointer rounded-full p-0.5 text-slate-400 transition-colors hover:text-[#172554] dark:hover:text-[#f1f1f3] focus:text-[#172554] focus:outline-hidden"
+                          aria-label={`How Semester ${uhvSem} UHV credits and GPA work`}
+                          aria-expanded={showUhvHelp}
+                          aria-controls="uhv-help-popover"
+                        >
+                          <HelpCircle className="h-4 w-4" aria-hidden="true" />
+                        </button>
+                        {showUhvHelp && (
+                          <div
+                            id="uhv-help-popover"
+                            role="tooltip"
+                            className="absolute left-0 sm:left-auto sm:right-0 top-full mt-1.5 z-40 w-72 sm:w-80 max-w-[calc(100vw-2rem)] rounded-lg border border-slate-300 bg-white p-3.5 shadow-xl text-xs text-slate-700 space-y-2 animate-[sticky-result-in_160ms_ease-out]"
+                          >
+                            <div className="flex items-center justify-between pb-1 border-b border-slate-100">
+                              <p className="font-bold text-[#172554]">
+                                Semester {ROMAN_SEMESTERS[uhvSem] || uhvSem} CGPA &amp; UHV
+                              </p>
+                              <button
+                                type="button"
+                                onClick={() => setShowUhvHelp(false)}
+                                className="cursor-pointer px-1 text-xs font-bold text-slate-400 hover:text-slate-700"
+                                aria-label="Close help"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                            <p className="leading-relaxed text-[11px] font-semibold text-[#172554]">
+                              UHV is included in GPA calculation, but excluded in
+                              CGPA calculation.
+                            </p>
+                            <p className="leading-relaxed text-[11px] text-slate-600">
+                              Semester {ROMAN_SEMESTERS[uhvSem] || uhvSem} is counted as{" "}
+                              <strong><span className="font-numeric tabular-nums">{uhvSemCgpaCredits}</span> CGPA credits</strong>. Enter its GPA
+                              including UHV and the UHV grade point; the hub
+                              subtracts UHV’s two-credit contribution.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Direct GPA inputs without unnecessary credits box/padding */}
+                <div className={semester === uhvSem ? "grid grid-cols-1 sm:grid-cols-2 gap-3" : ""}>
+                  <label className="block">
+                    <span className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-400">
+                      {semester === uhvSem
+                        ? "Semester GPA (including UHV)"
+                        : "Semester GPA"}
+                    </span>
+                    <input
+                      type="number"
+                      min={0}
+                      max={10}
+                      step={0.01}
+                      inputMode="decimal"
+                      aria-label={`Semester ${semester} GPA`}
+                      aria-invalid={exceedsMaximumGpa(semesterInputs[semester]?.gpa ?? "")}
+                      aria-describedby={
+                        exceedsMaximumGpa(semesterInputs[semester]?.gpa ?? "")
+                          ? `semester-${semester}-gpa-error`
+                          : undefined
+                      }
+                      placeholder="0.00 – 10.00"
+                      value={semesterInputs[semester]?.gpa ?? ""}
+                      onChange={(event) =>
+                        updateInput(semester, "gpa", event.currentTarget.value)
+                      }
+                      className="min-h-11 w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#161618] px-3 py-2 text-sm text-slate-900 dark:text-[#f1f1f3] font-numeric tabular-nums focus:border-[#172554] dark:focus:border-[#e08564] focus:outline-2 focus:outline-[#172554]"
+                    />
+                    {exceedsMaximumGpa(semesterInputs[semester]?.gpa ?? "") && (
+                      <span
+                        id={`semester-${semester}-gpa-error`}
+                        className="mt-1 block text-xs font-semibold text-rose-700 dark:text-rose-400"
+                        role="alert"
+                      >
+                        Please enter a valid GPA from 0 to 10.
+                      </span>
+                    )}
+                  </label>
+
+                  {semester === uhvSem && (
+                    <label className="block">
+                      <span className="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-400">
+                        UHV grade point to exclude (2 credits)
+                      </span>
+                      <input
+                        type="number"
+                        min={0}
+                        max={10}
+                        step={0.01}
+                        inputMode="decimal"
+                        aria-label="Universal Human Values grade point to exclude"
+                        placeholder="0.00 – 10.00"
+                        value={semesterInputs[semester]?.uhvGradePoint ?? ""}
+                        onChange={(event) =>
+                          updateInput(
+                            semester,
+                            "uhvGradePoint",
+                            event.currentTarget.value
+                          )
+                        }
+                        className="min-h-11 w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#161618] px-3 py-2 text-sm text-slate-900 dark:text-[#f1f1f3] font-numeric tabular-nums focus:border-[#172554] dark:focus:border-[#e08564] focus:outline-2 focus:outline-[#172554]"
+                      />
+                    </label>
                   )}
                 </div>
-                <input
-                  id={`semester-${semester}-credits`}
-                  type="number"
-                  min={0.01}
-                  step={0.5}
-                  inputMode="decimal"
-                  aria-label={`Semester ${semester} credits counted in CGPA`}
-                  value={semesterInputs[semester].credits}
-                  onChange={(event) =>
-                    updateInput(semester, "credits", event.currentTarget.value)
-                  }
-                  readOnly={semester === uhvSem}
-                  className={`min-h-11 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 font-numeric tabular-nums focus:border-[#172554] focus:outline-2 focus:outline-[#172554] ${
-                    semester === uhvSem ? "bg-slate-100" : "bg-white"
-                  }`}
-                />
               </div>
-              {semester === uhvSem && (
-                <label className="block sm:col-span-3">
-                  <span className="mb-1 block text-xs font-semibold text-slate-600">
-                    UHV grade point to exclude (2 credits)
-                  </span>
-                  <input
-                    type="number"
-                    min={0}
-                    max={10}
-                    step={0.01}
-                    inputMode="decimal"
-                    aria-label="Universal Human Values grade point to exclude"
-                    placeholder="0.00 – 10.00"
-                    value={semesterInputs[semester].uhvGradePoint}
-                    onChange={(event) =>
-                      updateInput(
-                        semester,
-                        "uhvGradePoint",
-                        event.currentTarget.value
-                      )
-                    }
-                    className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 font-numeric tabular-nums focus:border-[#172554] focus:outline-2 focus:outline-[#172554] sm:max-w-xs"
-                  />
-                </label>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
@@ -504,7 +484,7 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
       {cgpa !== null && (
         <motion.section
           key="cgpa-result"
-          className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm sm:p-7"
+          className="rounded-2xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 p-5 shadow-sm sm:p-7"
           aria-live="polite"
           aria-label="CGPA result"
           variants={reduceMotion ? undefined : motionVariants.card}
@@ -512,10 +492,17 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
           animate="animate"
           exit="exit"
         >
-          <p className="text-xs font-bold text-emerald-800">
-            Cumulative GPA through Semester {selectedSemester}
-          </p>
-          <AnimatedNumber value={cgpa} className="mt-1 text-4xl font-black text-[#172554] font-numeric tabular-nums" />
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-bold text-emerald-800 dark:text-emerald-300">
+              {selectedSemester === 8
+                ? "Cumulative GPA for All Semesters"
+                : `Cumulative GPA through Semester ${selectedSemester}`}
+            </p>
+            <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 font-numeric tabular-nums">
+              {totalCredits} total credits
+            </span>
+          </div>
+          <AnimatedNumber value={cgpa} className="mt-1 text-4xl font-black text-[#172554] dark:text-[#f1f1f3] font-numeric tabular-nums" />
         </motion.section>
       )}
       </AnimatePresence>

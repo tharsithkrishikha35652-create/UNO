@@ -956,6 +956,12 @@ export default function App() {
         />
       </div>
     );
+  } else if (import.meta.env.DEV && typeof window !== "undefined" && window.location.search.includes("screen=cgpa")) {
+    content = (
+      <div className="min-h-screen p-4">
+        <CGPAHub department="CSE" />
+      </div>
+    );
   } else if (import.meta.env.DEV && typeof window !== "undefined" && window.location.search.includes("screen=ca-dropdown")) {
     const isEstimated = !window.location.search.includes("estimated=false");
     content = (

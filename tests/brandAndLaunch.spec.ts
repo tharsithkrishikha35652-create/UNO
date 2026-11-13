@@ -261,4 +261,68 @@ test.describe('CalCredit Brand & Launch Animation Suite', () => {
     // Capture uncheck end screenshot
     await page.screenshot({ path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/verify_ca_uncheck_end.png' });
   });
+
+  test('CGPA Hub displays regulation credits beside semester and has no editable credit inputs', async ({ page }) => {
+    await page.setViewportSize({ width: 412, height: 922 });
+    await page.addInitScript(() => {
+      window.sessionStorage.setItem('calcredit_launch_played', 'true');
+    });
+
+    await page.goto('/?screen=cgpa');
+    await page.waitForTimeout(600);
+
+    // 1. Verify "Credits counted" input field does NOT exist
+    const creditInputs = page.locator('input[aria-label*="credits counted in CGPA"]');
+    await expect(creditInputs).toHaveCount(0);
+    const creditsCountedLabels = page.locator('text=Credits counted');
+    await expect(creditsCountedLabels).toHaveCount(0);
+
+    // 2. Verify regulation credits badge beside semester heading
+    const sem1Credits = page.locator('text=21 credits').first();
+    await expect(sem1Credits).toBeVisible();
+
+    // 3. Verify dropdown has All Semesters option
+    const dropdownBtn = page.locator('button[aria-haspopup="listbox"]');
+    await expect(dropdownBtn).toBeVisible();
+    await dropdownBtn.click();
+    await page.waitForTimeout(200);
+
+    const allSemestersOption = page.locator('button:has-text("All Semesters (Semesters 1 – 8)")');
+    await expect(allSemestersOption).toBeVisible();
+    await allSemestersOption.click();
+    await page.waitForTimeout(300);
+
+    // 4. Fill in sample GPAs to verify calculation
+    const gpaInputs = page.getByRole('spinbutton', { name: /Semester \d GPA/ });
+    await expect(gpaInputs).toHaveCount(8);
+
+    // Fill semesters 1 to 8
+    for (let i = 0; i < 8; i++) {
+      await gpaInputs.nth(i).fill('9.0');
+    }
+    // For Sem 3 UHV in CSE, fill UHV grade point
+    const uhvInput = page.getByRole('spinbutton', { name: 'Universal Human Values grade point to exclude' });
+    if (await uhvInput.count() > 0) {
+      await uhvInput.fill('9.0');
+    }
+    await page.waitForTimeout(400);
+
+    // Verify Cumulative GPA result
+    const resultHeader = page.locator('text=Cumulative GPA for All Semesters');
+    await expect(resultHeader).toBeVisible();
+    const resultSection = page.locator('section[aria-label="CGPA result"]');
+    await expect(resultSection).toContainText('9.00');
+    await expect(resultSection).toContainText('169 total credits');
+
+    // Capture verification screenshots
+    await page.screenshot({ path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/verify_cgpa_fixed_credits.png' });
+
+    // Dark mode screenshot
+    await page.evaluate(() => {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      document.documentElement.classList.add('dark');
+    });
+    await page.waitForTimeout(300);
+    await page.screenshot({ path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/verify_cgpa_fixed_credits_dark.png' });
+  });
 });
