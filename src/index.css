@@ -775,8 +775,9 @@ html.theme-switching #root .transition-colors {
   pointer-events: none;
   overflow: hidden;
   background-color: #f7f5f0;
-  transition: opacity 0.4s ease-out, background-color 1.25s cubic-bezier(0.22, 0.75, 0.25, 1);
+  transition: opacity 0.25s ease-out, background-color 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
   contain: strict;
+  transform: translateZ(0);
 }
 
 html.launch-pending #calcredit-ambient-bg {
@@ -809,25 +810,32 @@ html.launch-pending.dark body {
   height: 100%;
   display: block;
   pointer-events: none;
-  transition: opacity 1.25s cubic-bezier(0.22, 0.75, 0.25, 1);
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: opacity;
+  transition: opacity 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0.25s linear;
 }
 
 #calcredit-ambient-bg .light-svg {
   opacity: 1;
+  visibility: visible;
 }
 
 #calcredit-ambient-bg .dark-svg {
   opacity: 0;
+  visibility: hidden;
 }
 
 :root[data-theme="dark"] #calcredit-ambient-bg .light-svg,
 .dark #calcredit-ambient-bg .light-svg {
   opacity: 0;
+  visibility: hidden;
 }
 
 :root[data-theme="dark"] #calcredit-ambient-bg .dark-svg,
 .dark #calcredit-ambient-bg .dark-svg {
   opacity: 1;
+  visibility: visible;
 }
 
 /* Atmospheric Breath Layer (V5/V6) */
@@ -989,7 +997,8 @@ html.launch-pending.dark body {
   50% { opacity: 1; transform: scale(1.35); }
 }
 
-/* Paused state when app is backgrounded to preserve mobile battery & GPU */
+/* Paused state when app is backgrounded or during theme switching to preserve mobile battery & GPU */
+html.theme-switching #calcredit-ambient-bg *,
 #calcredit-ambient-bg.paused *,
 body.paused #calcredit-ambient-bg * {
   animation-play-state: paused !important;
@@ -1011,6 +1020,10 @@ body.paused #calcredit-ambient-bg * {
 
 .min-h-screen {
   background-color: transparent !important;
+}
+
+body {
+  transition: background-color 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 [data-theme="dark"] body {

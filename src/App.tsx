@@ -697,14 +697,26 @@ export default function App() {
     }
   }, [theme]);
 
+  const themeSwitchTimeoutRef = useRef<number | null>(null);
+
   const toggleTheme = useCallback(() => {
+    if (themeSwitchTimeoutRef.current !== null) {
+      window.clearTimeout(themeSwitchTimeoutRef.current);
+    }
     document.documentElement.classList.add("theme-switching");
-    window.requestAnimationFrame(() => {
-      window.requestAnimationFrame(() => {
-        document.documentElement.classList.remove("theme-switching");
-      });
-    });
     setTheme((current) => (current === "light" ? "dark" : "light"));
+    themeSwitchTimeoutRef.current = window.setTimeout(() => {
+      document.documentElement.classList.remove("theme-switching");
+      themeSwitchTimeoutRef.current = null;
+    }, 280);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (themeSwitchTimeoutRef.current !== null) {
+        window.clearTimeout(themeSwitchTimeoutRef.current);
+      }
+    };
   }, []);
 
   useEffect(() => {
