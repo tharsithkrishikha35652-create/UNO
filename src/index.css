@@ -775,8 +775,26 @@ html.theme-switching #root .transition-colors {
   pointer-events: none;
   overflow: hidden;
   background-color: #f7f5f0;
-  transition: background-color 1.25s cubic-bezier(0.22, 0.75, 0.25, 1);
+  transition: opacity 0.4s ease-out, background-color 1.25s cubic-bezier(0.22, 0.75, 0.25, 1);
   contain: strict;
+}
+
+html.launch-pending #calcredit-ambient-bg {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+html.launch-pending,
+html.launch-pending body {
+  background-color: #F7F1E1 !important;
+}
+
+html.launch-pending[data-theme="dark"],
+html.launch-pending.dark,
+html.launch-pending[data-theme="dark"] body,
+html.launch-pending.dark body {
+  background-color: #14110F !important;
 }
 
 [data-theme="dark"] #calcredit-ambient-bg,

@@ -1039,6 +1039,9 @@ export default function App() {
               } catch {
                 /* ignore */
               }
+              if (typeof document !== "undefined") {
+                document.documentElement.classList.remove("launch-pending");
+              }
               setLaunching(false);
             }}
           />,

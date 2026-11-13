@@ -18,8 +18,26 @@ test.describe('CalCredit Brand & Launch Animation Suite', () => {
     await expect(launchOverlay.locator('.cc-wordmark')).toBeAttached();
     await expect(launchOverlay.locator('.cc-subtitle')).toBeAttached();
 
+    // Verify ambient wallpaper is hidden during launch animation (no flash of background image)
+    const ambientBgHidden = await page.evaluate(() => {
+      const bg = document.getElementById('calcredit-ambient-bg');
+      if (!bg) return true;
+      const style = window.getComputedStyle(bg);
+      return style.visibility === 'hidden' || style.opacity === '0';
+    });
+    expect(ambientBgHidden).toBe(true);
+
     // Wait for the animation to finish and unmount/fade out (total runtime ~1.98s, max timeout 4000ms)
     await expect(launchOverlay).toHaveCount(0, { timeout: 4500 });
+
+    // Verify ambient wallpaper is revealed after launch animation finishes
+    const ambientBgVisible = await page.evaluate(() => {
+      const bg = document.getElementById('calcredit-ambient-bg');
+      if (!bg) return false;
+      const style = window.getComputedStyle(bg);
+      return style.visibility !== 'hidden' && parseFloat(style.opacity || '1') > 0;
+    });
+    expect(ambientBgVisible).toBe(true);
 
     // Confirm session storage was set so it won't play again
     const launchPlayed = await page.evaluate(() =>

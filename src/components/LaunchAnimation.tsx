@@ -85,10 +85,19 @@ export const LaunchAnimation: React.FC<LaunchAnimationProps> = ({ onDone, theme 
 
   const finishAnimation = useCallback(() => {
     setIsFadingOut(true);
+    if (typeof document !== 'undefined') {
+      document.documentElement.classList.remove('launch-pending');
+    }
     setTimeout(() => {
       onDoneRef.current();
     }, 180);
   }, []);
+
+  useEffect(() => {
+    if (typeof document !== 'undefined' && !isFadingOut) {
+      document.documentElement.classList.add('launch-pending');
+    }
+  }, [isFadingOut]);
 
   const handleSkip = useCallback(() => {
     finishAnimation();

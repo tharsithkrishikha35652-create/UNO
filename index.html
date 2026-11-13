@@ -21,8 +21,32 @@
         if (savedTheme === 'dark') {
           document.documentElement.classList.add('dark');
         }
+        var launchPlayed = sessionStorage.getItem('calcredit_launch_played');
+        if (launchPlayed !== 'true') {
+          document.documentElement.classList.add('launch-pending');
+          setTimeout(function () {
+            document.documentElement.classList.remove('launch-pending');
+          }, 4500);
+        }
       } catch (e) {}
     </script>
+    <style>
+      html.launch-pending #calcredit-ambient-bg {
+        opacity: 0 !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+      }
+      html.launch-pending,
+      html.launch-pending body {
+        background-color: #F7F1E1 !important;
+      }
+      html.launch-pending[data-theme="dark"],
+      html.launch-pending.dark,
+      html.launch-pending[data-theme="dark"] body,
+      html.launch-pending.dark body {
+        background-color: #14110F !important;
+      }
+    </style>
   </head>
   <body>
     <div id="calcredit-ambient-bg" aria-hidden="true">
