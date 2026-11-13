@@ -1,7 +1,7 @@
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from './firebase';
 
-export const CURRENT_APP_VERSION = '1.0.2';
+export const CURRENT_APP_VERSION = '1.2.0';
 
 export interface AppVersionConfig {
   minimumVersion: string;

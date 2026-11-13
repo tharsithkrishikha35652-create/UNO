@@ -6,7 +6,31 @@ echo   CALCREDIT - Debug-Key Signed Release APK Builder
 echo ============================================================
 echo.
 
-set APK_NAME=CalCredit-v1.0.2.apk
+set APK_NAME=CalCredit-v1.2.0.apk
+
+if not defined JAVA_HOME (
+    for /d %%J in ("C:\Program Files\Microsoft\jdk-21*") do (
+        if exist "%%J\bin\java.exe" if not defined JAVA_HOME set "JAVA_HOME=%%J"
+    )
+    for /d %%J in ("C:\Program Files\Eclipse Adoptium\jdk-21*") do (
+        if exist "%%J\bin\java.exe" if not defined JAVA_HOME set "JAVA_HOME=%%J"
+    )
+    if not defined JAVA_HOME if exist "D:\Android_Studio\jbr" (
+        set "JAVA_HOME=D:\Android_Studio\jbr"
+    ) else if exist "%LOCALAPPDATA%\Programs\Android Studio\jbr" (
+        set "JAVA_HOME=%LOCALAPPDATA%\Programs\Android Studio\jbr"
+    ) else if exist "C:\Program Files\Android\Android Studio\jbr" (
+        set "JAVA_HOME=C:\Program Files\Android\Android Studio\jbr"
+    )
+)
+
+if not defined ANDROID_HOME (
+    if exist "D:\Android_virtual_device" (
+        set "ANDROID_HOME=D:\Android_virtual_device"
+    ) else if exist "%LOCALAPPDATA%\Android\Sdk" (
+        set "ANDROID_HOME=%LOCALAPPDATA%\Android\Sdk"
+    )
+)
 
 echo [1/5] Building optimized web distribution (dist/)...
 call npm run build
@@ -117,4 +141,4 @@ echo Output Locations:
 echo   - dist\release-apk\%APK_NAME%   (included in Firebase deploy)
 echo   - release-apk\%APK_NAME%        (standalone archive)
 echo.
-pause
+if "%~1" neq "--no-pause" if not defined CI pause

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-APK_NAME="CalCredit-v1.0.2.apk"
+APK_NAME="CalCredit-v1.2.0.apk"
 
 echo "============================================================"
 echo "  CALCREDIT - Debug-Key Signed Release APK Builder"
