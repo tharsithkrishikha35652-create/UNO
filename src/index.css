@@ -937,7 +937,9 @@ html.dark #calcredit-ambient-bg .dark-svg * {
 html.theme-switching #calcredit-ambient-bg *,
 html.launch-pending #calcredit-ambient-bg *,
 #calcredit-ambient-bg.paused *,
-body.paused #calcredit-ambient-bg * {
+body.paused #calcredit-ambient-bg *,
+body.paused .credits-plate *,
+#calcredit-ambient-bg.paused ~ #root .credits-plate * {
   animation-play-state: paused !important;
 }
 
@@ -945,7 +947,11 @@ body.paused #calcredit-ambient-bg * {
 @media (prefers-reduced-motion: reduce) {
   #calcredit-ambient-bg *,
   #calcredit-ambient-bg *::before,
-  #calcredit-ambient-bg *::after {
+  #calcredit-ambient-bg *::after,
+  .credits-plate .cp-star,
+  .credits-plate .cp-cloud,
+  .credits-plate .cp-moon,
+  [data-theme="dark"] .credits-plate .cp-lit.cp-flick {
     animation: none !important;
     animation-play-state: paused !important;
   }

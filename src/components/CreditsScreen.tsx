@@ -211,12 +211,39 @@ const DecodeText: React.FC<{ value: string }> = ({ value }) => {
   );
 };
 
-/* The clock on the tower shows the viewer's actual time. */
+/* The clock on the tower shows the viewer's actual time, synchronized with the minute boundary. */
 const useClockAngles = () => {
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
-    const id = window.setInterval(() => setNow(new Date()), 15000);
-    return () => window.clearInterval(id);
+    let intervalId: number | null = null;
+    let timeoutId: number | null = null;
+
+    const update = () => {
+      if (!document.hidden) {
+        setNow(new Date());
+      }
+    };
+
+    const handleVisibility = () => {
+      if (!document.hidden) {
+        setNow(new Date());
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility, { passive: true });
+
+    // Sync with the next full minute, then tick once every 60 seconds
+    const msToNextMinute = (60 - new Date().getSeconds()) * 1000;
+    timeoutId = window.setTimeout(() => {
+      update();
+      intervalId = window.setInterval(update, 60000);
+    }, msToNextMinute);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+      if (timeoutId !== null) window.clearTimeout(timeoutId);
+      if (intervalId !== null) window.clearInterval(intervalId);
+    };
   }, []);
   return { hourAngle: ((now.getHours() % 12) * 60 + now.getMinutes()) * 0.5, minuteAngle: now.getMinutes() * 6 };
 };
