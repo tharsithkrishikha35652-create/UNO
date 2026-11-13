@@ -582,7 +582,7 @@ const MobileCoursesSheetBody: React.FC<MobileCoursesSheetProps> = ({
         exit="exit"
       >
         <motion.div
-          className="h-full w-full bg-slate-950/45 backdrop-blur-sm"
+          className="h-full w-full bg-slate-950/60"
           style={{ opacity: backdropDragOpacity }}
         />
       </motion.button>

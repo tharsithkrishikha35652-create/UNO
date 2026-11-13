@@ -478,7 +478,7 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
         exit={reduceMotion ? undefined : 'exit'}
       >
         <motion.div
-          className="h-full w-full bg-slate-950/45 backdrop-blur-sm"
+          className="h-full w-full bg-slate-950/60"
         />
       </motion.button>
       <motion.aside

@@ -777,7 +777,6 @@ html.theme-switching #root .transition-colors {
   background-color: #f7f5f0;
   transition: opacity 0.25s ease-out, background-color 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
   contain: strict;
-  transform: translateZ(0);
 }
 
 html.launch-pending #calcredit-ambient-bg {
@@ -810,10 +809,11 @@ html.launch-pending.dark body {
   height: 100%;
   display: block;
   pointer-events: none;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  will-change: opacity;
   transition: opacity 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0.25s linear;
+}
+
+html.theme-switching #calcredit-ambient-bg .wallpaper-svg {
+  will-change: opacity;
 }
 
 #calcredit-ambient-bg .light-svg {
@@ -838,16 +838,38 @@ html.launch-pending.dark body {
   visibility: visible;
 }
 
-/* Atmospheric Breath Layer (V5/V6) */
+/* Theme-aware animation play state: strictly pause every animation inside the inactive theme SVG */
+:root:not([data-theme="dark"]) #calcredit-ambient-bg .dark-svg *,
+html:not(.dark) #calcredit-ambient-bg .dark-svg * {
+  animation-play-state: paused !important;
+}
+
+:root[data-theme="dark"] #calcredit-ambient-bg .light-svg *,
+html.dark #calcredit-ambient-bg .light-svg * {
+  animation-play-state: paused !important;
+}
+
+/* Active theme artwork animations run smoothly */
+:root:not([data-theme="dark"]) #calcredit-ambient-bg .light-svg *,
+html:not(.dark) #calcredit-ambient-bg .light-svg * {
+  animation-play-state: running;
+}
+
+:root[data-theme="dark"] #calcredit-ambient-bg .dark-svg *,
+html.dark #calcredit-ambient-bg .dark-svg * {
+  animation-play-state: running;
+}
+
+/* Atmospheric Breath Layer (V5/V6): Static radial gradients with subtle opacity-only modulation */
 #calcredit-ambient-bg .breath-layer {
   position: absolute;
-  inset: -8%;
+  inset: 0;
   pointer-events: none;
-  transform-origin: center;
   opacity: 0.25;
   background: radial-gradient(ellipse at 23% 24%, #fff0d9 0%, transparent 43%),
               radial-gradient(ellipse at 78% 74%, #e5a67a 0%, transparent 47%);
   animation: v6BgBreath 8s ease-in-out infinite;
+  will-change: opacity;
 }
 
 :root[data-theme="dark"] #calcredit-ambient-bg .breath-layer,
@@ -858,8 +880,8 @@ html.launch-pending.dark body {
 }
 
 @keyframes v6BgBreath {
-  0%, 100% { transform: scale(0.96); opacity: 0.20; }
-  50% { transform: scale(1.05); opacity: 0.46; }
+  0%, 100% { opacity: 0.18; }
+  50% { opacity: 0.42; }
 }
 
 /* Decorative Sparks */
@@ -997,8 +1019,8 @@ html.launch-pending.dark body {
   50% { opacity: 1; transform: scale(1.35); }
 }
 
-/* Paused state when app is backgrounded or during theme switching to preserve mobile battery & GPU */
-html.theme-switching #calcredit-ambient-bg *,
+/* Paused state when app is backgrounded or during launch sequence to preserve mobile battery & GPU */
+html.launch-pending #calcredit-ambient-bg *,
 #calcredit-ambient-bg.paused *,
 body.paused #calcredit-ambient-bg * {
   animation-play-state: paused !important;
@@ -1010,6 +1032,7 @@ body.paused #calcredit-ambient-bg * {
   #calcredit-ambient-bg *::before,
   #calcredit-ambient-bg *::after {
     animation: none !important;
+    animation-play-state: paused !important;
   }
 }
 

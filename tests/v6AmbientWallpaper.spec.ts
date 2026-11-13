@@ -74,14 +74,27 @@ test.describe('CALCREDIT V6 Live Wallpaper Suite', () => {
     expect(await ambientBg.locator('.spark').count()).toBe(4);
   });
 
-  test('theme crossfade switches light and dark SVG visibility smoothly', async ({ page }) => {
+  test('theme-aware animation control: pauses inactive SVG and runs active SVG', async ({ page }) => {
     await page.goto('/');
 
     const ambientBg = page.locator('#calcredit-ambient-bg');
     const lightSvg = ambientBg.locator('svg.light-svg');
     const darkSvg = ambientBg.locator('svg.dark-svg');
 
-    // Switch to dark theme
+    // 1. In Light Mode:
+    // Active light SVG animations must be RUNNING
+    const lightTasselState = await lightSvg.locator('.cap-tassel').evaluate((el) => {
+      return window.getComputedStyle(el).animationPlayState;
+    });
+    expect(lightTasselState).toBe('running');
+
+    // Inactive dark SVG animations must be PAUSED to eliminate GPU waste
+    const darkTasselState = await darkSvg.locator('.cap-tassel').evaluate((el) => {
+      return window.getComputedStyle(el).animationPlayState;
+    });
+    expect(darkTasselState).toBe('paused');
+
+    // 2. Switch to Dark Mode:
     await page.evaluate(() => {
       document.documentElement.dataset.theme = 'dark';
       document.documentElement.classList.add('dark');
@@ -94,6 +107,36 @@ test.describe('CALCREDIT V6 Live Wallpaper Suite', () => {
       expect(parseFloat(darkOpacity)).toBeGreaterThan(0.9);
       expect(parseFloat(lightOpacity)).toBeLessThan(0.1);
     }).toPass({ timeout: 2000 });
+
+    // In Dark Mode:
+    // Active dark SVG animations must be RUNNING
+    const darkTasselAfterSwitch = await darkSvg.locator('.cap-tassel').evaluate((el) => {
+      return window.getComputedStyle(el).animationPlayState;
+    });
+    expect(darkTasselAfterSwitch).toBe('running');
+
+    // Inactive light SVG animations must be PAUSED
+    const lightTasselAfterSwitch = await lightSvg.locator('.cap-tassel').evaluate((el) => {
+      return window.getComputedStyle(el).animationPlayState;
+    });
+    expect(lightTasselAfterSwitch).toBe('paused');
+
+    // 3. Switch back to Light Mode:
+    await page.evaluate(() => {
+      document.documentElement.dataset.theme = 'light';
+      document.documentElement.classList.remove('dark');
+    });
+
+    await expect(async () => {
+      const lightTasselBack = await lightSvg.locator('.cap-tassel').evaluate((el) => {
+        return window.getComputedStyle(el).animationPlayState;
+      });
+      const darkTasselBack = await darkSvg.locator('.cap-tassel').evaluate((el) => {
+        return window.getComputedStyle(el).animationPlayState;
+      });
+      expect(lightTasselBack).toBe('running');
+      expect(darkTasselBack).toBe('paused');
+    }).toPass({ timeout: 1000 });
   });
 
   test('mobile performance: pause state stops animations when backgrounded', async ({ page }) => {
@@ -103,15 +146,63 @@ test.describe('CALCREDIT V6 Live Wallpaper Suite', () => {
 
     const ambientBg = page.locator('#calcredit-ambient-bg');
 
-    // Emulate backgrounded tab by adding paused class
+    // Emulate backgrounded app / hidden tab by adding paused class
     await page.evaluate(() => {
       document.getElementById('calcredit-ambient-bg')?.classList.add('paused');
     });
 
+    const lightTasselState = await ambientBg.locator('svg.light-svg .cap-tassel').evaluate((el) => {
+      return window.getComputedStyle(el).animationPlayState;
+    });
+    expect(lightTasselState).toBe('paused');
+
+    const darkTasselState = await ambientBg.locator('svg.dark-svg .cap-tassel').evaluate((el) => {
+      return window.getComputedStyle(el).animationPlayState;
+    });
+    expect(darkTasselState).toBe('paused');
+
+    // Resume when returning to foreground
+    await page.evaluate(() => {
+      document.getElementById('calcredit-ambient-bg')?.classList.remove('paused');
+    });
+
+    const resumedLightState = await ambientBg.locator('svg.light-svg .cap-tassel').evaluate((el) => {
+      return window.getComputedStyle(el).animationPlayState;
+    });
+    expect(resumedLightState).toBe('running');
+  });
+
+  test('reduced-motion preference strictly disables animations', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/');
+
+    const ambientBg = page.locator('#calcredit-ambient-bg');
     const playState = await ambientBg.locator('.cap-tassel').first().evaluate((el) => {
       return window.getComputedStyle(el).animationPlayState;
     });
     expect(playState).toBe('paused');
+  });
+
+  test('launch animation suppresses wallpaper rendering overhead', async ({ page }) => {
+    await page.goto('/');
+
+    // Simulate launch-pending state
+    await page.evaluate(() => {
+      document.documentElement.classList.add('launch-pending');
+    });
+
+    const ambientBg = page.locator('#calcredit-ambient-bg');
+    const playState = await ambientBg.locator('.cap-tassel').first().evaluate((el) => {
+      return window.getComputedStyle(el).animationPlayState;
+    });
+    expect(playState).toBe('paused');
+
+    await expect(async () => {
+      const bgVisibility = await ambientBg.evaluate((el) => window.getComputedStyle(el).visibility);
+      const bgOpacity = await ambientBg.evaluate((el) => window.getComputedStyle(el).opacity);
+      expect(bgVisibility).toBe('hidden');
+      expect(parseFloat(bgOpacity)).toBe(0);
+    }).toPass({ timeout: 1000 });
   });
 
   test('visual capture: light and dark V6 wallpaper screenshots', async ({ page }) => {
@@ -142,7 +233,7 @@ test.describe('CALCREDIT V6 Live Wallpaper Suite', () => {
     });
 
     // Wait for theme crossfade
-    await page.waitForTimeout(1400);
+    await page.waitForTimeout(600);
 
     // Capture Dark mode desktop screenshot
     await page.screenshot({

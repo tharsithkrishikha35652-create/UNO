@@ -908,7 +908,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
       <AnimatePresence>
       {showExplicitGradeModal && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/45 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/60"
           role="dialog"
           aria-modal="true"
           aria-labelledby="custom-grade-modal-title"

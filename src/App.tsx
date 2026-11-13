@@ -3121,7 +3121,7 @@ function AuthenticatedApp({
         <div
           role="status"
           aria-live="polite"
-          className="fixed inset-x-4 bottom-[calc(5.25rem+var(--safe-area-bottom))] z-50 mx-auto flex max-w-md items-center justify-between gap-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white/95 dark:bg-[#202024]/95 p-3.5 shadow-lg backdrop-blur-sm transition-[bottom] duration-300 ease-out"
+          className="fixed inset-x-4 bottom-[calc(5.25rem+var(--safe-area-bottom))] z-50 mx-auto flex max-w-md items-center justify-between gap-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white/98 dark:bg-[#202024]/98 p-3.5 shadow-lg transition-[bottom] duration-300 ease-out"
         >
           <span className="truncate text-xs font-semibold text-slate-700 dark:text-slate-300">
             {undoToast.message}
