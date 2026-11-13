@@ -192,17 +192,64 @@ test.describe('CALCREDIT V6 Live Wallpaper Suite', () => {
     });
 
     const ambientBg = page.locator('#calcredit-ambient-bg');
-    const playState = await ambientBg.locator('.cap-tassel').first().evaluate((el) => {
-      return window.getComputedStyle(el).animationPlayState;
-    });
-    expect(playState).toBe('paused');
-
     await expect(async () => {
       const bgVisibility = await ambientBg.evaluate((el) => window.getComputedStyle(el).visibility);
       const bgOpacity = await ambientBg.evaluate((el) => window.getComputedStyle(el).opacity);
       expect(bgVisibility).toBe('hidden');
       expect(parseFloat(bgOpacity)).toBe(0);
     }).toPass({ timeout: 1000 });
+  });
+
+  test('connected scene: one conductor moves every part and the parts react to each other', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('#calcredit-ambient-bg')).toHaveAttribute('data-ambient', 'running');
+    const read = () => page.evaluate(() => {
+      const q = (sel: string) => document.querySelector<SVGElement>(`#calcredit-ambient-bg svg.light-svg ${sel}`);
+      return {
+        books: q('.book-stack')?.style.transform ?? '',
+        shadow: q('.shadow-lines')?.style.transform ?? '',
+        tassel: q('.cap-tassel')?.style.transform ?? '',
+        col: q('.dotcol')?.style.opacity ?? '',
+      };
+    });
+    const a = await read();
+    await page.waitForTimeout(1200);
+    const b = await read();
+    expect(a.books).not.toBe('');
+    expect(b.books).not.toBe(a.books);
+    expect(b.shadow).not.toBe(a.shadow);
+    expect(b.tassel).not.toBe(a.tassel);
+    expect(parseFloat(b.col)).toBeGreaterThan(0.5);
+  });
+
+  test('app events ripple through the artwork (a result makes the stars flare)', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('#calcredit-ambient-bg')).toHaveAttribute('data-ambient', 'running');
+    const peak = await page.evaluate(async () => {
+      window.dispatchEvent(new CustomEvent('calcredit:ambient', { detail: { kind: 'result' } }));
+      let max = 0;
+      const t0 = performance.now();
+      while (performance.now() - t0 < 1800) {
+        await new Promise((r) => requestAnimationFrame(r));
+        document.querySelectorAll<SVGElement>('#calcredit-ambient-bg svg.light-svg .svg-star').forEach((el) => {
+          const m = /scale\(([\d.]+)\)/.exec(el.style.transform);
+          if (m) max = Math.max(max, parseFloat(m[1]));
+        });
+      }
+      return max;
+    });
+    // idle twinkle tops out at 1.35; a result ripple must push stars well past that
+    expect(peak).toBeGreaterThan(1.5);
+  });
+
+  test('reduced motion: the artwork stays static', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/');
+    await expect(page.locator('#calcredit-ambient-bg')).toHaveAttribute('data-ambient', 'static');
+    const transform = await page.evaluate(
+      () => document.querySelector<SVGElement>('#calcredit-ambient-bg svg.light-svg .book-stack')?.style.transform ?? ''
+    );
+    expect(transform).toBe('');
   });
 
   test('visual capture: light and dark V6 wallpaper screenshots', async ({ page }) => {

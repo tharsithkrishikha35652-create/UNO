@@ -860,28 +860,22 @@ html.dark #calcredit-ambient-bg .dark-svg * {
   animation-play-state: running;
 }
 
-/* Atmospheric Breath Layer (V5/V6): Static radial gradients with subtle opacity-only modulation */
+/* Atmospheric Breath Layer (V5/V6): Driven by conductor CSS variable --amb-breath */
 #calcredit-ambient-bg .breath-layer {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: 0.25;
   background: radial-gradient(ellipse at 23% 24%, #fff0d9 0%, transparent 43%),
               radial-gradient(ellipse at 78% 74%, #e5a67a 0%, transparent 47%);
-  animation: v6BgBreath 8s ease-in-out infinite;
-  will-change: opacity;
+  transform: scale(calc(0.96 + 0.09 * var(--amb-breath, 0.5)));
+  opacity: calc(0.2 + 0.26 * var(--amb-breath, 0.5));
 }
 
 :root[data-theme="dark"] #calcredit-ambient-bg .breath-layer,
 .dark #calcredit-ambient-bg .breath-layer {
-  opacity: 0.30;
+  opacity: calc(0.22 + 0.3 * var(--amb-breath, 0.5));
   background: radial-gradient(ellipse at 23% 24%, #7e9acb 0%, transparent 45%),
               radial-gradient(ellipse at 78% 76%, #a96751 0%, transparent 48%);
-}
-
-@keyframes v6BgBreath {
-  0%, 100% { opacity: 0.18; }
-  50% { opacity: 0.42; }
 }
 
 /* Decorative Sparks */
@@ -890,7 +884,6 @@ html.dark #calcredit-ambient-bg .dark-svg * {
   width: 9px;
   height: 9px;
   opacity: 0.8;
-  animation: v6Spark 2.8s ease-in-out infinite;
   pointer-events: none;
 }
 
@@ -917,15 +910,10 @@ html.dark #calcredit-ambient-bg .dark-svg * {
   background: #e2a17e;
 }
 
-#calcredit-ambient-bg .spark.s1 { top: 16%; left: 72%; animation-delay: -0.7s; }
-#calcredit-ambient-bg .spark.s2 { top: 56%; left: 9%;  animation-delay: -1.5s; }
-#calcredit-ambient-bg .spark.s3 { top: 68%; right: 8%; animation-delay: -0.3s; }
-#calcredit-ambient-bg .spark.s4 { top: 38%; right: 15%; animation-delay: -2.1s; }
-
-@keyframes v6Spark {
-  0%, 100% { opacity: 0.15; transform: scale(0.65) rotate(0deg); }
-  50% { opacity: 1; transform: scale(1.4) rotate(45deg); }
-}
+#calcredit-ambient-bg .spark.s1 { top: 16%; left: 72%; }
+#calcredit-ambient-bg .spark.s2 { top: 56%; left: 9%;  }
+#calcredit-ambient-bg .spark.s3 { top: 68%; right: 8%; }
+#calcredit-ambient-bg .spark.s4 { top: 38%; right: 15%; }
 
 /* V6 Live Artwork Elements: Noticeable, organic, hardware-accelerated SVG transforms */
 
@@ -933,91 +921,17 @@ html.dark #calcredit-ambient-bg .dark-svg * {
 #calcredit-ambient-bg .cap-tassel {
   transform-box: view-box;
   transform-origin: 488px 155px;
-  animation: v6TasselPendulum 2.4s cubic-bezier(0.37, 0, 0.63, 1) infinite;
 }
 
-@keyframes v6TasselPendulum {
-  0%, 100% { transform: rotate(-18deg); }
-  50% { transform: rotate(20deg); }
-}
-
-/* Bottom-left organic shapes: smooth, noticeable looped breathing drift */
-#calcredit-ambient-bg .left-art-piece {
-  transform-box: view-box;
-  transform-origin: 80px 880px;
-  animation: v6LeftShapeDrift 7s ease-in-out infinite;
-}
-
-#calcredit-ambient-bg .left-art-piece.left-art-2 {
-  animation-duration: 8.5s;
-  animation-delay: -3.5s;
-}
-
-@keyframes v6LeftShapeDrift {
-  0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
-  25% { transform: translate(4px, -8px) rotate(1deg) scale(1.02); }
-  50% { transform: translate(8px, -14px) rotate(1.8deg) scale(1.03); }
-  75% { transform: translate(3px, -6px) rotate(0.8deg) scale(1.015); }
-}
-
-/* Bottom-right organic shapes: smooth, noticeable looped breathing drift */
-#calcredit-ambient-bg .right-art-piece {
-  transform-box: view-box;
-  transform-origin: 600px 900px;
-  animation: v6RightShapeDrift 7.8s ease-in-out infinite;
-}
-
-#calcredit-ambient-bg .right-art-piece.right-art-2 {
-  animation-duration: 9s;
-  animation-delay: -4.2s;
-}
-
-@keyframes v6RightShapeDrift {
-  0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
-  25% { transform: translate(-5px, -9px) rotate(-1.1deg) scale(1.02); }
-  50% { transform: translate(-10px, -15px) rotate(-2deg) scale(1.03); }
-  75% { transform: translate(-4px, -6px) rotate(-0.9deg) scale(1.015); }
-}
-
-/* Top-left organic shape: noticeable expansion & breathing */
-#calcredit-ambient-bg .top-left-art {
-  transform-box: view-box;
-  transform-origin: 90px 80px;
-  animation: v6TopShapeBreath 6s ease-in-out infinite;
-}
-
-@keyframes v6TopShapeBreath {
-  0%, 100% { transform: scale(1) translate(0, 0); }
-  50% { transform: scale(1.06) translate(8px, 6px); }
-}
-
-/* Books stack: clearly visible floating hover */
-#calcredit-ambient-bg .book-stack {
-  transform-box: view-box;
-  transform-origin: 65px 375px;
-  animation: v6BooksFloat 5.4s ease-in-out infinite;
-}
-
-@keyframes v6BooksFloat {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-14px) rotate(-1.8deg); }
-}
-
-/* Stars: clearly noticeable twinkling and pulse */
+/* Bottom-left and bottom-right organic shapes, top-left art, books stack, and stars
+   are moved by one conductor (src/components/AmbientWallpaper.tsx): a master wave plus
+   depth parallax, app events and input. CSS holds pivots and paused/reduced-motion rules. */
 #calcredit-ambient-bg .svg-star {
   transform-box: fill-box;
   transform-origin: center;
-  animation: v6SvgStarTwinkle 2.6s ease-in-out infinite;
 }
 
-#calcredit-ambient-bg .svg-star.star-2 { animation-delay: -0.7s; }
-#calcredit-ambient-bg .svg-star.star-3 { animation-delay: -1.4s; }
-#calcredit-ambient-bg .svg-star.star-4 { animation-delay: -2.1s; }
-
-@keyframes v6SvgStarTwinkle {
-  0%, 100% { opacity: 0.25; transform: scale(0.75); }
-  50% { opacity: 1; transform: scale(1.35); }
-}
+#calcredit-ambient-bg .dotcol { transform-box: view-box; }
 
 /* Paused state when app is backgrounded, switching themes, or during launch sequence to preserve mobile battery & GPU */
 html.theme-switching #calcredit-ambient-bg *,

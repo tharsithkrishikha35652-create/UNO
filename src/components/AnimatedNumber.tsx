@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { animate, useReducedMotion } from 'motion/react';
 import { motionTiming } from '../motion';
+import { pingAmbient } from '../ambient/ambientBus';
 
 interface AnimatedNumberProps {
   value: number;
@@ -29,6 +30,9 @@ export const AnimatedNumber: React.FC<AnimatedNumberProps> = ({ value, decimals 
       setDisplayValue(to);
       return;
     }
+
+    // A headline number is changing: let the live wallpaper react (ripple through the artwork).
+    pingAmbient({ kind: 'result' });
 
     const controls = animate(from, to, {
       duration: 0.52,

@@ -341,3 +341,12 @@ Special gratitude to the faculty and student community of **College of Engineeri
 <p align="center">
   <sub>© 2026 CalCredit. Built with pride for College of Engineering, Guindy.</sub>
 </p>
+
+## Live wallpaper
+
+The background is layered SVG art (`public/background_*.svg`, inlined in `index.html`) moved by one conductor,
+`src/components/AmbientWallpaper.tsx`: a master wave crosses the page and every part responds to it, with depth
+parallax (mouse, device tilt, active tab), cause and effect between parts (cap -> tassel, books -> shadow lines,
+blobs -> orbs), ripples from app events (`pingAmbient` in `src/ambient/ambientBus.ts`: results, tab changes),
+more energy while scrolling and a calmer scene while typing. It pauses when the app is backgrounded and is static
+under `prefers-reduced-motion`.
