@@ -940,6 +940,22 @@ export default function App() {
         />
       </div>
     );
+  } else if (import.meta.env.DEV && typeof window !== "undefined" && window.location.search.includes("screen=gpa")) {
+    content = (
+      <div className="min-h-screen p-4">
+        <GPACalculator
+          subjects={[]}
+          calculatedSignatures={{}}
+          department="CSE"
+          initialSemester={1}
+          onCalculate={async () => {}}
+          history={[]}
+          includeEstimates={false}
+          estimatePercentage={80}
+          guestMode={false}
+        />
+      </div>
+    );
   } else if (!user) {
     content = (
       <AuthScreen

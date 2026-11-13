@@ -632,7 +632,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
       <div className="rounded-xl bg-white border border-slate-300 p-5 sm:p-7 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 flex items-center justify-center bg-[#172554] text-white rounded-xl">
+            <div className="w-11 h-11 flex items-center justify-center bg-[#172554] text-white rounded-xl shrink-0">
               <GraduationCap className="w-6 h-6" />
             </div>
             <div>
@@ -644,6 +644,17 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
               </h2>
             </div>
           </div>
+
+          <button
+            id="tour-grades-of-choice-button"
+            data-tour="grades-of-choice-button"
+            type="button"
+            onClick={() => setShowExplicitGradeModal(true)}
+            className="inline-flex h-11 w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-[#172554] px-4 text-xs font-bold text-white shadow-xs transition-colors hover:bg-[#1e3a8a] cursor-pointer shrink-0"
+          >
+            <Sparkles className="w-4 h-4 text-white" />
+            Enter Grades of Choice
+          </button>
         </div>
 
         {explicitCalculationResult && (
@@ -892,19 +903,6 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
           </div>
         </section>
       )}
-
-      <div className="flex justify-end px-4 sm:px-0">
-        <button
-          id="tour-grades-of-choice-button"
-          data-tour="grades-of-choice-button"
-          type="button"
-          onClick={() => setShowExplicitGradeModal(true)}
-          className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#172554] px-4 text-xs font-bold text-white shadow-xs transition-colors hover:bg-[#1e3a8a] cursor-pointer sm:w-56"
-        >
-          <Sparkles className="w-4 h-4 text-white" />
-          Enter Grades of Choice
-        </button>
-      </div>
 
       {/* Explicit / Custom Grade Entry Modal */}
       <AnimatePresence>

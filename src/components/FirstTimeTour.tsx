@@ -115,9 +115,9 @@ function computeCardPosition(
       defaultLeft = Math.max(16, vw - cardWidth - 16);
       arrowX = cardWidth - 45;
     } else if (step === 'grades_of_choice') {
-      defaultTop = Math.max(20, Math.round(vh * 0.45));
+      defaultTop = 140;
       defaultLeft = Math.max(16, Math.round((vw - cardWidth) / 2));
-      placement = 'above';
+      placement = 'below';
       arrowX = Math.round(cardWidth / 2);
     }
 
@@ -135,12 +135,9 @@ function computeCardPosition(
 
   // Prefer side with ample clearance, strictly ensuring the element is NEVER covered
   let placement: 'above' | 'below' = 'below';
-  if (step === 'grades_of_choice') {
-    // Strictly position above the button to guarantee it is never covered
-    placement = 'above';
-  } else if (step === 'semester_selector' || step === 'feedback_screen') {
-    // Strictly position below header dropdown or heading
-    placement = 'below';
+  if (step === 'semester_selector' || step === 'feedback_screen' || step === 'grades_of_choice') {
+    // Strictly position below header dropdown, heading, or top action button
+    placement = spaceBelow >= cardHeight + 20 ? 'below' : 'above';
   } else if (spaceBelow >= cardHeight + 20) {
     placement = 'below';
   } else if (spaceAbove >= cardHeight + 20) {

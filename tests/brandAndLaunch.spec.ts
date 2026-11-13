@@ -166,4 +166,45 @@ test.describe('CalCredit Brand & Launch Animation Suite', () => {
     await page.waitForTimeout(300);
     await page.screenshot({ path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/verify_courses_sheet_blur_dark.png' });
   });
+
+  test('GPA Hub displays Enter Grades of Choice button at the top of the page', async ({ page }) => {
+    await page.setViewportSize({ width: 412, height: 922 });
+    await page.addInitScript(() => {
+      window.sessionStorage.setItem('calcredit_launch_played', 'true');
+    });
+
+    await page.goto('/?screen=gpa');
+    await page.waitForTimeout(600);
+
+    // Verify Enter Grades of Choice button is visible
+    const gradesBtn = page.locator('#tour-grades-of-choice-button');
+    await expect(gradesBtn).toBeVisible();
+    await expect(gradesBtn).toContainText('Enter Grades of Choice');
+
+    // Verify it is positioned near the top of the GPA Calculator (above the course table)
+    const buttonBox = await gradesBtn.boundingBox();
+    const headingBox = await page.locator('h2:has-text("GPA Calculator")').boundingBox();
+    expect(buttonBox).not.toBeNull();
+    expect(headingBox).not.toBeNull();
+    if (buttonBox && headingBox) {
+      // Button Y position is within the top banner area (within 120px of heading)
+      expect(Math.abs(buttonBox.y - headingBox.y)).toBeLessThan(120);
+    }
+
+    // Capture screenshot in light theme
+    await page.screenshot({ path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/verify_gpa_hub_top_button.png' });
+
+    // Capture screenshot in dark theme
+    await page.evaluate(() => {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      document.documentElement.classList.add('dark');
+    });
+    await page.waitForTimeout(300);
+    await page.screenshot({ path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/verify_gpa_hub_top_button_dark.png' });
+
+    // Capture desktop layout
+    await page.setViewportSize({ width: 1200, height: 800 });
+    await page.waitForTimeout(300);
+    await page.screenshot({ path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/verify_gpa_hub_top_button_desktop.png' });
+  });
 });
