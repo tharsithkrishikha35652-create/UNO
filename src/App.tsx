@@ -956,6 +956,43 @@ export default function App() {
         />
       </div>
     );
+  } else if (import.meta.env.DEV && typeof window !== "undefined" && window.location.search.includes("screen=ca-dropdown")) {
+    const isEstimated = !window.location.search.includes("estimated=false");
+    content = (
+      <div className="min-h-screen p-4 max-w-xl mx-auto">
+        <ContinuousAssessmentSection
+          number={1}
+          title="Continuous Assessment 1"
+          testMax={50}
+          test={45}
+          onTestMaxChange={() => {}}
+          onTestChange={() => {}}
+          testPoints={4.5}
+          testWeight={5}
+          actNo={0}
+          onActNoChange={() => {}}
+          actScores={[]}
+          onActScoresChange={() => {}}
+          actPoints={2.0}
+          actWeight={2.5}
+          actStartIndex={1}
+          labNo={0}
+          onLabNoChange={() => {}}
+          labScores={[]}
+          onLabScoresChange={() => {}}
+          labPoints={14.0}
+          labWeight={17.5}
+          labStartIndex={1}
+          estimatedMarks={isEstimated}
+          estimatePercentage={80}
+          onUncheckEstimate={() => {
+            const url = new URL(window.location.href);
+            url.searchParams.set("estimated", "false");
+            window.location.href = url.toString();
+          }}
+        />
+      </div>
+    );
   } else if (!user) {
     content = (
       <AuthScreen
@@ -3851,6 +3888,8 @@ function AuthenticatedApp({
                               }
                               labStartIndex={1}
                               estimatedMarks={currentSubjectUsesEstimates}
+                              estimatePercentage={estimatePercentage}
+                              onUncheckEstimate={() => updateEstimateSettings(false)}
                             />
 
                             {/* CA 2 Section */}
@@ -3951,6 +3990,8 @@ function AuthenticatedApp({
                                   (Number(displayedSubject.lab1No) || 0) + 1
                                 }
                                 estimatedMarks={currentSubjectUsesEstimates}
+                                estimatePercentage={estimatePercentage}
+                                onUncheckEstimate={() => updateEstimateSettings(false)}
                               />
                             )}
 

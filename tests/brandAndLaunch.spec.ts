@@ -207,4 +207,58 @@ test.describe('CalCredit Brand & Launch Animation Suite', () => {
     await page.waitForTimeout(300);
     await page.screenshot({ path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/verify_gpa_hub_top_button_desktop.png' });
   });
+
+  test('CA section dropdowns eliminate blue color tab, start collapsed, and transition smoothly on uncheck', async ({ page }) => {
+    await page.setViewportSize({ width: 412, height: 922 });
+    await page.addInitScript(() => {
+      window.sessionStorage.setItem('calcredit_launch_played', 'true');
+    });
+
+    await page.goto('/?screen=ca-dropdown');
+    await page.waitForTimeout(600);
+
+    // 1. Verify starts minimized (dropdown closed) with neutral background (not blue)
+    const activitiesBtn = page.locator('button:has-text("Assignments / Activities")');
+    await expect(activitiesBtn).toBeVisible();
+    await expect(activitiesBtn).toContainText('80% estimate');
+
+    // Verify it is NOT blue (not #3b4d66 or rgb(59, 77, 102))
+    const btnBg = await activitiesBtn.evaluate((el) => window.getComputedStyle(el).backgroundColor);
+    expect(btnBg).not.toContain('rgb(59, 77, 102)');
+
+    // Capture collapsed screenshot
+    await page.screenshot({ path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/verify_ca_collapsed_start.png' });
+
+    // 2. Click to expand dropdown
+    await activitiesBtn.click();
+    await page.waitForTimeout(400);
+
+    // Verify notice message and uncheck button are visible
+    const uncheckNotice = page.locator('text=Want to edit marks? Uncheck the "Include estimated lab & activity average" box above.');
+    await expect(uncheckNotice).toBeVisible();
+    const uncheckBtn = page.locator('button:has-text("Uncheck Box")').first();
+    await expect(uncheckBtn).toBeVisible();
+
+    // Verify button remains neutral and not blue even when expanded
+    const expandedBtnBg = await activitiesBtn.evaluate((el) => window.getComputedStyle(el).backgroundColor);
+    expect(expandedBtnBg).not.toContain('rgb(59, 77, 102)');
+
+    // Capture expanded screenshot
+    await page.screenshot({ path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/verify_ca_expanded_notice.png' });
+
+    // 3. Click Uncheck Box
+    await uncheckBtn.click();
+    await page.waitForTimeout(600);
+
+    // Verify returns to standard layout (Image 1 style)
+    // The dropdown button vanishes
+    await expect(page.locator('button:has-text("80% estimate")')).toHaveCount(0);
+    // Dynamic score boxes are open with standard headings
+    await expect(page.locator('h4:has-text("Assignments / Activities")')).toBeVisible();
+    await expect(page.locator('h4:has-text("Lab Practical Evaluation")')).toBeVisible();
+    await expect(page.locator('span:has-text("Marks Contributed:")').first()).toBeVisible();
+
+    // Capture uncheck end screenshot
+    await page.screenshot({ path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/verify_ca_uncheck_end.png' });
+  });
 });

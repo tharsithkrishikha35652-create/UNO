@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { motionVariants } from '../motion';
 import { DynamicScoreBoxes } from './DynamicScoreBoxes';
-import { FileCheck, Pencil, X, ChevronDown, FileText, FlaskConical } from 'lucide-react';
+import { FileCheck, Pencil, X, ChevronDown, FileText, FlaskConical, Info } from 'lucide-react';
 
 interface ContinuousAssessmentSectionProps {
   number: 1 | 2;
@@ -44,6 +44,8 @@ interface ContinuousAssessmentSectionProps {
   labStartIndex: number;
 
   estimatedMarks?: boolean;
+  estimatePercentage?: number;
+  onUncheckEstimate?: () => void;
 }
 
 export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionProps> = ({
@@ -83,6 +85,8 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
   onLabMaxPerBoxChange,
   labStartIndex,
   estimatedMarks = false,
+  estimatePercentage = 80,
+  onUncheckEstimate,
 }) => {
   const hasLab = labWeight > 0;
   const hasActivities = actWeight > 0;
@@ -93,8 +97,17 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
   const currentMax = Math.max(1, Number(testMax) || 50);
 
   // Collapsible dropdown states when estimatedMarks checkbox is selected
+  // Starts minimized/collapsed when the estimated tick box is ticked
   const [isActivitiesOpen, setIsActivitiesOpen] = useState(false);
   const [isLabOpen, setIsLabOpen] = useState(false);
+
+  // When estimated checkbox toggles, ensure dropdowns start in minimized/collapsed state
+  useEffect(() => {
+    if (estimatedMarks) {
+      setIsActivitiesOpen(false);
+      setIsLabOpen(false);
+    }
+  }, [estimatedMarks]);
 
   // Maximum marks configuration state
   const [isEditingMax, setIsEditingMax] = useState(false);
@@ -353,37 +366,36 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
                   type="button"
                   onClick={() => setIsActivitiesOpen(!isActivitiesOpen)}
                   aria-expanded={isActivitiesOpen}
-                  className={`w-full flex items-center justify-between px-3.5 py-3 sm:px-4 text-left transition-colors duration-300 cursor-pointer focus-visible:outline-2 ${
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 sm:px-4 text-left transition-colors duration-200 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#172554] ${
                     isActivitiesOpen
-                      ? 'bg-[#3b4d66] hover:bg-[#324257] text-white focus-visible:outline-white'
-                      : 'bg-white dark:bg-[#202024] hover:bg-slate-50 dark:hover:bg-[#252529] text-[#172554] dark:text-[#f1f1f3] focus-visible:outline-[#172554]'
+                      ? 'bg-slate-100/90 dark:bg-slate-800/60 text-[#172554] dark:text-[#f1f1f3]'
+                      : 'bg-slate-50/70 hover:bg-slate-100/80 dark:bg-slate-800/30 dark:hover:bg-slate-800/50 text-[#172554] dark:text-[#f1f1f3]'
                   }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className={`shrink-0 transition-colors duration-300 ${isActivitiesOpen ? 'text-white' : 'text-[#3b4d66] dark:text-slate-300'}`}>
+                    <div className="shrink-0 text-slate-500 dark:text-slate-400">
                       <FileText className="w-4 h-4" />
                     </div>
-                    <span className={`text-xs sm:text-sm font-bold truncate transition-colors duration-300 ${isActivitiesOpen ? 'text-white' : 'text-[#172554] dark:text-[#f1f1f3]'}`}>
+                    <span className="text-xs sm:text-sm font-semibold truncate text-[#172554] dark:text-[#f1f1f3]">
                       {activityTitle ?? 'Assignments / Activities'}
                     </span>
-                    <span className={`inline-flex items-baseline gap-1 px-2 py-0.5 rounded-md text-xs font-bold transition-colors duration-300 ${
-                      isActivitiesOpen
-                        ? 'bg-white/15 border border-white/20 text-white'
-                        : 'bg-slate-100 dark:bg-[#161618] border border-slate-200 dark:border-slate-700 text-[#172554] dark:text-[#f1f1f3]'
-                    }`}>
-                      <span className={`font-numeric tabular-nums font-black text-xs sm:text-sm transition-colors duration-300 ${isActivitiesOpen ? 'text-white' : 'text-[#172554] dark:text-[#f1f1f3]'}`}>
-                        {actPoints.toFixed(2)}
-                      </span>
-                      <span className={`font-numeric tabular-nums text-[11px] font-bold transition-colors duration-300 ${isActivitiesOpen ? 'text-amber-200' : 'text-[#d97757] dark:text-[#d97757]'}`}>
-                        / {actWeight}
-                      </span>
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-100/80 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/40 font-numeric tabular-nums">
+                      {estimatePercentage}% estimate
                     </span>
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0 ml-2">
+                    <span className="inline-flex items-baseline gap-1 px-2 py-0.5 rounded-md text-xs font-bold bg-white dark:bg-[#161618] border border-slate-200 dark:border-slate-700 text-[#172554] dark:text-[#f1f1f3]">
+                      <span className="font-numeric tabular-nums font-black text-xs sm:text-sm text-[#172554] dark:text-[#f1f1f3]">
+                        {actPoints.toFixed(2)}
+                      </span>
+                      <span className="font-numeric tabular-nums text-[11px] font-bold text-[#d97757] dark:text-[#d97757]">
+                        / {actWeight}
+                      </span>
+                    </span>
                     <ChevronDown
-                      className={`w-4 h-4 transition-all duration-300 ease-out ${
-                        isActivitiesOpen ? 'rotate-180 text-white' : 'text-[#3b4d66] dark:text-slate-400'
+                      className={`w-4 h-4 transition-transform duration-200 ease-out text-slate-400 dark:text-slate-500 ${
+                        isActivitiesOpen ? 'rotate-180' : ''
                       }`}
                       aria-hidden="true"
                     />
@@ -397,10 +409,29 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
                       initial={reduceMotion ? false : { height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={reduceMotion ? undefined : { height: 0, opacity: 0 }}
-                      transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+                      transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
                       className="overflow-hidden border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-[#202024]"
                     >
                       <div className="p-2.5 sm:p-3">
+                        {/* Notice banner for editing in estimated mode */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 mb-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 text-xs text-amber-900 dark:text-amber-200">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <Info className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                            <span>
+                              Want to edit marks? Uncheck the <strong>"Include estimated lab &amp; activity average"</strong> box above.
+                            </span>
+                          </div>
+                          {onUncheckEstimate && (
+                            <button
+                              type="button"
+                              onClick={onUncheckEstimate}
+                              className="self-start sm:self-auto px-2.5 py-1 text-[11px] font-bold bg-[#172554] hover:bg-[#1e3a8a] text-white rounded-md shrink-0 transition-colors cursor-pointer"
+                            >
+                              Uncheck Box
+                            </button>
+                          )}
+                        </div>
+
                         <DynamicScoreBoxes
                           title={activityTitle ?? 'Assignments / Activities'}
                           category="assignment"
@@ -418,6 +449,8 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
                           minimumCount={minimumActivityCount}
                           maximumCount={maximumActivityCount}
                           scoreLabel={activityScoreLabel}
+                          estimatePercentage={estimatePercentage}
+                          onUncheckEstimate={onUncheckEstimate}
                         />
                       </div>
                     </motion.div>
@@ -433,37 +466,36 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
                   type="button"
                   onClick={() => setIsLabOpen(!isLabOpen)}
                   aria-expanded={isLabOpen}
-                  className={`w-full flex items-center justify-between px-3.5 py-3 sm:px-4 text-left transition-colors duration-300 cursor-pointer focus-visible:outline-2 ${
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 sm:px-4 text-left transition-colors duration-200 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#172554] ${
                     isLabOpen
-                      ? 'bg-[#3b4d66] hover:bg-[#324257] text-white focus-visible:outline-white'
-                      : 'bg-white dark:bg-[#202024] hover:bg-slate-50 dark:hover:bg-[#252529] text-[#172554] dark:text-[#f1f1f3] focus-visible:outline-[#172554]'
+                      ? 'bg-slate-100/90 dark:bg-slate-800/60 text-[#172554] dark:text-[#f1f1f3]'
+                      : 'bg-slate-50/70 hover:bg-slate-100/80 dark:bg-slate-800/30 dark:hover:bg-slate-800/50 text-[#172554] dark:text-[#f1f1f3]'
                   }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className={`shrink-0 transition-colors duration-300 ${isLabOpen ? 'text-white' : 'text-[#3b4d66] dark:text-slate-300'}`}>
+                    <div className="shrink-0 text-slate-500 dark:text-slate-400">
                       <FlaskConical className="w-4 h-4" />
                     </div>
-                    <span className={`text-xs sm:text-sm font-bold truncate transition-colors duration-300 ${isLabOpen ? 'text-white' : 'text-[#172554] dark:text-[#f1f1f3]'}`}>
+                    <span className="text-xs sm:text-sm font-semibold truncate text-[#172554] dark:text-[#f1f1f3]">
                       {_isSelfDevelopment ? 'Lab' : 'Lab Practicals'}
                     </span>
-                    <span className={`inline-flex items-baseline gap-1 px-2 py-0.5 rounded-md text-xs font-bold transition-colors duration-300 ${
-                      isLabOpen
-                        ? 'bg-white/15 border border-white/20 text-white'
-                        : 'bg-slate-100 dark:bg-[#161618] border border-slate-200 dark:border-slate-700 text-[#172554] dark:text-[#f1f1f3]'
-                    }`}>
-                      <span className={`font-numeric tabular-nums font-black text-xs sm:text-sm transition-colors duration-300 ${isLabOpen ? 'text-white' : 'text-[#172554] dark:text-[#f1f1f3]'}`}>
-                        {labPoints.toFixed(2)}
-                      </span>
-                      <span className={`font-numeric tabular-nums text-[11px] font-bold transition-colors duration-300 ${isLabOpen ? 'text-amber-200' : 'text-[#d97757] dark:text-[#d97757]'}`}>
-                        / {labWeight}
-                      </span>
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-100/80 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/40 font-numeric tabular-nums">
+                      {estimatePercentage}% estimate
                     </span>
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0 ml-2">
+                    <span className="inline-flex items-baseline gap-1 px-2 py-0.5 rounded-md text-xs font-bold bg-white dark:bg-[#161618] border border-slate-200 dark:border-slate-700 text-[#172554] dark:text-[#f1f1f3]">
+                      <span className="font-numeric tabular-nums font-black text-xs sm:text-sm text-[#172554] dark:text-[#f1f1f3]">
+                        {labPoints.toFixed(2)}
+                      </span>
+                      <span className="font-numeric tabular-nums text-[11px] font-bold text-[#d97757] dark:text-[#d97757]">
+                        / {labWeight}
+                      </span>
+                    </span>
                     <ChevronDown
-                      className={`w-4 h-4 transition-all duration-300 ease-out ${
-                        isLabOpen ? 'rotate-180 text-white' : 'text-[#3b4d66] dark:text-slate-400'
+                      className={`w-4 h-4 transition-transform duration-200 ease-out text-slate-400 dark:text-slate-500 ${
+                        isLabOpen ? 'rotate-180' : ''
                       }`}
                       aria-hidden="true"
                     />
@@ -477,10 +509,29 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
                       initial={reduceMotion ? false : { height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={reduceMotion ? undefined : { height: 0, opacity: 0 }}
-                      transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+                      transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
                       className="overflow-hidden border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-[#202024]"
                     >
                       <div className="p-2.5 sm:p-3">
+                        {/* Notice banner for editing in estimated mode */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 mb-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 text-xs text-amber-900 dark:text-amber-200">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <Info className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                            <span>
+                              Want to edit marks? Uncheck the <strong>"Include estimated lab &amp; activity average"</strong> box above.
+                            </span>
+                          </div>
+                          {onUncheckEstimate && (
+                            <button
+                              type="button"
+                              onClick={onUncheckEstimate}
+                              className="self-start sm:self-auto px-2.5 py-1 text-[11px] font-bold bg-[#172554] hover:bg-[#1e3a8a] text-white rounded-md shrink-0 transition-colors cursor-pointer"
+                            >
+                              Uncheck Box
+                            </button>
+                          )}
+                        </div>
+
                         <DynamicScoreBoxes
                           title="Lab Practical Evaluation"
                           category="lab"
@@ -495,6 +546,8 @@ export const ContinuousAssessmentSection: React.FC<ContinuousAssessmentSectionPr
                           calculatedPoints={labPoints}
                           caName={`CA ${number}`}
                           estimatedMarks={estimatedMarks}
+                          estimatePercentage={estimatePercentage}
+                          onUncheckEstimate={onUncheckEstimate}
                         />
                       </div>
                     </motion.div>

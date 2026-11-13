@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { transitions } from '../motion';
-import { FlaskConical, FileText } from 'lucide-react';
+import { FlaskConical, FileText, Info } from 'lucide-react';
 import { NumberStepper } from './NumberStepper';
 
 interface DynamicScoreBoxesProps {
@@ -22,6 +22,8 @@ interface DynamicScoreBoxesProps {
   maximumCount?: number;
   scoreLabel?: string;
   itemLabel?: string;
+  estimatePercentage?: number;
+  onUncheckEstimate?: () => void;
 }
 
 export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
@@ -42,11 +44,20 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
   maximumCount = 20,
   scoreLabel,
   itemLabel,
+  estimatePercentage = 80,
+  onUncheckEstimate,
 }) => {
+  const [showEditNotice, setShowEditNotice] = useState(false);
   const reduceMotion = useReducedMotion();
   const numericCount = Math.max(0, parseInt(String(count), 10) || 0);
   const numericMaxMarkPerBox = Math.max(1, Number(maxMarkPerBox) || 10);
   const accessibleItemLabel = itemLabel ?? scoreLabel ?? (category === 'assignment' ? 'Assignment' : 'Lab Evaluation');
+
+  const handleAttemptEdit = () => {
+    if (estimatedMarks) {
+      setShowEditNotice(true);
+    }
+  };
 
   const handleBoxChange = (index: number, val: string) => {
     const newScores = [...scores];
@@ -113,7 +124,10 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
           </div>
 
           {/* Stepper for number of items */}
-          <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+          <div
+            className="flex flex-wrap items-center gap-2 self-start sm:self-auto"
+            onClickCapture={handleAttemptEdit}
+          >
             <label
               htmlFor={`count-${category}-${caName}`}
               className="text-xs font-bold text-[#172554] dark:text-[#f1f1f3]"
@@ -138,6 +152,26 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
           </div>
         </div>
 
+        {estimatedMarks && showEditNotice && (
+          <div className="flex items-center justify-between gap-2 p-2 mb-2 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs text-amber-900 dark:text-amber-200">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <Info className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+              <span className="leading-tight">
+                Want to edit marks? Then uncheck the box above.
+              </span>
+            </div>
+            {onUncheckEstimate && (
+              <button
+                type="button"
+                onClick={onUncheckEstimate}
+                className="px-2 py-0.5 text-[11px] font-bold bg-[#172554] text-white rounded hover:bg-[#1e3a8a] cursor-pointer shrink-0 transition-colors"
+              >
+                Uncheck
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Dynamic Entries: Two-column grid row-by-row */}
         <AnimatePresence initial={false} mode="wait">
         {numericCount === 0 ? (
@@ -148,6 +182,7 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
             exit={reduceMotion ? undefined : { opacity: 0 }}
             transition={transitions.feedback}
             className="py-3 text-center text-[#172554] dark:text-[#f1f1f3] text-xs my-1"
+            onClickCapture={handleAttemptEdit}
           >
             <p className="font-medium text-slate-600 dark:text-slate-400">
               Set the number of {category === 'assignment' ? 'assignments' : 'lab practical evaluations'} above
@@ -161,6 +196,7 @@ export const DynamicScoreBoxes: React.FC<DynamicScoreBoxesProps> = ({
             exit={reduceMotion ? undefined : { opacity: 0 }}
             transition={transitions.feedback}
             className="my-2 bg-transparent"
+            onClickCapture={handleAttemptEdit}
           >
             <div className="grid grid-cols-2 gap-2 sm:gap-3">
               <AnimatePresence initial={false}>
