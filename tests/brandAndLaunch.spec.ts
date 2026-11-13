@@ -314,6 +314,33 @@ test.describe('CalCredit Brand & Launch Animation Suite', () => {
     await expect(resultSection).toContainText('9.00');
     await expect(resultSection).toContainText('169 total credits');
 
+    // Click the UHV help button to test popover behavior
+    const uhvHelpBtn = page.getByRole('button', { name: /How Semester 3 UHV credits and GPA work/ });
+    if (await uhvHelpBtn.count() > 0) {
+      await uhvHelpBtn.click();
+      await page.waitForTimeout(300);
+
+      // Check overflow metrics
+      const overflowMetrics = await page.evaluate(() => {
+        const docEl = document.documentElement;
+        const body = document.body;
+        const popover = document.getElementById('uhv-help-popover');
+        const popoverRect = popover?.getBoundingClientRect();
+        return {
+          windowWidth: window.innerWidth,
+          docScrollWidth: docEl.scrollWidth,
+          docClientWidth: docEl.clientWidth,
+          bodyScrollWidth: body.scrollWidth,
+          bodyClientWidth: body.clientWidth,
+          docScrollLeft: docEl.scrollLeft,
+          bodyScrollLeft: body.scrollLeft,
+          popoverRight: popoverRect?.right,
+          popoverLeft: popoverRect?.left,
+        };
+      });
+      console.log('OVERFLOW METRICS:', JSON.stringify(overflowMetrics, null, 2));
+    }
+
     // Capture verification screenshots
     await page.screenshot({ path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/verify_cgpa_fixed_credits.png' });
 

@@ -232,21 +232,21 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
 
   return (
     <section
-      className="mx-auto max-w-3xl space-y-5"
+      className="w-full mx-auto max-w-3xl space-y-5"
       aria-labelledby="cgpa-hub-heading"
     >
-      <header className="rounded-2xl border border-slate-300 bg-white p-5 shadow-sm sm:p-7">
+      <header className="rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#161618] p-5 shadow-sm sm:p-7">
         <div className="flex items-center gap-3">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#172554] text-white">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#172554] dark:bg-[#e08564] text-white">
             <ChartColumnIncreasing className="h-6 w-6" aria-hidden="true" />
           </span>
           <div>
-            <p className="text-xs font-bold text-slate-500">
+            <p className="text-xs font-bold text-slate-500 dark:text-slate-400">
               Cumulative academic performance
             </p>
             <h1
               id="cgpa-hub-heading"
-              className="text-xl font-black text-[#172554] sm:text-2xl"
+              className="text-xl font-black text-[#172554] dark:text-[#f1f1f3] sm:text-2xl"
             >
               CGPA Hub
             </h1>
@@ -255,10 +255,10 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
       </header>
 
       <section
-        className="rounded-2xl border border-slate-300 bg-white p-5 shadow-sm sm:p-7"
+        className="rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#161618] p-5 shadow-sm sm:p-7"
         aria-label="CGPA inputs"
       >
-        <div className="block max-w-sm">
+        <div className="block max-w-sm w-full">
           <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[#172554]">
             Calculate through semester
           </span>
@@ -356,58 +356,66 @@ export const CGPAHub: React.FC<CGPAHubProps> = ({ department }) => {
                       )}
                     </span>
                     {semester === uhvSem && (
-                      <div
-                        className="relative inline-flex items-center"
-                        ref={uhvHelpRef}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowUhvHelp((prev) => !prev);
+                        }}
+                        className="cursor-pointer rounded-full p-0.5 text-slate-400 transition-colors hover:text-[#172554] dark:hover:text-[#f1f1f3] focus:text-[#172554] focus:outline-hidden"
+                        aria-label={`How Semester ${uhvSem} UHV credits and GPA work`}
+                        aria-expanded={showUhvHelp}
+                        aria-controls="uhv-help-popover"
                       >
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowUhvHelp((prev) => !prev);
-                          }}
-                          className="cursor-pointer rounded-full p-0.5 text-slate-400 transition-colors hover:text-[#172554] dark:hover:text-[#f1f1f3] focus:text-[#172554] focus:outline-hidden"
-                          aria-label={`How Semester ${uhvSem} UHV credits and GPA work`}
-                          aria-expanded={showUhvHelp}
-                          aria-controls="uhv-help-popover"
-                        >
-                          <HelpCircle className="h-4 w-4" aria-hidden="true" />
-                        </button>
-                        {showUhvHelp && (
-                          <div
-                            id="uhv-help-popover"
-                            role="tooltip"
-                            className="absolute left-0 sm:left-auto sm:right-0 top-full mt-1.5 z-40 w-72 sm:w-80 max-w-[calc(100vw-2rem)] rounded-lg border border-slate-300 bg-white p-3.5 shadow-xl text-xs text-slate-700 space-y-2 animate-[sticky-result-in_160ms_ease-out]"
-                          >
-                            <div className="flex items-center justify-between pb-1 border-b border-slate-100">
-                              <p className="font-bold text-[#172554]">
-                                Semester {ROMAN_SEMESTERS[uhvSem] || uhvSem} CGPA &amp; UHV
-                              </p>
-                              <button
-                                type="button"
-                                onClick={() => setShowUhvHelp(false)}
-                                className="cursor-pointer px-1 text-xs font-bold text-slate-400 hover:text-slate-700"
-                                aria-label="Close help"
-                              >
-                                ✕
-                              </button>
-                            </div>
-                            <p className="leading-relaxed text-[11px] font-semibold text-[#172554]">
-                              UHV is included in GPA calculation, but excluded in
-                              CGPA calculation.
-                            </p>
-                            <p className="leading-relaxed text-[11px] text-slate-600">
-                              Semester {ROMAN_SEMESTERS[uhvSem] || uhvSem} is counted as{" "}
-                              <strong><span className="font-numeric tabular-nums">{uhvSemCgpaCredits}</span> CGPA credits</strong>. Enter its GPA
-                              including UHV and the UHV grade point; the hub
-                              subtracts UHV’s two-credit contribution.
-                            </p>
-                          </div>
-                        )}
-                      </div>
+                        <HelpCircle className="h-4 w-4" aria-hidden="true" />
+                      </button>
                     )}
                   </div>
                 </div>
+
+                {/* Inline collapsible UHV explanation banner: never overflows on mobile */}
+                {semester === uhvSem && (
+                  <AnimatePresence>
+                    {showUhvHelp && (
+                      <motion.div
+                        ref={uhvHelpRef}
+                        id="uhv-help-popover"
+                        role="region"
+                        aria-label={`Semester ${uhvSem} UHV explanation`}
+                        initial={reduceMotion ? false : { opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={reduceMotion ? undefined : { opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2, ease: "easeOut" }}
+                        className="overflow-hidden"
+                      >
+                        <div className="rounded-lg border border-blue-200 dark:border-blue-900/60 bg-blue-50/80 dark:bg-blue-950/40 p-3 text-xs space-y-1.5">
+                          <div className="flex items-center justify-between pb-1 border-b border-blue-200/60 dark:border-blue-800/60">
+                            <p className="font-bold text-[#172554] dark:text-blue-200">
+                              Semester {ROMAN_SEMESTERS[uhvSem] || uhvSem} CGPA &amp; UHV
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => setShowUhvHelp(false)}
+                              className="cursor-pointer px-1 text-xs font-bold text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+                              aria-label="Close help"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                          <p className="leading-relaxed text-[11px] font-semibold text-[#172554] dark:text-blue-100">
+                            UHV is included in GPA calculation, but excluded in CGPA calculation.
+                          </p>
+                          <p className="leading-relaxed text-[11px] text-slate-600 dark:text-slate-300">
+                            Semester {ROMAN_SEMESTERS[uhvSem] || uhvSem} is counted as{" "}
+                            <strong className="font-semibold text-[#172554] dark:text-blue-200">
+                              <span className="font-numeric tabular-nums">{uhvSemCgpaCredits}</span> CGPA credits
+                            </strong>. Enter its GPA including UHV and the UHV grade point; the hub automatically subtracts UHV’s two-credit contribution.
+                          </p>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                )}
 
                 {/* Direct GPA inputs without unnecessary credits box/padding */}
                 <div className={semester === uhvSem ? "grid grid-cols-1 sm:grid-cols-2 gap-3" : ""}>

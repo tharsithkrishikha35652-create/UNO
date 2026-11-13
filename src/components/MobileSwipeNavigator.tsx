@@ -90,7 +90,7 @@ export const MobileSwipeNavigator: React.FC<MobileSwipeNavigatorProps> = ({
 
   return (
     <motion.div
-      className="min-w-0 touch-pan-y"
+      className="min-w-0 touch-pan-y overflow-x-clip"
       style={{ x }}
       drag={canSwipe && !reduceMotion ? 'x' : false}
       dragControls={dragControls}
