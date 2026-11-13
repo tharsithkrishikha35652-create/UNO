@@ -16,7 +16,7 @@
     "@capacitor/core": "^8.5.3",
     "@capacitor/haptics": "^8.0.2",
     "@capacitor/splash-screen": "^8.0.2",
-    "firebase": "^13.0.0",
+    "firebase": "^13.2.0",
     "lucide-react": "^0.544.0",
     "motion": "^14.9.0",
     "react": "^19.1.1",
