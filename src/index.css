@@ -911,38 +911,42 @@ html.launch-pending.dark body {
   50% { transform: rotate(20deg); }
 }
 
-/* Bottom-left organic shapes: noticeable, independent drifting float */
+/* Bottom-left organic shapes: smooth, noticeable looped breathing drift */
 #calcredit-ambient-bg .left-art-piece {
   transform-box: view-box;
-  transform-origin: 120px 810px;
-  animation: v6LeftShapeDrift 6.5s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  transform-origin: 80px 880px;
+  animation: v6LeftShapeDrift 7s ease-in-out infinite;
 }
 
 #calcredit-ambient-bg .left-art-piece.left-art-2 {
-  animation-duration: 7.5s;
-  animation-delay: -3.2s;
+  animation-duration: 8.5s;
+  animation-delay: -3.5s;
 }
 
 @keyframes v6LeftShapeDrift {
   0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
-  50% { transform: translate(14px, -18px) rotate(2.2deg) scale(1.03); }
+  25% { transform: translate(4px, -8px) rotate(1deg) scale(1.02); }
+  50% { transform: translate(8px, -14px) rotate(1.8deg) scale(1.03); }
+  75% { transform: translate(3px, -6px) rotate(0.8deg) scale(1.015); }
 }
 
-/* Bottom-right organic shapes: noticeable, independent drifting float */
+/* Bottom-right organic shapes: smooth, noticeable looped breathing drift */
 #calcredit-ambient-bg .right-art-piece {
   transform-box: view-box;
-  transform-origin: 560px 850px;
-  animation: v6RightShapeDrift 7.2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  transform-origin: 600px 900px;
+  animation: v6RightShapeDrift 7.8s ease-in-out infinite;
 }
 
 #calcredit-ambient-bg .right-art-piece.right-art-2 {
-  animation-duration: 8.2s;
-  animation-delay: -3.8s;
+  animation-duration: 9s;
+  animation-delay: -4.2s;
 }
 
 @keyframes v6RightShapeDrift {
   0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
-  50% { transform: translate(-16px, -20px) rotate(-2.5deg) scale(1.03); }
+  25% { transform: translate(-5px, -9px) rotate(-1.1deg) scale(1.02); }
+  50% { transform: translate(-10px, -15px) rotate(-2deg) scale(1.03); }
+  75% { transform: translate(-4px, -6px) rotate(-0.9deg) scale(1.015); }
 }
 
 /* Top-left organic shape: noticeable expansion & breathing */

@@ -121,9 +121,17 @@ test.describe('CALCREDIT V6 Live Wallpaper Suite', () => {
     // Wait for initial render to settle
     await page.waitForTimeout(600);
 
-    // Capture Light mode screenshot
+    // Capture Light mode mobile screenshot
     await page.screenshot({
       path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/v6_wallpaper_light.png',
+      fullPage: false,
+    });
+
+    // Capture Light mode desktop full screen screenshot (1920x1080)
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await page.waitForTimeout(600);
+    await page.screenshot({
+      path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/v6_wallpaper_desktop_light.png',
       fullPage: false,
     });
 
@@ -136,7 +144,15 @@ test.describe('CALCREDIT V6 Live Wallpaper Suite', () => {
     // Wait for theme crossfade
     await page.waitForTimeout(1400);
 
-    // Capture Dark mode screenshot
+    // Capture Dark mode desktop screenshot
+    await page.screenshot({
+      path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/v6_wallpaper_desktop_dark.png',
+      fullPage: false,
+    });
+
+    // Capture Dark mode mobile screenshot
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.waitForTimeout(400);
     await page.screenshot({
       path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/v6_wallpaper_dark.png',
       fullPage: false,
