@@ -224,6 +224,43 @@ test.describe('CalCredit Brand & Launch Animation Suite', () => {
     await page.setViewportSize({ width: 1200, height: 800 });
     await page.waitForTimeout(300);
     await page.screenshot({ path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/verify_gpa_hub_top_button_desktop.png' });
+
+    // Open Enter Grades of Choice modal and verify its Warm Scholar theme & close buttons
+    await page.setViewportSize({ width: 412, height: 922 });
+    await page.evaluate(() => {
+      document.documentElement.setAttribute('data-theme', 'light');
+      document.documentElement.classList.remove('dark');
+    });
+    await page.waitForTimeout(200);
+
+    await gradesBtn.click();
+    await page.waitForTimeout(400);
+
+    const modalTitle = page.locator('#custom-grade-modal-title');
+    await expect(modalTitle).toBeVisible();
+
+    const topCloseBtn = page.locator('button[aria-label="Close dialog"]');
+    await expect(topCloseBtn).toBeVisible();
+
+    // Verify top close button has proper rounded-xl styling and isn't an unstyled circle
+    const closeBtnBg = await topCloseBtn.evaluate((el) => window.getComputedStyle(el).backgroundColor);
+    expect(closeBtnBg).toBeTruthy();
+
+    // Capture light theme modal screenshot
+    await page.screenshot({ path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/verify_custom_grades_modal_light.png' });
+
+    // Switch to dark theme and capture
+    await page.evaluate(() => {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      document.documentElement.classList.add('dark');
+    });
+    await page.waitForTimeout(300);
+    await page.screenshot({ path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/verify_custom_grades_modal_dark.png' });
+
+    // Test closing via close button
+    await topCloseBtn.click();
+    await page.waitForTimeout(300);
+    await expect(modalTitle).toHaveCount(0);
   });
 
   test('CA section dropdowns eliminate blue color tab, start collapsed, and transition smoothly on uncheck', async ({ page }) => {

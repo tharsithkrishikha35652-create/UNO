@@ -650,7 +650,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
             data-tour="grades-of-choice-button"
             type="button"
             onClick={() => setShowExplicitGradeModal(true)}
-            className="inline-flex h-11 w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-[#172554] px-4 text-xs font-bold text-white shadow-xs transition-colors hover:bg-[#1e3a8a] cursor-pointer shrink-0"
+            className="inline-flex h-11 w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-[#d97757] hover:bg-[#b95f43] dark:bg-[#e08564] dark:hover:bg-[#cf6d4c] px-4 text-xs font-bold text-white shadow-xs transition-colors cursor-pointer shrink-0"
           >
             <Sparkles className="w-4 h-4 text-white" />
             Enter Grades of Choice
@@ -908,7 +908,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
       <AnimatePresence>
       {showExplicitGradeModal && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-xs"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/45 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
           aria-labelledby="custom-grade-modal-title"
@@ -918,47 +918,48 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
           exit="exit"
         >
           <motion.div
-            className="w-full max-w-2xl max-h-[90vh] flex flex-col rounded-2xl border border-slate-300 bg-white shadow-2xl overflow-hidden"
+            className="w-full max-w-2xl max-h-[90vh] flex flex-col rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#202024] shadow-2xl overflow-hidden"
             variants={reduceMotion ? undefined : motionVariants.dialog}
             initial={reduceMotion ? { opacity: 1 } : 'initial'}
             animate="animate"
             exit="exit"
           >
             {/* Modal Header */}
-            <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-5 py-4 bg-[#172554] text-white shrink-0">
+            <div className="flex items-start justify-between gap-4 border-b border-slate-200 dark:border-slate-800 px-5 py-4 bg-white dark:bg-[#161618] shrink-0">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="rounded bg-blue-900/60 border border-blue-400/30 px-2 py-0.5 text-[10px] font-bold text-cyan-300 uppercase">
+                  <span className="inline-flex items-center gap-1.5 rounded-md bg-[var(--app-soft-accent)] dark:bg-[#3c302b] border border-[var(--app-divider)] dark:border-[#5a5a62] px-2.5 py-0.5 text-[10px] font-bold text-[var(--app-action-accent-strong)] dark:text-[#e08564] uppercase tracking-wider">
+                    <Sparkles className="w-3 h-3" aria-hidden="true" />
                     Semester {selectedSemester} · {getDepartmentShortName(department)}
                   </span>
                 </div>
-                <h3 id="custom-grade-modal-title" className="text-lg font-black text-white mt-1">
+                <h3 id="custom-grade-modal-title" className="text-lg sm:text-xl font-black text-[#172554] dark:text-[#f1f1f3] mt-1.5">
                   Enter Grades of Your Choice
                 </h3>
-                <p className="text-xs text-blue-100/80 mt-0.5">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   Select grades for each course to calculate your semester GPA immediately.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setShowExplicitGradeModal(false)}
-                className="rounded-lg p-1.5 text-blue-200 hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
-                aria-label="Close"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-[#202024] text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#2a2a30] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-[#172554] dark:focus-visible:outline-[#e08564]"
+                aria-label="Close dialog"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4.5 w-4.5" aria-hidden="true" />
               </button>
             </div>
 
             {/* Quick Presets Bar */}
-            <div className="px-5 py-2.5 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 shrink-0">
-              <span className="text-xs font-bold text-slate-600">Quick Fill:</span>
+            <div className="px-5 py-3 bg-slate-50/80 dark:bg-[#1a1a1c] border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2.5 shrink-0">
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-300">Quick Fill:</span>
               <div className="flex flex-wrap items-center gap-1.5">
                 {['S', 'A+', 'A', 'B+'].map((letter) => (
                   <button
                     key={letter}
                     type="button"
                     onClick={() => setAllGrades(letter)}
-                    className="rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-bold text-[#172554] hover:bg-blue-50 transition-colors cursor-pointer"
+                    className="rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#202024] px-3 py-1 text-xs font-bold text-[#172554] dark:text-[#f1f1f3] hover:border-[#d97757] hover:text-[#d97757] dark:hover:border-[#e08564] dark:hover:text-[#e08564] shadow-2xs transition-colors cursor-pointer active:scale-95"
                   >
                     All {letter}
                   </button>
@@ -966,7 +967,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
                 <button
                   type="button"
                   onClick={() => setExplicitGrades({})}
-                  className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#202024] px-3 py-1 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 hover:border-rose-200 transition-colors cursor-pointer active:scale-95"
                 >
                   <RotateCcw className="w-3 h-3" />
                   Reset
@@ -975,34 +976,34 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
             </div>
 
             {/* Courses List */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3 divide-y divide-slate-100">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 divide-y divide-slate-100 dark:divide-slate-800/80">
               {currentExplicitCourses.map((course, idx) => {
                 const rawCourse = semesterCourses[idx] || course;
                 const key = rawCourse.code || rawCourse.name;
                 const currentGrade = explicitGrades[key] || 'S';
                 return (
-                  <div key={key} className="pt-3 first:pt-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div key={key} className="pt-3.5 first:pt-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="min-w-0 pr-2">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-bold text-sm text-[#172554]">{course.name}</span>
-                        <span className="shrink-0 rounded bg-slate-100 border border-slate-200 px-1.5 py-0.5 text-[10px] font-bold text-slate-700">
+                        <span className="font-bold text-sm text-[#172554] dark:text-[#f1f1f3]">{course.name}</span>
+                        <span className="shrink-0 rounded-md bg-slate-100 dark:bg-[#161618] border border-slate-200 dark:border-slate-700 px-2 py-0.5 text-[10px] font-bold text-slate-700 dark:text-slate-300">
                           <span className="tabular-nums font-numeric">{course.credits}</span> Credits
                         </span>
                       </div>
                       {course.slotLabel && course.hasSelectedElective && (
-                        <p className="text-[11px] font-semibold text-slate-500 mt-0.5">
+                        <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5">
                           {course.slotLabel}
                         </p>
                       )}
                       {course.slotLabel && !course.hasSelectedElective && (
-                        <p className="text-[11px] font-medium text-amber-600 mt-0.5">
+                        <p className="text-[11px] font-medium text-amber-600 dark:text-amber-400 mt-0.5">
                           Elective not chosen yet (using default credits)
                         </p>
                       )}
                     </div>
 
                     {/* Grade Selector Button Group */}
-                    <div className="flex flex-wrap items-center gap-1 shrink-0">
+                    <div className="flex flex-wrap items-center gap-1.5 shrink-0">
                       {GRADE_OPTIONS.map((opt) => {
                         const isSelected = currentGrade === opt.letter;
                         return (
@@ -1015,10 +1016,10 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
                                 [key]: opt.letter,
                               }));
                             }}
-                            className={`px-2.5 py-1.5 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
+                            className={`min-w-8.5 h-8 px-2.5 text-xs rounded-lg border transition-all cursor-pointer flex items-center justify-center ${
                               isSelected
-                                ? 'bg-[#172554] border-[#172554] text-white shadow-xs'
-                                : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
+                                ? 'bg-[#d97757] dark:bg-[#e08564] border-[#d97757] dark:border-[#e08564] text-white shadow-xs font-black scale-[1.03]'
+                                : 'bg-white dark:bg-[#161618] border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#2a2a30] hover:border-slate-300 font-bold active:scale-95'
                             }`}
                           >
                             {opt.letter}
@@ -1032,41 +1033,41 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
             </div>
 
             {/* Live Calculation Footer */}
-            <div className="border-t border-slate-200 bg-slate-50 p-4 shrink-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="flex items-baseline gap-4">
+            <div className="border-t border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-[#1a1a1c] p-4 sm:p-5 shrink-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-baseline gap-4 sm:gap-6">
                 <div>
-                  <span className="block text-[10px] font-bold uppercase text-slate-500">Calculated GPA</span>
-                  <span className="text-2xl font-black text-[#172554] tabular-nums font-numeric">
+                  <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Calculated GPA</span>
+                  <span className="text-2xl sm:text-3xl font-black text-[#d97757] dark:text-[#e08564] tabular-nums font-numeric">
                     {explicitLiveGpa.toFixed(2)}
                   </span>
-                  <span className="text-xs text-slate-400 font-medium"> / 10.00</span>
+                  <span className="text-xs text-slate-400 font-semibold"> / 10.00</span>
                 </div>
-                <div className="border-l border-slate-200 pl-4">
-                  <span className="block text-[10px] font-bold uppercase text-slate-500">Total Credits</span>
-                  <span className="text-lg font-bold text-slate-800 tabular-nums font-numeric">
+                <div className="border-l border-slate-200 dark:border-slate-700 pl-4 sm:pl-6">
+                  <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Credits</span>
+                  <span className="text-lg sm:text-xl font-bold text-slate-800 dark:text-[#f1f1f3] tabular-nums font-numeric">
                     {explicitTotalCredits}
                   </span>
                 </div>
-                <div className="border-l border-slate-200 pl-4">
-                  <span className="block text-[10px] font-bold uppercase text-slate-500">Weighted Points</span>
-                  <span className="text-lg font-bold text-slate-800 tabular-nums font-numeric">
+                <div className="border-l border-slate-200 dark:border-slate-700 pl-4 sm:pl-6">
+                  <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Weighted Points</span>
+                  <span className="text-lg sm:text-xl font-bold text-slate-800 dark:text-[#f1f1f3] tabular-nums font-numeric">
                     {explicitWeightedPoints.toFixed(1)}
                   </span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 <button
                   type="button"
                   onClick={() => setShowExplicitGradeModal(false)}
-                  className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                  className="rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#202024] px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#2a2a30] transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
                   onClick={handleApplyExplicitGrades}
-                  className="rounded-xl bg-[#172554] px-5 py-2 text-xs font-bold text-white hover:bg-[#1e3a8a] transition-colors shadow-xs cursor-pointer"
+                  className="rounded-xl bg-[#d97757] dark:bg-[#e08564] hover:bg-[#b95f43] dark:hover:bg-[#cf6d4c] px-5 py-2.5 text-xs font-bold text-white transition-colors shadow-xs cursor-pointer active:scale-[0.98]"
                 >
                   Calculate &amp; Apply GPA
                 </button>
