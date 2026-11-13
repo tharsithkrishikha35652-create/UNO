@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { CheckCircle2, GraduationCap, Sparkles, X, RotateCcw, Award } from 'lucide-react';
+import { CheckCircle2, GraduationCap, X, RotateCcw, Award } from 'lucide-react';
 import type { SubjectData } from '../types';
 import type { GpaHistoryEntry } from '../firebaseData';
 import { GPA_COURSES, getGpaCourses, getAllGpaCourses, type GpaCourse } from '../gpaCourses';
@@ -652,7 +652,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
             onClick={() => setShowExplicitGradeModal(true)}
             className="inline-flex h-11 w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-[#d97757] hover:bg-[#b95f43] dark:bg-[#e08564] dark:hover:bg-[#cf6d4c] px-4 text-xs font-bold text-white shadow-xs transition-colors cursor-pointer shrink-0"
           >
-            <Sparkles className="w-4 h-4 text-white" />
+            <Award className="w-4 h-4 text-white" aria-hidden="true" />
             Enter Grades of Choice
           </button>
         </div>
@@ -929,7 +929,7 @@ export const GPACalculator: React.FC<GPACalculatorProps> = ({
               <div>
                 <div className="flex items-center gap-2">
                   <span className="inline-flex items-center gap-1.5 rounded-md bg-[var(--app-soft-accent)] dark:bg-[#3c302b] border border-[var(--app-divider)] dark:border-[#5a5a62] px-2.5 py-0.5 text-[10px] font-bold text-[var(--app-action-accent-strong)] dark:text-[#e08564] uppercase tracking-wider">
-                    <Sparkles className="w-3 h-3" aria-hidden="true" />
+                    <GraduationCap className="w-3.5 h-3.5" aria-hidden="true" />
                     Semester {selectedSemester} · {getDepartmentShortName(department)}
                   </span>
                 </div>

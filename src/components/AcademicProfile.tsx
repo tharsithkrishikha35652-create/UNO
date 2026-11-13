@@ -679,7 +679,7 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
                   className="flex min-h-12 w-full items-center justify-between rounded-xl border border-slate-300 bg-white p-3.5 text-left hover:bg-slate-50 transition-colors focus-visible:outline-2 focus-visible:outline-[#172554] cursor-pointer"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-50 text-[#F0482E]">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-[#172554]">
                       <Sparkles className="h-4 w-4" aria-hidden="true" />
                     </div>
                     <div>

@@ -139,6 +139,14 @@ test.describe('CalCredit Brand & Launch Animation Suite', () => {
     const separateSpan = profileDrawer.locator('span.text-slate-500');
     await expect(separateSpan).toHaveCount(0);
 
+    // Verify Replay tour icon container matches Credits, Feedback, and Grading (bg-blue-50 text-[#172554])
+    const replayTourBtn = page.locator('button:has-text("Replay tour")');
+    if (await replayTourBtn.isVisible()) {
+      const iconContainer = replayTourBtn.locator('div.rounded-lg');
+      await expect(iconContainer).toHaveClass(/bg-blue-50/);
+      await expect(iconContainer).toHaveClass(/text-\[#172554\]/);
+    }
+
     // Take screenshot for visual verification
     await page.screenshot({ path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/verify_profile_drawer_logo.png' });
 
@@ -233,11 +241,18 @@ test.describe('CalCredit Brand & Launch Animation Suite', () => {
     });
     await page.waitForTimeout(200);
 
+    // Verify button has an icon
+    await expect(gradesBtn.locator('svg')).toBeVisible();
+
     await gradesBtn.click();
     await page.waitForTimeout(400);
 
     const modalTitle = page.locator('#custom-grade-modal-title');
     await expect(modalTitle).toBeVisible();
+
+    // Verify modal semester badge has GraduationCap icon
+    const modalBadge = page.locator('#custom-grade-modal-title').locator('..').locator('span.uppercase');
+    await expect(modalBadge.locator('svg')).toBeVisible();
 
     const topCloseBtn = page.locator('button[aria-label="Close dialog"]');
     await expect(topCloseBtn).toBeVisible();

@@ -935,6 +935,7 @@ export default function App() {
           onOpenGrades={() => {}}
           onOpenFeedback={() => {}}
           onOpenCredits={() => {}}
+          onReplayTour={() => {}}
           onLogout={() => {}}
           logoutPending={false}
         />
