@@ -101,8 +101,8 @@ Engineering curricula encompass varying course structures with differing ratios 
 
 ### 6. "Warm Scholar" Dual-Theme Aesthetic
 Designed to feel like an intentional university utility rather than a generic SaaS dashboard:
-- **Light Theme**: Warm cream backdrop (`#FAF8F5`) layered with delicate peach and slate decorative educational elements (`background_light.svg` with live V6 ambient animation).
-- **Dark Theme**: Charcoal/navy base (`#161618`) accented with muted copper, deep slate academic motifs, and subtle coordinate grids (`background_dark.svg` with live V6 ambient animation).
+- **Light Theme**: Warm cream backdrop (`#FAF8F5`) layered with seamless live video wallpaper.
+- **Dark Theme**: Charcoal/navy base (`#161618`) layered with seamless live video wallpaper.
 - Strict typography using **Figtree Variable** for crisp form inputs and **Inter (data) and Newsreader** serif accents for editorial elegance.
 - Intentional sentence-case labeling throughout, preserving technical acronyms (`CA1`, `CA2`, `ESE`, `GPA`, `CGPA`, `CEG`).
 
@@ -164,9 +164,8 @@ The Credits view features a bespoke, vector-accurate architectural elevation of 
 ```text
 UNO/
 ├── .agents/                    # Agentic developer workflows and skill definitions
-├── public/                     # Static assets (favicons, official wallpaper art)
-│   ├── background_light.svg    # Official Warm Scholar V6 vector artwork (light mode)
-│   └── background_dark.svg     # Official Midnight Scholar V6 vector artwork (dark mode)
+├── public/                     # Static assets (favicons, official wallpaper video assets)
+│   └── wallpaperdark.mp4/      # Official CalCredit live video wallpaper assets
 ├── src/
 │   ├── __tests__/              # Comprehensive Vitest unit test suites
 │   │   ├── calculatorUtils.test.ts # Mark boundary, 0/max, edge-case & 45% ESE tests
@@ -344,9 +343,7 @@ Special gratitude to the faculty and student community of **College of Engineeri
 
 ## Live wallpaper
 
-The background is layered SVG art (`public/background_*.svg`, inlined in `index.html`) moved by one conductor,
-`src/components/AmbientWallpaper.tsx`: a master wave crosses the page and every part responds to it, with depth
-parallax (mouse, device tilt, active tab), cause and effect between parts (cap -> tassel, books -> shadow lines,
-blobs -> orbs), ripples from app events (`pingAmbient` in `src/ambient/ambientBus.ts`: results, tab changes),
-more energy while scrolling and a calmer scene while typing. It pauses when the app is backgrounded and is static
-under `prefers-reduced-motion`.
+The background is a hardware-accelerated video wallpaper rendered behind the UI and managed by
+`src/components/AmbientWallpaper.tsx`. It seamlessly transitions between dark and light themes, covers
+any device dimensions with `object-fit: cover`, pauses when backgrounded, and respects
+`prefers-reduced-motion`.

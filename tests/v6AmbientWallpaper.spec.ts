@@ -1,299 +1,122 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('CALCREDIT V6 Live Wallpaper Suite', () => {
+test.describe('video wallpaper', () => {
   test.beforeEach(async ({ page }) => {
-    // Reset theme to light and set launch sequence played
     await page.addInitScript(() => {
       window.localStorage.setItem('calcredit_theme', 'light');
       window.sessionStorage.setItem('calcredit_launch_played', 'true');
     });
   });
 
-  test('SVG artwork genuinely replaces PNG backgrounds with responsive cover scaling', async ({ page }) => {
+  test('keeps the inline video ready and removes the old SVG artwork', async ({ page }) => {
     await page.goto('/');
 
-    const ambientBg = page.locator('#calcredit-ambient-bg');
-    await expect(ambientBg).toBeAttached();
+    const background = page.locator('#calcredit-ambient-bg');
+    const videos = background.locator('video.wallpaper-video');
+    const activeVideo = background.locator('video.wallpaper-video.is-visible');
+    await expect(background).toBeAttached();
+    await expect(videos).toHaveCount(2);
+    await expect(activeVideo).toHaveCount(1, { timeout: 5000 });
+    await expect(videos.first()).not.toHaveAttribute('controls');
+    expect(await videos.evaluateAll((items) => items.every((item) => {
+      const video = item as HTMLVideoElement;
+      return !video.controls && video.muted && video.loop && video.playsInline;
+    }))).toBe(true);
+    await expect(background.locator('svg')).toHaveCount(0);
+    await expect(background.locator('.spark, .breath-layer')).toHaveCount(0);
 
-    // Confirm no PNG background-image is applied to #calcredit-ambient-bg
-    const bgImage = await ambientBg.evaluate((el) => {
-      return window.getComputedStyle(el).backgroundImage;
-    });
-    expect(bgImage === 'none' || bgImage === '' || !bgImage.includes('.png')).toBe(true);
-
-    // Verify both Light and Dark SVG elements exist
-    const lightSvg = ambientBg.locator('svg.light-svg');
-    const darkSvg = ambientBg.locator('svg.dark-svg');
-    await expect(lightSvg).toBeAttached();
-    await expect(darkSvg).toBeAttached();
-
-    // Verify responsive slice scaling attribute
-    await expect(lightSvg).toHaveAttribute('preserveAspectRatio', 'xMidYMid slice');
-    await expect(darkSvg).toHaveAttribute('preserveAspectRatio', 'xMidYMid slice');
-
-    // In default light theme: light SVG has opacity 1, dark SVG has opacity 0
-    await expect(async () => {
-      const lightOpacity = await lightSvg.evaluate((el) => window.getComputedStyle(el).opacity);
-      const darkOpacity = await darkSvg.evaluate((el) => window.getComputedStyle(el).opacity);
-      expect(parseFloat(lightOpacity)).toBeGreaterThan(0.9);
-      expect(parseFloat(darkOpacity)).toBeLessThan(0.1);
-    }).toPass({ timeout: 2000 });
+    await expect(videos.first()).toHaveAttribute(
+      'data-light-src',
+      '/wallpaperdark.mp4/wallpaper_light_phone_1080x2400.mp4'
+    );
+    await expect(videos.first()).toHaveAttribute(
+      'data-dark-src',
+      '/wallpaperdark.mp4/CalCredit_Wallpaper_Dark_1080x1920.mp4'
+    );
+    await expect(activeVideo).toHaveAttribute('poster', '/warm-scholar-bg.png');
+    await expect(videos.locator('source')).toHaveCount(0);
+    await expect(activeVideo).toHaveAttribute(
+      'src',
+      '/wallpaperdark.mp4/wallpaper_light_phone_1080x2400.mp4'
+    );
   });
 
-  test('V6 key animated SVG elements exist with correct origins and styles', async ({ page }) => {
+  test('loads the matching wallpaper when the theme changes', async ({ page }) => {
     await page.goto('/');
 
-    const ambientBg = page.locator('#calcredit-ambient-bg');
+    const background = page.locator('#calcredit-ambient-bg');
+    const videos = background.locator('video.wallpaper-video');
+    const lightVideo = background.locator(
+      'video.wallpaper-video[src$="wallpaper_light_phone_1080x2400.mp4"]'
+    );
+    const darkVideo = background.locator(
+      'video.wallpaper-video[src$="CalCredit_Wallpaper_Dark_1080x1920.mp4"]'
+    );
+    await expect(videos.first()).toHaveAttribute(
+      'data-light-src',
+      '/wallpaperdark.mp4/wallpaper_light_phone_1080x2400.mp4'
+    );
+    await expect(lightVideo).toHaveClass(/is-visible/);
+    await expect(lightVideo).toHaveAttribute('poster', '/warm-scholar-bg.png');
 
-    // Graduation cap stationary body vs swinging tassel
-    const capTassel = ambientBg.locator('.cap-tassel').first();
-    await expect(capTassel).toBeAttached();
-
-    const tasselOrigin = await capTassel.evaluate((el) => {
-      return window.getComputedStyle(el).transformOrigin;
-    });
-    // Pivot at top attachment point (488, 155)
-    expect(tasselOrigin).toContain('488px 155px');
-
-    // Floating books stack
-    const bookStack = ambientBg.locator('.book-stack').first();
-    await expect(bookStack).toBeAttached();
-
-    // Bottom decorative organic shapes
-    const leftArtPieces = ambientBg.locator('.left-art-piece');
-    const rightArtPieces = ambientBg.locator('.right-art-piece');
-    expect(await leftArtPieces.count()).toBeGreaterThan(0);
-    expect(await rightArtPieces.count()).toBeGreaterThan(0);
-
-    // Stars
-    const svgStars = ambientBg.locator('.svg-star');
-    expect(await svgStars.count()).toBeGreaterThan(0);
-
-    // Atmospheric layer and sparks
-    await expect(ambientBg.locator('.breath-layer')).toBeAttached();
-    expect(await ambientBg.locator('.spark').count()).toBe(4);
-  });
-
-  test('theme-aware animation control: pauses inactive SVG and runs active SVG', async ({ page }) => {
-    await page.goto('/');
-
-    const ambientBg = page.locator('#calcredit-ambient-bg');
-    const lightSvg = ambientBg.locator('svg.light-svg');
-    const darkSvg = ambientBg.locator('svg.dark-svg');
-
-    // 1. In Light Mode:
-    // Active light SVG animations must be RUNNING
-    const lightTasselState = await lightSvg.locator('.cap-tassel').evaluate((el) => {
-      return window.getComputedStyle(el).animationPlayState;
-    });
-    expect(lightTasselState).toBe('running');
-
-    // Inactive dark SVG animations must be PAUSED to eliminate GPU waste
-    const darkTasselState = await darkSvg.locator('.cap-tassel').evaluate((el) => {
-      return window.getComputedStyle(el).animationPlayState;
-    });
-    expect(darkTasselState).toBe('paused');
-
-    // 2. Switch to Dark Mode:
     await page.evaluate(() => {
       document.documentElement.dataset.theme = 'dark';
       document.documentElement.classList.add('dark');
     });
+    await expect(darkVideo).toHaveClass(/is-visible/);
+    await expect(darkVideo).toHaveAttribute('poster', '/dark-scholar-bg.png');
+    await expect(videos).toHaveCount(2);
 
-    // Dark SVG should now be visible and light SVG hidden
-    await expect(async () => {
-      const darkOpacity = await darkSvg.evaluate((el) => window.getComputedStyle(el).opacity);
-      const lightOpacity = await lightSvg.evaluate((el) => window.getComputedStyle(el).opacity);
-      expect(parseFloat(darkOpacity)).toBeGreaterThan(0.9);
-      expect(parseFloat(lightOpacity)).toBeLessThan(0.1);
-    }).toPass({ timeout: 2000 });
-
-    // In Dark Mode:
-    // Active dark SVG animations must be RUNNING
-    const darkTasselAfterSwitch = await darkSvg.locator('.cap-tassel').evaluate((el) => {
-      return window.getComputedStyle(el).animationPlayState;
-    });
-    expect(darkTasselAfterSwitch).toBe('running');
-
-    // Inactive light SVG animations must be PAUSED
-    const lightTasselAfterSwitch = await lightSvg.locator('.cap-tassel').evaluate((el) => {
-      return window.getComputedStyle(el).animationPlayState;
-    });
-    expect(lightTasselAfterSwitch).toBe('paused');
-
-    // 3. Switch back to Light Mode:
     await page.evaluate(() => {
       document.documentElement.dataset.theme = 'light';
       document.documentElement.classList.remove('dark');
     });
-
-    await expect(async () => {
-      const lightTasselBack = await lightSvg.locator('.cap-tassel').evaluate((el) => {
-        return window.getComputedStyle(el).animationPlayState;
-      });
-      const darkTasselBack = await darkSvg.locator('.cap-tassel').evaluate((el) => {
-        return window.getComputedStyle(el).animationPlayState;
-      });
-      expect(lightTasselBack).toBe('running');
-      expect(darkTasselBack).toBe('paused');
-    }).toPass({ timeout: 1000 });
+    await expect(lightVideo).toHaveClass(/is-visible/);
+    await expect(lightVideo).toHaveAttribute('poster', '/warm-scholar-bg.png');
   });
 
-  test('mobile performance: pause state stops animations when backgrounded', async ({ page }) => {
-    // Mobile viewport: Pixel 7 / iPhone style
-    await page.setViewportSize({ width: 390, height: 844 });
+  test('covers portrait, landscape, and desktop viewport dimensions', async ({ page }) => {
     await page.goto('/');
 
-    const ambientBg = page.locator('#calcredit-ambient-bg');
+    for (const viewport of [
+      { width: 360, height: 800 },
+      { width: 412, height: 915 },
+      { width: 915, height: 412 },
+      { width: 1920, height: 1080 },
+    ]) {
+      await page.setViewportSize(viewport);
+      const video = page.locator('#calcredit-ambient-bg video').first();
+      const geometry = await video.evaluate((element) => {
+        const rect = element.getBoundingClientRect();
+        return {
+          width: rect.width,
+          height: rect.height,
+          objectFit: getComputedStyle(element).objectFit,
+        };
+      });
 
-    // Emulate backgrounded app / hidden tab by adding paused class
-    await page.evaluate(() => {
-      document.getElementById('calcredit-ambient-bg')?.classList.add('paused');
-    });
-
-    const lightTasselState = await ambientBg.locator('svg.light-svg .cap-tassel').evaluate((el) => {
-      return window.getComputedStyle(el).animationPlayState;
-    });
-    expect(lightTasselState).toBe('paused');
-
-    const darkTasselState = await ambientBg.locator('svg.dark-svg .cap-tassel').evaluate((el) => {
-      return window.getComputedStyle(el).animationPlayState;
-    });
-    expect(darkTasselState).toBe('paused');
-
-    // Resume when returning to foreground
-    await page.evaluate(() => {
-      document.getElementById('calcredit-ambient-bg')?.classList.remove('paused');
-    });
-
-    const resumedLightState = await ambientBg.locator('svg.light-svg .cap-tassel').evaluate((el) => {
-      return window.getComputedStyle(el).animationPlayState;
-    });
-    expect(resumedLightState).toBe('running');
+      expect(geometry.width).toBeCloseTo(viewport.width, 0);
+      expect(geometry.height).toBeCloseTo(viewport.height, 0);
+      expect(geometry.objectFit).toBe('cover');
+    }
   });
 
-  test('reduced-motion preference strictly disables animations', async ({ page }) => {
+  test('pauses while the launch overlay hides the wallpaper', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(() => document.documentElement.classList.add('launch-pending'));
+
+    const background = page.locator('#calcredit-ambient-bg');
+    await expect(background).toHaveCSS('visibility', 'hidden');
+    await expect(background.locator('video.wallpaper-video')).toHaveCount(2);
+  });
+
+  test('honors reduced-motion preference', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/');
 
-    const ambientBg = page.locator('#calcredit-ambient-bg');
-    const playState = await ambientBg.locator('.cap-tassel').first().evaluate((el) => {
-      return window.getComputedStyle(el).animationPlayState;
-    });
-    expect(playState).toBe('paused');
-  });
-
-  test('launch animation suppresses wallpaper rendering overhead', async ({ page }) => {
-    await page.goto('/');
-
-    // Simulate launch-pending state
-    await page.evaluate(() => {
-      document.documentElement.classList.add('launch-pending');
-    });
-
-    const ambientBg = page.locator('#calcredit-ambient-bg');
-    await expect(async () => {
-      const bgVisibility = await ambientBg.evaluate((el) => window.getComputedStyle(el).visibility);
-      const bgOpacity = await ambientBg.evaluate((el) => window.getComputedStyle(el).opacity);
-      expect(bgVisibility).toBe('hidden');
-      expect(parseFloat(bgOpacity)).toBe(0);
-    }).toPass({ timeout: 1000 });
-  });
-
-  test('connected scene: one conductor moves every part and the parts react to each other', async ({ page }) => {
-    await page.goto('/');
-    await expect(page.locator('#calcredit-ambient-bg')).toHaveAttribute('data-ambient', 'running');
-    const read = () => page.evaluate(() => {
-      const q = (sel: string) => document.querySelector<SVGElement>(`#calcredit-ambient-bg svg.light-svg ${sel}`);
-      return {
-        books: q('.book-stack')?.style.transform ?? '',
-        shadow: q('.shadow-lines')?.style.transform ?? '',
-        tassel: q('.cap-tassel')?.style.transform ?? '',
-        col: q('.dotcol')?.style.opacity ?? '',
-      };
-    });
-    const a = await read();
-    await page.waitForTimeout(1200);
-    const b = await read();
-    expect(a.books).not.toBe('');
-    expect(b.books).not.toBe(a.books);
-    expect(b.shadow).not.toBe(a.shadow);
-    expect(b.tassel).not.toBe(a.tassel);
-    expect(parseFloat(b.col)).toBeGreaterThan(0.5);
-  });
-
-  test('app events ripple through the artwork (a result makes the stars flare)', async ({ page }) => {
-    await page.goto('/');
-    await expect(page.locator('#calcredit-ambient-bg')).toHaveAttribute('data-ambient', 'running');
-    const peak = await page.evaluate(async () => {
-      window.dispatchEvent(new CustomEvent('calcredit:ambient', { detail: { kind: 'result' } }));
-      let max = 0;
-      const t0 = performance.now();
-      while (performance.now() - t0 < 1800) {
-        await new Promise((r) => requestAnimationFrame(r));
-        document.querySelectorAll<SVGElement>('#calcredit-ambient-bg svg.light-svg .svg-star').forEach((el) => {
-          const m = /scale\(([\d.]+)\)/.exec(el.style.transform);
-          if (m) max = Math.max(max, parseFloat(m[1]));
-        });
-      }
-      return max;
-    });
-    // idle twinkle tops out at 1.35; a result ripple must push stars well past that
-    expect(peak).toBeGreaterThan(1.5);
-  });
-
-  test('reduced motion: the artwork stays static', async ({ page }) => {
-    await page.emulateMedia({ reducedMotion: 'reduce' });
-    await page.goto('/');
-    await expect(page.locator('#calcredit-ambient-bg')).toHaveAttribute('data-ambient', 'static');
-    const transform = await page.evaluate(
-      () => document.querySelector<SVGElement>('#calcredit-ambient-bg svg.light-svg .book-stack')?.style.transform ?? ''
+    const allPaused = await page.locator('#calcredit-ambient-bg video').evaluateAll(
+      (elements) => elements.every((element) => (element as HTMLVideoElement).paused)
     );
-    expect(transform).toBe('');
-  });
-
-  test('visual capture: light and dark V6 wallpaper screenshots', async ({ page }) => {
-    await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto('/');
-
-    // Wait for initial render to settle
-    await page.waitForTimeout(600);
-
-    // Capture Light mode mobile screenshot
-    await page.screenshot({
-      path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/v6_wallpaper_light.png',
-      fullPage: false,
-    });
-
-    // Capture Light mode desktop full screen screenshot (1920x1080)
-    await page.setViewportSize({ width: 1920, height: 1080 });
-    await page.waitForTimeout(600);
-    await page.screenshot({
-      path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/v6_wallpaper_desktop_light.png',
-      fullPage: false,
-    });
-
-    // Switch to Dark mode
-    await page.evaluate(() => {
-      document.documentElement.dataset.theme = 'dark';
-      document.documentElement.classList.add('dark');
-    });
-
-    // Wait for theme crossfade
-    await page.waitForTimeout(600);
-
-    // Capture Dark mode desktop screenshot
-    await page.screenshot({
-      path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/v6_wallpaper_desktop_dark.png',
-      fullPage: false,
-    });
-
-    // Capture Dark mode mobile screenshot
-    await page.setViewportSize({ width: 390, height: 844 });
-    await page.waitForTimeout(400);
-    await page.screenshot({
-      path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/v6_wallpaper_dark.png',
-      fullPage: false,
-    });
+    expect(allPaused).toBe(true);
   });
 });

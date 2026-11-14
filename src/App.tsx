@@ -71,7 +71,6 @@ import { ThemeToggle, type AppTheme } from "./components/ThemeToggle";
 import CalCreditLogo from "./components/CalCreditLogo";
 import LaunchAnimation from "./components/LaunchAnimation";
 import { AmbientWallpaper } from "./components/AmbientWallpaper";
-import { pingAmbient } from "./ambient/ambientBus";
 import { CGPAHub } from "./components/CGPAHub";
 import { GPA_COURSES, getGpaCourses, getAllGpaCourses } from "./gpaCourses";
 import { AuthScreen, GOOGLE_REDIRECT_PENDING_KEY } from "./components/AuthScreen";
@@ -709,7 +708,7 @@ export default function App() {
     themeSwitchTimeoutRef.current = window.setTimeout(() => {
       document.documentElement.classList.remove("theme-switching");
       themeSwitchTimeoutRef.current = null;
-    }, 280);
+    }, 650);
   }, []);
 
   useEffect(() => {
@@ -1660,11 +1659,6 @@ function AuthenticatedApp({
     dialogReturnFocusRef.current.focus();
     dialogReturnFocusRef.current = null;
   }, [isDialogOpen]);
-
-  // Tell the live wallpaper which tab is active so its layers slide (parallax) with the app.
-  useEffect(() => {
-    pingAmbient({ kind: "tab", index: { calculator: 0, grades: 1, gpa: 2, cgpa: 3 }[activeTab] });
-  }, [activeTab]);
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
