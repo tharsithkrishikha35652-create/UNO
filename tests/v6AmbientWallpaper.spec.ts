@@ -9,37 +9,24 @@ test.describe('CALCREDIT V6 Live Wallpaper Performance & Rendering Suite', () =>
     });
   });
 
-  test('1. bottom corner artwork has smooth continuous contour loops and extended bounds to eliminate cut edges', async ({ page }) => {
+  test('1. static high-res raster wallpaper layers are attached and load correct assets', async ({ page }) => {
     await page.goto('/');
 
     const ambientBg = page.locator('#calcredit-ambient-bg');
     await expect(ambientBg).toBeAttached();
 
-    // Verify both Light and Dark SVGs have continuous looped contours
-    for (const svgSelector of ['svg.light-svg', 'svg.dark-svg']) {
-      const svg = ambientBg.locator(svgSelector);
-      await expect(svg).toBeAttached();
+    // Verify both Light and Dark static images are attached
+    const lightImg = ambientBg.locator('img.light-bg');
+    const darkImg = ambientBg.locator('img.dark-bg');
+    await expect(lightImg).toBeAttached();
+    await expect(darkImg).toBeAttached();
 
-      // Bottom-left ring-b should loop gracefully back around (not terminating abruptly at Y=1024)
-      const ringB = svg.locator('.ring-b');
-      await expect(ringB).toBeAttached();
-      const ringBD = await ringB.getAttribute('d');
-      expect(ringBD).toContain('1080');
-      expect(ringBD).toContain('1030');
+    expect(await lightImg.getAttribute('src')).toBe('/warm-scholar-bg.png');
+    expect(await darkImg.getAttribute('src')).toBe('/dark-scholar-bg.png');
 
-      // Bottom-right ring-c should loop gracefully back around
-      const ringC = svg.locator('.ring-c');
-      await expect(ringC).toBeAttached();
-      const ringCD = await ringC.getAttribute('d');
-      expect(ringCD).toContain('1090');
-      expect(ringCD).toContain('1020');
-
-      // Filled art pieces must extend past Y=1024 (e.g. Y=1150) so widescreen clipping never shows flat cut edges
-      const leftArt1 = svg.locator('.left-art-1');
-      const rightArt1 = svg.locator('.right-art-1');
-      expect(await leftArt1.getAttribute('d')).toContain('1150');
-      expect(await rightArt1.getAttribute('d')).toContain('1150');
-    }
+    // Verify CSS overlay layers are attached
+    await expect(ambientBg.locator('.breath-layer')).toBeAttached();
+    await expect(ambientBg.locator('.spark-layer')).toBeAttached();
   });
 
   test('2. wallpaper suppresses JavaScript RAF execution during html.launch-pending', async ({ page }) => {
@@ -139,27 +126,25 @@ test.describe('CALCREDIT V6 Live Wallpaper Performance & Rendering Suite', () =>
     const ambientBg = page.locator('#calcredit-ambient-bg');
     await expect(ambientBg).toHaveAttribute('data-ambient', 'running');
 
-    // Emulate Capacitor background event
+    // Emulate background event
     await page.evaluate(() => {
-      window.dispatchEvent(new CustomEvent('calcredit:appState', { detail: { isActive: false } }));
-      // Also directly trigger via document class or visibility simulation
       document.getElementById('calcredit-ambient-bg')?.classList.add('paused');
     });
 
-    const lightTassel = await ambientBg.locator('svg.light-svg .cap-tassel').evaluate((el) => {
+    const breathState = await ambientBg.locator('.breath-layer').evaluate((el) => {
       return window.getComputedStyle(el).animationPlayState;
     });
-    expect(lightTassel).toBe('paused');
+    expect(breathState).toBe('paused');
 
     // Emulate foreground return
     await page.evaluate(() => {
       document.getElementById('calcredit-ambient-bg')?.classList.remove('paused');
     });
 
-    const resumedLight = await ambientBg.locator('svg.light-svg .cap-tassel').evaluate((el) => {
+    const resumedState = await ambientBg.locator('.breath-layer').evaluate((el) => {
       return window.getComputedStyle(el).animationPlayState;
     });
-    expect(resumedLight).toBe('running');
+    expect(resumedState).toBe('running');
   });
 
   test('6. reduced-motion preference strictly halts wallpaper animation', async ({ page }) => {
@@ -173,25 +158,19 @@ test.describe('CALCREDIT V6 Live Wallpaper Performance & Rendering Suite', () =>
       return (window as unknown as { __calcredit_ambient?: { isRunning: boolean } }).__calcredit_ambient?.isRunning;
     });
     expect(isRunning).toBe(false);
-
-    // Transform on animated elements must remain empty
-    const bookTransform = await page.evaluate(() => {
-      return (document.querySelector('#calcredit-ambient-bg svg.light-svg .book-stack') as HTMLElement)?.style.transform ?? '';
-    });
-    expect(bookTransform).toBe('');
   });
 
-  test('7. strictly ONE RAF loop exists at all times and repeated events do not duplicate loops', async ({ page }) => {
+  test('7. strictly ZERO RAF loops exist on main thread and repeated events do not start any loop', async ({ page }) => {
     await page.goto('/');
 
     const ambientBg = page.locator('#calcredit-ambient-bg');
     await expect(ambientBg).toHaveAttribute('data-ambient', 'running');
 
-    // Check initial RAF count
+    // Check initial RAF count - must be ZERO (no JS thread blocking)
     let rafCount = await page.evaluate(() => {
       return (window as unknown as { __calcredit_ambient?: { rafCount: number } }).__calcredit_ambient?.rafCount;
     });
-    expect(rafCount).toBe(1);
+    expect(rafCount).toBe(0);
 
     // Blast repeated rapid lifecycle and window events
     await page.evaluate(() => {
@@ -200,34 +179,26 @@ test.describe('CALCREDIT V6 Live Wallpaper Performance & Rendering Suite', () =>
         window.dispatchEvent(new Event('scroll'));
         window.dispatchEvent(new Event('pageshow'));
         document.dispatchEvent(new Event('visibilitychange'));
-        window.dispatchEvent(new CustomEvent('calcredit:ambient', { detail: { kind: 'tap' } }));
       }
     });
 
-    // Verify still strictly ONE RAF loop
+    // Verify still strictly ZERO RAF loops
     rafCount = await page.evaluate(() => {
       return (window as unknown as { __calcredit_ambient?: { rafCount: number } }).__calcredit_ambient?.rafCount;
     });
-    expect(rafCount).toBe(1);
+    expect(rafCount).toBe(0);
   });
 
-  test('8. theme-aware animation control pauses inactive SVG and runs active SVG', async ({ page }) => {
+  test('8. theme switching crossfade updates visibility between light and dark raster artwork', async ({ page }) => {
     await page.goto('/');
 
     const ambientBg = page.locator('#calcredit-ambient-bg');
-    const lightSvg = ambientBg.locator('svg.light-svg');
-    const darkSvg = ambientBg.locator('svg.dark-svg');
+    const lightImg = ambientBg.locator('img.light-bg');
+    const darkImg = ambientBg.locator('img.dark-bg');
 
     // 1. In Light Mode:
-    const lightTassel = await lightSvg.locator('.cap-tassel').evaluate((el) => {
-      return window.getComputedStyle(el).animationPlayState;
-    });
-    expect(lightTassel).toBe('running');
-
-    const darkTassel = await darkSvg.locator('.cap-tassel').evaluate((el) => {
-      return window.getComputedStyle(el).animationPlayState;
-    });
-    expect(darkTassel).toBe('paused');
+    const lightOpacity = await lightImg.evaluate((el) => window.getComputedStyle(el).opacity);
+    expect(parseFloat(lightOpacity)).toBe(1);
 
     // 2. Switch to Dark Mode:
     await page.evaluate(() => {
@@ -236,32 +207,25 @@ test.describe('CALCREDIT V6 Live Wallpaper Performance & Rendering Suite', () =>
     });
 
     await expect(async () => {
-      const darkTasselAfter = await darkSvg.locator('.cap-tassel').evaluate((el) => {
-        return window.getComputedStyle(el).animationPlayState;
-      });
-      const lightTasselAfter = await lightSvg.locator('.cap-tassel').evaluate((el) => {
-        return window.getComputedStyle(el).animationPlayState;
-      });
-      expect(darkTasselAfter).toBe('running');
-      expect(lightTasselAfter).toBe('paused');
+      const darkOpacityAfter = await darkImg.evaluate((el) => window.getComputedStyle(el).opacity);
+      const lightOpacityAfter = await lightImg.evaluate((el) => window.getComputedStyle(el).opacity);
+      expect(parseFloat(darkOpacityAfter)).toBeGreaterThan(0.9);
+      expect(parseFloat(lightOpacityAfter)).toBeLessThan(0.1);
     }).toPass({ timeout: 2000 });
   });
 
-  test('9. inactive theme SVG is not updated by JavaScript conductor during normal operation', async ({ page }) => {
+  test('9. no inline style mutations occur on wallpaper layers (zero main-thread churn)', async ({ page }) => {
     await page.goto('/');
+    await page.waitForTimeout(500);
 
-    // In Light mode: wait 1.6s to clear any initial crossfade window
-    await page.waitForTimeout(1600);
-
-    // Sample dark SVG elements; their inline style transforms should be empty
-    const darkTransforms = await page.evaluate(() => {
-      const darkStack = (document.querySelector('#calcredit-ambient-bg svg.dark-svg .book-stack') as HTMLElement)?.style.transform ?? '';
-      const darkTassel = (document.querySelector('#calcredit-ambient-bg svg.dark-svg .cap-tassel') as HTMLElement)?.style.transform ?? '';
-      return { darkStack, darkTassel };
+    const hasInlineStyles = await page.evaluate(() => {
+      const lightImg = document.querySelector('#calcredit-ambient-bg img.light-bg') as HTMLElement;
+      const darkImg = document.querySelector('#calcredit-ambient-bg img.dark-bg') as HTMLElement;
+      return (lightImg?.style.transform !== '' && lightImg?.style.transform !== undefined) ||
+             (darkImg?.style.transform !== '' && darkImg?.style.transform !== undefined);
     });
 
-    expect(darkTransforms.darkStack).toBe('');
-    expect(darkTransforms.darkTassel).toBe('');
+    expect(hasInlineStyles).toBe(false);
   });
 
   test('10. theme switching crossfade executes cleanly within 1.5s', async ({ page }) => {

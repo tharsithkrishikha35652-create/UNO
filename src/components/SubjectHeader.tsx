@@ -125,7 +125,7 @@ export const SubjectHeader: React.FC<SubjectHeaderProps> = ({
           role="dialog"
           aria-modal="true"
           aria-labelledby="switcher-heading"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/50 backdrop-blur-xs"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75"
           onKeyDown={(e) => {
             if (e.key === 'Escape') setSwitcherOpen(false);
           }}
