@@ -147,9 +147,13 @@ const GOOGLE_ACCOUNT_SELECTION_STORE_ID =
 
 function getInitialTheme(): AppTheme {
   try {
-    return window.localStorage.getItem(THEME_STORAGE_KEY) === "dark"
-      ? "dark"
-      : "light";
+    const saved = window.localStorage.getItem(THEME_STORAGE_KEY);
+    if (saved === "dark") return "dark";
+    if (saved === "light") return "light";
+    if (typeof window !== "undefined" && window.matchMedia?.("(prefers-color-scheme: dark)").matches) {
+      return "dark";
+    }
+    return "light";
   } catch (error) {
     console.error("Unable to load the saved theme preference:", error);
     return "light";
@@ -1076,12 +1080,17 @@ export default function App() {
   return (
     <>
       <AmbientWallpaper />
-      <div style={{ display: launching ? 'none' : undefined }} className="contents">
+      <div
+        style={{ display: launching ? 'none' : undefined }}
+        className={`contents ${launching ? 'launch-guarded-content hidden' : ''}`}
+        aria-hidden={launching ? "true" : undefined}
+      >
         {content}
       </div>
       {launching &&
         createPortal(
           <LaunchAnimation
+            theme={theme}
             onDone={() => {
               try {
                 window.sessionStorage.setItem("calcredit_launch_played", "true");

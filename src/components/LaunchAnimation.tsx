@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useId, useRef, useCallback } from 'react';
+import { SplashScreen } from '@capacitor/splash-screen';
 import { ANNA_UNIV_PATH } from './Logo';
 
 export type LaunchAnimationProps = {
@@ -94,9 +95,19 @@ export const LaunchAnimation: React.FC<LaunchAnimationProps> = ({ onDone, theme 
   }, []);
 
   useEffect(() => {
+    // Dismiss native splash screen once launch animation is mounted and active
+    SplashScreen.hide().catch(() => {});
+  }, []);
+
+  useEffect(() => {
     if (typeof document !== 'undefined' && !isFadingOut) {
       document.documentElement.classList.add('launch-pending');
     }
+    return () => {
+      if (typeof document !== 'undefined') {
+        document.documentElement.classList.remove('launch-pending');
+      }
+    };
   }, [isFadingOut]);
 
   const handleSkip = useCallback(() => {

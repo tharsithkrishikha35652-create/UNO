@@ -844,9 +844,25 @@ html.theme-switching #root :where(
 }
 
 html.launch-pending #calcredit-ambient-bg {
+  display: none !important;
   opacity: 0 !important;
   visibility: hidden !important;
   pointer-events: none !important;
+}
+
+html.launch-pending body {
+  background-color: #F7F1E1 !important;
+  overflow: hidden !important;
+}
+
+html.launch-pending[data-theme="dark"] body,
+html.launch-pending.dark body {
+  background-color: #14110F !important;
+}
+
+html.launch-pending .launch-guarded-content {
+  display: none !important;
+  visibility: hidden !important;
 }
 
 /* The app content remains above the decorative media layer. */

@@ -16,13 +16,48 @@
     <meta property="og:image" content="/favicon.svg" />
     <script>
       try {
-        var savedTheme = localStorage.getItem('calcredit_theme') || 'light';
-        document.documentElement.dataset.theme = savedTheme;
-        if (savedTheme === 'dark') {
+        var storedTheme = localStorage.getItem('calcredit_theme');
+        var isDark = storedTheme === 'dark' || (!storedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        var activeTheme = isDark ? 'dark' : 'light';
+        document.documentElement.dataset.theme = activeTheme;
+        if (isDark) {
           document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+        var launchPlayed = false;
+        try {
+          launchPlayed = sessionStorage.getItem('calcredit_launch_played') === 'true';
+        } catch (e) {}
+        if (!launchPlayed) {
+          document.documentElement.classList.add('launch-pending');
         }
       } catch (e) {}
     </script>
+    <style>
+      /* Zero-flash launch critical style: matches LaunchAnimation background and suppresses ambient wallpaper */
+      html.launch-pending,
+      html.launch-pending body {
+        background-color: #F7F1E1 !important;
+        overflow: hidden !important;
+      }
+      html.launch-pending[data-theme="dark"],
+      html.launch-pending[data-theme="dark"] body,
+      html.launch-pending.dark,
+      html.launch-pending.dark body {
+        background-color: #14110F !important;
+      }
+      html.launch-pending #calcredit-ambient-bg {
+        display: none !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+      }
+      html.launch-pending .launch-guarded-content {
+        display: none !important;
+        visibility: hidden !important;
+      }
+    </style>
   </head>
   <body>
     <div id="calcredit-ambient-bg" aria-hidden="true">

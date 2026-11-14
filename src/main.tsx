@@ -3,8 +3,15 @@ import { SplashScreen } from '@capacitor/splash-screen';
 import App from './App.tsx';
 import './index.css';
 
-// Immediately dismiss native splash screen so the web launch animation runs seamlessly
-SplashScreen.hide().catch(() => {});
+// If the launch animation has already played this session, dismiss native splash immediately.
+// Otherwise, the native splash screen is dismissed smoothly once LaunchAnimation mounts into DOM.
+try {
+  if (typeof window !== 'undefined' && window.sessionStorage.getItem('calcredit_launch_played') === 'true') {
+    SplashScreen.hide().catch(() => {});
+  }
+} catch {
+  SplashScreen.hide().catch(() => {});
+}
 
 // Pre-initialize safe-area insets on mobile Android environments
 if (typeof window !== 'undefined') {

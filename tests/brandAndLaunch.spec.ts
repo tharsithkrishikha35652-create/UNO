@@ -51,6 +51,50 @@ test.describe('CalCredit Brand & Launch Animation Suite', () => {
     await expect(page.locator('button').first()).toBeVisible();
   });
 
+  test('cold start immediately applies launch-pending and suppresses ambient wallpaper and login screen', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.sessionStorage.clear();
+      window.localStorage.setItem('calcredit_theme', 'dark');
+    });
+
+    await page.goto('/', { waitUntil: 'commit' });
+
+    // Ensure documentElement has launch-pending immediately upon initial HTML load
+    const isLaunchPending = await page.evaluate(() =>
+      document.documentElement.classList.contains('launch-pending')
+    );
+    expect(isLaunchPending).toBe(true);
+
+    // Verify ambient wallpaper is display: none during launch
+    const ambientBgDisplay = await page.evaluate(() => {
+      const bg = document.getElementById('calcredit-ambient-bg');
+      return bg ? window.getComputedStyle(bg).display : 'none';
+    });
+    expect(ambientBgDisplay).toBe('none');
+
+    // Verify guarded content (login / workspace) is display: none during launch
+    const contentHidden = await page.evaluate(() => {
+      const guarded = document.querySelector('.launch-guarded-content');
+      return guarded ? window.getComputedStyle(guarded).display === 'none' : true;
+    });
+    expect(contentHidden).toBe(true);
+
+    // Verify body background is dark launch theme (#14110F -> rgb(20, 17, 15))
+    const bodyBg = await page.evaluate(() => window.getComputedStyle(document.body).backgroundColor);
+    expect(bodyBg).toBe('rgb(20, 17, 15)');
+
+    // Launch overlay is visible
+    const launchOverlay = page.locator('[role="status"][aria-label="CalCredit is loading"]');
+    await expect(launchOverlay).toBeAttached();
+
+    // After animation finishes, launch-pending is removed and ambient bg is displayed
+    await expect(launchOverlay).toHaveCount(0, { timeout: 4500 });
+    const isPendingAfter = await page.evaluate(() =>
+      document.documentElement.classList.contains('launch-pending')
+    );
+    expect(isPendingAfter).toBe(false);
+  });
+
   test('reduced-motion shows no animation and finishes cleanly', async ({ page }) => {
     // Emulate prefers-reduced-motion: reduce
     await page.emulateMedia({ reducedMotion: 'reduce' });
