@@ -151,7 +151,17 @@
 
   html,
   body {
-    overflow-x: hidden;
+    overflow-x: clip;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar,
+  #root::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
   }
 
   html,
@@ -213,17 +223,14 @@
   }
 
   :where(*::-webkit-scrollbar) {
-    width: 10px;
-    height: 10px;
+    display: none;
+    width: 0;
+    height: 0;
   }
 
-  :where(*::-webkit-scrollbar-thumb) {
-    background: #94a3b8;
-    border: 3px solid var(--app-background);
-  }
-
-  :where(*::-webkit-scrollbar-track) {
-    background: var(--app-background);
+  :where(*) {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
 }
 
@@ -612,14 +619,7 @@ input[type="number"]::-webkit-outer-spin-button {
   box-shadow: 0 0 0 3px rgb(147 197 253 / 22%);
 }
 
-[data-theme="dark"] :where(*::-webkit-scrollbar-thumb) {
-  background: #475569;
-  border-color: #0b1220;
-}
 
-[data-theme="dark"] :where(*::-webkit-scrollbar-track) {
-  background: #0b1220;
-}
 
 @keyframes profile-slide-in {
   from {
