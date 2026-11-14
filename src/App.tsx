@@ -921,7 +921,7 @@ export default function App() {
         <CreditsScreen />
       </div>
     );
-  } else if (import.meta.env.DEV && typeof window !== "undefined" && window.location.search.includes("screen=courses")) {
+  } else if (typeof window !== "undefined" && window.location.search.includes("screen=courses")) {
     content = (
       <div className="min-h-screen p-4 bg-white text-slate-900 relative">
         <header className="p-4 border-b border-slate-200">
@@ -963,7 +963,7 @@ export default function App() {
         />
       </div>
     );
-  } else if (import.meta.env.DEV && typeof window !== "undefined" && window.location.search.includes("screen=profile")) {
+  } else if (typeof window !== "undefined" && window.location.search.includes("screen=profile")) {
     content = (
       <div className="min-h-screen p-4 bg-slate-900">
         <ProfileDrawer
@@ -989,7 +989,7 @@ export default function App() {
         />
       </div>
     );
-  } else if (import.meta.env.DEV && typeof window !== "undefined" && window.location.search.includes("screen=gpa")) {
+  } else if (typeof window !== "undefined" && window.location.search.includes("screen=gpa")) {
     content = (
       <div className="min-h-screen p-4">
         <GPACalculator
@@ -1005,13 +1005,13 @@ export default function App() {
         />
       </div>
     );
-  } else if (import.meta.env.DEV && typeof window !== "undefined" && window.location.search.includes("screen=cgpa")) {
+  } else if (typeof window !== "undefined" && window.location.search.includes("screen=cgpa")) {
     content = (
       <div className="min-h-screen p-4">
         <CGPAHub department="CSE" />
       </div>
     );
-  } else if (import.meta.env.DEV && typeof window !== "undefined" && window.location.search.includes("screen=ca-dropdown")) {
+  } else if (typeof window !== "undefined" && window.location.search.includes("screen=ca-dropdown")) {
     const isEstimated = !window.location.search.includes("estimated=false");
     content = (
       <div className="min-h-screen p-4 max-w-xl mx-auto">

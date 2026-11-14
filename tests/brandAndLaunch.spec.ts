@@ -117,7 +117,7 @@ test.describe('CalCredit Brand & Launch Animation Suite', () => {
     expect(creditsOverflow.overflows).toBe(false);
   });
 
-  test('profile drawer renders single-element horizontal logo with Anna University', async ({ page }) => {
+  test('profile drawer renders single-element horizontal logo with Anna University', async ({ page }, testInfo) => {
     await page.setViewportSize({ width: 412, height: 922 });
     await page.addInitScript(() => {
       window.sessionStorage.setItem('calcredit_launch_played', 'true');
@@ -148,7 +148,7 @@ test.describe('CalCredit Brand & Launch Animation Suite', () => {
     }
 
     // Take screenshot for visual verification
-    await page.screenshot({ path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/verify_profile_drawer_logo.png' });
+    await page.screenshot({ path: testInfo.outputPath('verify_profile_drawer_logo.png') });
 
     // Test in Dark Mode as well
     await page.evaluate(() => {
@@ -156,10 +156,10 @@ test.describe('CalCredit Brand & Launch Animation Suite', () => {
       document.documentElement.classList.add('dark');
     });
     await page.waitForTimeout(300);
-    await page.screenshot({ path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/verify_profile_drawer_logo_dark.png' });
+    await page.screenshot({ path: testInfo.outputPath('verify_profile_drawer_logo_dark.png') });
   });
 
-  test('courses sheet renders frosted glass blurred backdrop over underlying app', async ({ page }) => {
+  test('courses sheet renders frosted glass blurred backdrop over underlying app', async ({ page }, testInfo) => {
     await page.setViewportSize({ width: 412, height: 922 });
     await page.addInitScript(() => {
       window.sessionStorage.setItem('calcredit_launch_played', 'true');
@@ -182,7 +182,7 @@ test.describe('CalCredit Brand & Launch Animation Suite', () => {
     await expect(underlyingHeading).toBeAttached();
 
     // Take screenshot to inspect the frosted blur
-    await page.screenshot({ path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/verify_courses_sheet_blur.png' });
+    await page.screenshot({ path: testInfo.outputPath('verify_courses_sheet_blur.png') });
 
     // Test in Dark Mode as well
     await page.evaluate(() => {
@@ -190,10 +190,10 @@ test.describe('CalCredit Brand & Launch Animation Suite', () => {
       document.documentElement.classList.add('dark');
     });
     await page.waitForTimeout(300);
-    await page.screenshot({ path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/verify_courses_sheet_blur_dark.png' });
+    await page.screenshot({ path: testInfo.outputPath('verify_courses_sheet_blur_dark.png') });
   });
 
-  test('GPA Hub displays Enter Grades of Choice button at the top of the page', async ({ page }) => {
+  test('GPA Hub displays Enter Grades of Choice button at the top of the page', async ({ page }, testInfo) => {
     await page.setViewportSize({ width: 412, height: 922 });
     await page.addInitScript(() => {
       window.sessionStorage.setItem('calcredit_launch_played', 'true');
@@ -218,7 +218,7 @@ test.describe('CalCredit Brand & Launch Animation Suite', () => {
     }
 
     // Capture screenshot in light theme
-    await page.screenshot({ path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/verify_gpa_hub_top_button.png' });
+    await page.screenshot({ path: testInfo.outputPath('verify_gpa_hub_top_button.png') });
 
     // Capture screenshot in dark theme
     await page.evaluate(() => {
@@ -226,12 +226,12 @@ test.describe('CalCredit Brand & Launch Animation Suite', () => {
       document.documentElement.classList.add('dark');
     });
     await page.waitForTimeout(300);
-    await page.screenshot({ path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/verify_gpa_hub_top_button_dark.png' });
+    await page.screenshot({ path: testInfo.outputPath('verify_gpa_hub_top_button_dark.png') });
 
     // Capture desktop layout
     await page.setViewportSize({ width: 1200, height: 800 });
     await page.waitForTimeout(300);
-    await page.screenshot({ path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/verify_gpa_hub_top_button_desktop.png' });
+    await page.screenshot({ path: testInfo.outputPath('verify_gpa_hub_top_button_desktop.png') });
 
     // Open Enter Grades of Choice modal and verify its Warm Scholar theme & close buttons
     await page.setViewportSize({ width: 412, height: 922 });
@@ -262,7 +262,7 @@ test.describe('CalCredit Brand & Launch Animation Suite', () => {
     expect(closeBtnBg).toBeTruthy();
 
     // Capture light theme modal screenshot
-    await page.screenshot({ path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/verify_custom_grades_modal_light.png' });
+    await page.screenshot({ path: testInfo.outputPath('verify_custom_grades_modal_light.png') });
 
     // Switch to dark theme and capture
     await page.evaluate(() => {
@@ -270,7 +270,7 @@ test.describe('CalCredit Brand & Launch Animation Suite', () => {
       document.documentElement.classList.add('dark');
     });
     await page.waitForTimeout(300);
-    await page.screenshot({ path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/verify_custom_grades_modal_dark.png' });
+    await page.screenshot({ path: testInfo.outputPath('verify_custom_grades_modal_dark.png') });
 
     // Test closing via close button
     await topCloseBtn.click();
@@ -278,7 +278,7 @@ test.describe('CalCredit Brand & Launch Animation Suite', () => {
     await expect(modalTitle).toHaveCount(0);
   });
 
-  test('CA section dropdowns eliminate blue color tab, start collapsed, and transition smoothly on uncheck', async ({ page }) => {
+  test('CA section dropdowns eliminate blue color tab, start collapsed, and transition smoothly on uncheck', async ({ page }, testInfo) => {
     await page.setViewportSize({ width: 412, height: 922 });
     await page.addInitScript(() => {
       window.sessionStorage.setItem('calcredit_launch_played', 'true');
@@ -297,7 +297,7 @@ test.describe('CalCredit Brand & Launch Animation Suite', () => {
     expect(btnBg).not.toContain('rgb(59, 77, 102)');
 
     // Capture collapsed screenshot
-    await page.screenshot({ path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/verify_ca_collapsed_start.png' });
+    await page.screenshot({ path: testInfo.outputPath('verify_ca_collapsed_start.png') });
 
     // 2. Click to expand dropdown
     await activitiesBtn.click();
@@ -314,7 +314,7 @@ test.describe('CalCredit Brand & Launch Animation Suite', () => {
     expect(expandedBtnBg).not.toContain('rgb(59, 77, 102)');
 
     // Capture expanded screenshot
-    await page.screenshot({ path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/verify_ca_expanded_notice.png' });
+    await page.screenshot({ path: testInfo.outputPath('verify_ca_expanded_notice.png') });
 
     // 3. Click Uncheck Box
     await uncheckBtn.click();
@@ -329,10 +329,10 @@ test.describe('CalCredit Brand & Launch Animation Suite', () => {
     await expect(page.locator('span:has-text("Marks Contributed:")').first()).toBeVisible();
 
     // Capture uncheck end screenshot
-    await page.screenshot({ path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/verify_ca_uncheck_end.png' });
+    await page.screenshot({ path: testInfo.outputPath('verify_ca_uncheck_end.png') });
   });
 
-  test('CGPA Hub displays regulation credits beside semester and has no editable credit inputs', async ({ page }) => {
+  test('CGPA Hub displays regulation credits beside semester and has no editable credit inputs', async ({ page }, testInfo) => {
     await page.setViewportSize({ width: 412, height: 922 });
     await page.addInitScript(() => {
       window.sessionStorage.setItem('calcredit_launch_played', 'true');
@@ -412,7 +412,7 @@ test.describe('CalCredit Brand & Launch Animation Suite', () => {
     }
 
     // Capture verification screenshots
-    await page.screenshot({ path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/verify_cgpa_fixed_credits.png' });
+    await page.screenshot({ path: testInfo.outputPath('verify_cgpa_fixed_credits.png') });
 
     // Dark mode screenshot
     await page.evaluate(() => {
@@ -420,6 +420,6 @@ test.describe('CalCredit Brand & Launch Animation Suite', () => {
       document.documentElement.classList.add('dark');
     });
     await page.waitForTimeout(300);
-    await page.screenshot({ path: 'C:/Users/Raghu Nandan/.gemini/antigravity/brain/2d1062a9-c4b4-4ac2-8d36-9405fd983ee5/verify_cgpa_fixed_credits_dark.png' });
+    await page.screenshot({ path: testInfo.outputPath('verify_cgpa_fixed_credits_dark.png') });
   });
 });
