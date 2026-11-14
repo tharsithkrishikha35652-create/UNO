@@ -5,7 +5,7 @@ const WALLPAPER_FADE_MS = 560;
 const LIGHT_POSTER = "/warm-scholar-bg.png";
 const DARK_POSTER = "/dark-scholar-bg.png";
 
-export const AmbientWallpaper: React.FC = () => {
+export const AmbientWallpaper: React.FC = React.memo(() => {
   useEffect(() => {
     const background = document.getElementById("calcredit-ambient-bg");
     const firstVideo = background?.querySelector<HTMLVideoElement>(".wallpaper-video");
@@ -15,15 +15,9 @@ export const AmbientWallpaper: React.FC = () => {
     let appActive = true;
     let disposed = false;
     let removeAppListener: (() => void) | undefined;
-    let activeVideo = firstVideo;
-    let standbyVideo = document.createElement("video");
-    let activeSource = "";
-    let pendingVideo: HTMLVideoElement | null = null;
-    let pendingSource = "";
-    let requestId = 0;
     let transitionTimer: number | undefined;
 
-    const configureVideo = (video: HTMLVideoElement) => {
+    const configureVideo = (video: HTMLVideoElement, poster: string, src: string) => {
       video.className = "wallpaper-video";
       video.setAttribute("aria-hidden", "true");
       video.tabIndex = -1;
@@ -39,39 +33,29 @@ export const AmbientWallpaper: React.FC = () => {
       video.setAttribute("webkit-playsinline", "");
       video.setAttribute("controlslist", "nodownload noplaybackrate noremoteplayback");
       video.preload = "auto";
-      video.poster = LIGHT_POSTER;
+      video.poster = poster;
+      if (src && video.getAttribute("src") !== src) {
+        video.setAttribute("src", src);
+      }
     };
 
-    configureVideo(firstVideo);
-    configureVideo(standbyVideo);
+    const lightSrc = firstVideo.dataset.lightSrc ?? "";
+    const darkSrc = firstVideo.dataset.darkSrc ?? "";
+
+    // firstVideo is permanently dedicated to light theme
+    configureVideo(firstVideo, LIGHT_POSTER, lightSrc);
+
+    // standbyVideo is permanently dedicated to dark theme
+    const standbyVideo = document.createElement("video");
+    configureVideo(standbyVideo, DARK_POSTER, darkSrc);
     background.append(standbyVideo);
 
-    const getThemeSource = () => {
-      const isDark =
-        document.documentElement.dataset.theme === "dark" ||
-        document.documentElement.classList.contains("dark");
-      return isDark
-        ? firstVideo.dataset.darkSrc ?? ""
-        : firstVideo.dataset.lightSrc ?? "";
-    };
+    const isCurrentDark = () =>
+      document.documentElement.dataset.theme === "dark" ||
+      document.documentElement.classList.contains("dark");
 
-    const posterForSource = (source: string) =>
-      source === firstVideo.dataset.darkSrc ? DARK_POSTER : LIGHT_POSTER;
-
-    const prewarmAlternateTheme = () => {
-      const alternateSource =
-        activeSource === firstVideo.dataset.darkSrc
-          ? firstVideo.dataset.lightSrc ?? ""
-          : firstVideo.dataset.darkSrc ?? "";
-      if (!alternateSource || standbyVideo.getAttribute("src") === alternateSource) return;
-
-      standbyVideo.pause();
-      standbyVideo.classList.remove("is-visible");
-      standbyVideo.preload = "metadata";
-      standbyVideo.poster = posterForSource(alternateSource);
-      standbyVideo.setAttribute("src", alternateSource);
-      standbyVideo.load();
-    };
+    let lastDark = isCurrentDark();
+    let lastLaunchPending = document.documentElement.classList.contains("launch-pending");
 
     const shouldPlay = () =>
       !disposed &&
@@ -87,133 +71,67 @@ export const AmbientWallpaper: React.FC = () => {
       }
     };
 
-    const revealVideo = (video: HTMLVideoElement, source: string) => {
-      if (!shouldPlay() || getThemeSource() !== source) return;
-
-      clearTransitionTimer();
-      const previousVideo = activeVideo;
-      const hasPreviousVideo = previousVideo !== video && Boolean(previousVideo.getAttribute("src"));
-      activeVideo = video;
-      activeSource = source;
-      standbyVideo = previousVideo === video ? standbyVideo : previousVideo;
-      pendingVideo = null;
-      pendingSource = "";
-      video.classList.add("is-visible");
-
-      if (hasPreviousVideo) {
-        requestAnimationFrame(() => previousVideo.classList.remove("is-visible"));
-        transitionTimer = window.setTimeout(() => {
-          if (standbyVideo !== previousVideo || activeVideo === previousVideo) return;
-          previousVideo.pause();
-          previousVideo.classList.remove("is-visible");
-          transitionTimer = undefined;
-          prewarmAlternateTheme();
-        }, WALLPAPER_FADE_MS + 80);
-      } else {
-        if (previousVideo !== video) {
-          previousVideo.pause();
-          previousVideo.classList.remove("is-visible");
-        }
-        prewarmAlternateTheme();
-      }
-    };
-
-    const playVideo = (video: HTMLVideoElement, source: string, id: number) => {
-      if (pendingVideo === video && pendingSource === source) return;
-
-      const sourceAlreadySet = video.getAttribute("src") === source;
-      const isActiveVideo = video === activeVideo && activeSource === source;
-      video.preload = "auto";
-      if (!sourceAlreadySet && !isActiveVideo) {
-        video.pause();
-        video.classList.remove("is-visible");
-        video.poster = posterForSource(source);
-        video.setAttribute("src", source);
-        video.load();
-      }
-      pendingSource = source;
-      pendingVideo = video;
-
-      let listenerRemoved = false;
-      let committed = false;
-      const removePlayingListener = () => {
-        if (listenerRemoved) return;
-        listenerRemoved = true;
-        video.removeEventListener("playing", onPlaying);
-      };
-      const onPlaying = () => {
-        if (committed) return;
-        if (id !== requestId) {
-          removePlayingListener();
-          return;
-        }
-        if (source !== getThemeSource() || !shouldPlay()) {
-          removePlayingListener();
-          video.pause();
-          pendingVideo = null;
-          pendingSource = "";
-          return;
-        }
-        committed = true;
-        removePlayingListener();
-        revealVideo(video, source);
-        background.dataset.playback = "playing";
-      };
-      video.addEventListener("playing", onPlaying);
-
-      const playback = video.play();
-      if (playback) {
-        void playback.then(onPlaying).catch(() => {
-          if (id !== requestId) return;
-          background.dataset.playback = "waiting";
-          removePlayingListener();
-          pendingVideo = null;
-          pendingSource = "";
-          const unlock = () => {
-            window.removeEventListener("pointerdown", unlock);
-            window.removeEventListener("touchstart", unlock);
-            syncPlayback();
-          };
-          window.addEventListener("pointerdown", unlock, { once: true, passive: true });
-          window.addEventListener("touchstart", unlock, { once: true, passive: true });
-        });
-      }
-    };
-
     const syncPlayback = () => {
       if (!shouldPlay()) {
-        requestId += 1;
-        pendingVideo = null;
-        pendingSource = "";
+        clearTransitionTimer();
         firstVideo.pause();
         standbyVideo.pause();
         return;
       }
 
-      const source = getThemeSource();
-      if (!source) {
-        firstVideo.pause();
-        standbyVideo.pause();
-        return;
-      }
+      const isDark = isCurrentDark();
+      const targetVideo = isDark ? standbyVideo : firstVideo;
+      const outgoingVideo = isDark ? firstVideo : standbyVideo;
 
-      if (source === activeSource && activeVideo.getAttribute("src") === source) {
-        if (activeVideo.paused) {
-          requestId += 1;
-          playVideo(activeVideo, source, requestId);
-        }
-        return;
-      }
-
-      if (pendingVideo === standbyVideo && pendingSource === source) return;
-      requestId += 1;
       clearTransitionTimer();
-      playVideo(standbyVideo, source, requestId);
+
+      // 1. Immediately initiate smooth GPU opacity crossfade
+      targetVideo.classList.add("is-visible");
+      outgoingVideo.classList.remove("is-visible");
+
+      // 2. Ensure target video is playing smoothly
+      if (targetVideo.paused) {
+        const playback = targetVideo.play();
+        if (playback) {
+          playback
+            .then(() => {
+              background.dataset.playback = "playing";
+            })
+            .catch(() => {
+              background.dataset.playback = "waiting";
+              const unlock = () => {
+                window.removeEventListener("pointerdown", unlock);
+                window.removeEventListener("touchstart", unlock);
+                syncPlayback();
+              };
+              window.addEventListener("pointerdown", unlock, { once: true, passive: true });
+              window.addEventListener("touchstart", unlock, { once: true, passive: true });
+            });
+        }
+      } else {
+        background.dataset.playback = "playing";
+      }
+
+      // 3. Pause outgoing video only AFTER crossfade completes to conserve decoder & GPU memory bandwidth
+      transitionTimer = window.setTimeout(() => {
+        if (targetVideo.classList.contains("is-visible")) {
+          outgoingVideo.pause();
+        }
+        transitionTimer = undefined;
+      }, WALLPAPER_FADE_MS + 40);
     };
 
     const onVisibilityChange = () => syncPlayback();
     const onReducedMotionChange = () => syncPlayback();
-    const launchObserver = new MutationObserver(syncPlayback);
+    const launchObserver = new MutationObserver(() => {
+      const currentDark = isCurrentDark();
+      const currentLaunchPending = document.documentElement.classList.contains("launch-pending");
+      if (currentDark !== lastDark || currentLaunchPending !== lastLaunchPending) {
+        lastDark = currentDark;
+        lastLaunchPending = currentLaunchPending;
+        syncPlayback();
+      }
+    });
 
     launchObserver.observe(document.documentElement, {
       attributes: true,
@@ -243,7 +161,6 @@ export const AmbientWallpaper: React.FC = () => {
 
     return () => {
       disposed = true;
-      requestId += 1;
       clearTransitionTimer();
       firstVideo.pause();
       standbyVideo.pause();
@@ -258,6 +175,8 @@ export const AmbientWallpaper: React.FC = () => {
   }, []);
 
   return null;
-};
+});
+
+AmbientWallpaper.displayName = "AmbientWallpaper";
 
 export default AmbientWallpaper;

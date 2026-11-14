@@ -654,21 +654,37 @@ input[type="number"]::-webkit-outer-spin-button {
     border-color 140ms ease-out, box-shadow 140ms ease-out;
 }
 
-/* Fade the student UI palette while preserving the separately animated layouts. */
-html.theme-switching #root :where(*) {
-  transition-property: color, background-color, border-color, box-shadow, fill,
-    stroke !important;
-  transition-duration: 520ms !important;
+/* Smooth, hardware-accelerated theme transition.
+   Targeted to surfaces, typography, and interactive controls.
+   Excludes expensive box-shadow blur re-rasterization and SVG path recalculations. */
+html.theme-switching body,
+html.theme-switching #calcredit-ambient-bg {
+  transition: background-color 560ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+html.theme-switching #root :where(
+  header, nav, aside, footer, main, section, article, dialog,
+  table, thead, tbody, tr, th, td,
+  [role="dialog"], [role="status"], [role="region"], [role="tabpanel"], [role="navigation"],
+  button, a, input, select, textarea,
+  p, h1, h2, h3, h4, h5, h6, span, label, dt, dd, li, b, strong, em, small,
+  div,
+  .transition-colors
+):not(svg, svg *) {
+  transition-property: color, background-color, border-color !important;
+  transition-duration: 560ms !important;
   transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1) !important;
 }
 
-html.theme-switching #root .transition-colors {
-  transition-property: color, background-color, border-color, box-shadow !important;
-}
-
-html.theme-switching body {
-  transition-duration: 520ms !important;
-  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1) !important;
+/* Reduced motion accessibility */
+@media (prefers-reduced-motion: reduce) {
+  html.theme-switching body,
+  html.theme-switching #calcredit-ambient-bg,
+  html.theme-switching #root :where(*),
+  #calcredit-ambient-bg .wallpaper-video {
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
+  }
 }
 
 @keyframes courses-sheet-in {
@@ -787,6 +803,7 @@ html.theme-switching body {
   background-image: url("/warm-scholar-bg.png");
   background-position: center center;
   background-size: cover;
+  transition: background-color 560ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 [data-theme="dark"] #calcredit-ambient-bg,
@@ -806,6 +823,9 @@ html.theme-switching body {
   object-position: center center;
   pointer-events: none;
   transition: opacity 560ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
   -webkit-appearance: none;
   appearance: none;
 }

@@ -9,7 +9,7 @@ interface ThemeToggleProps {
   className?: string;
 }
 
-export const ThemeToggle: React.FC<ThemeToggleProps> = ({ theme, onToggle, className }) => {
+export const ThemeToggle: React.FC<ThemeToggleProps> = React.memo(({ theme, onToggle, className }) => {
   const action = theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme';
   const Icon = theme === 'dark' ? Sun : Moon;
 
@@ -27,4 +27,6 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({ theme, onToggle, class
       <Icon className="h-4 w-4" aria-hidden="true" />
     </button>
   );
-};
+});
+
+ThemeToggle.displayName = 'ThemeToggle';

@@ -678,8 +678,10 @@ export default function App() {
   }, [checkVersion]);
 
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    document.documentElement.classList.toggle("dark", theme === "dark");
+    if (document.documentElement.dataset.theme !== theme) {
+      document.documentElement.dataset.theme = theme;
+      document.documentElement.classList.toggle("dark", theme === "dark");
+    }
     try {
       window.localStorage.setItem(THEME_STORAGE_KEY, theme);
     } catch (error) {
@@ -703,12 +705,46 @@ export default function App() {
     if (themeSwitchTimeoutRef.current !== null) {
       window.clearTimeout(themeSwitchTimeoutRef.current);
     }
+
+    const currentTheme =
+      document.documentElement.dataset.theme === "dark" ||
+      document.documentElement.classList.contains("dark")
+        ? "dark"
+        : "light";
+    const nextTheme: AppTheme = currentTheme === "light" ? "dark" : "light";
+
+    // 1. Immediately stamp theme-switching class and target theme attributes onto the document root.
+    // This allows Chromium's style system and the video compositor to begin the 560ms transition on frame 0.
     document.documentElement.classList.add("theme-switching");
-    setTheme((current) => (current === "light" ? "dark" : "light"));
+    document.documentElement.dataset.theme = nextTheme;
+    document.documentElement.classList.toggle("dark", nextTheme === "dark");
+
+    try {
+      window.localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+    } catch (error) {
+      console.error("Unable to save the theme preference:", error);
+    }
+    try {
+      const androidBridge = (window as unknown as {
+        AndroidInsets?: {
+          setDarkMode?: (isDark: boolean) => void;
+        };
+      })?.AndroidInsets;
+      androidBridge?.setDarkMode?.(nextTheme === "dark");
+    } catch {
+      // Non-blocking fallback
+    }
+
+    // 2. Mark React state update as a non-blocking transition so component reconciliation
+    // does not block the initial animation frames on the main thread.
+    React.startTransition(() => {
+      setTheme(nextTheme);
+    });
+
     themeSwitchTimeoutRef.current = window.setTimeout(() => {
       document.documentElement.classList.remove("theme-switching");
       themeSwitchTimeoutRef.current = null;
-    }, 650);
+    }, 600);
   }, []);
 
   useEffect(() => {
