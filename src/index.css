@@ -663,11 +663,12 @@ html.theme-switching #calcredit-ambient-bg {
 }
 
 html.theme-switching #root :where(
-  header, nav, aside, footer, main, section, article, dialog,
-  table, thead, tbody, tr, th, td,
+  header, nav, aside, footer, main, section, article, dialog, form,
+  table, thead, tbody, tfoot, tr, th, td,
+  ul, ol, dl, dt, dd, li,
   [role="dialog"], [role="status"], [role="region"], [role="tabpanel"], [role="navigation"],
   button, a, input, select, textarea,
-  p, h1, h2, h3, h4, h5, h6, span, label, dt, dd, li, b, strong, em, small,
+  p, h1, h2, h3, h4, h5, h6, span, label, b, strong, em, small,
   div,
   .transition-colors
 ):not(svg, svg *) {
