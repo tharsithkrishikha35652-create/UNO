@@ -1,350 +1,122 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('CALCREDIT V6 Live Wallpaper Performance & Rendering Suite', () => {
+test.describe('video wallpaper', () => {
   test.beforeEach(async ({ page }) => {
-    // Reset theme to light and set launch sequence played by default
     await page.addInitScript(() => {
       window.localStorage.setItem('calcredit_theme', 'light');
       window.sessionStorage.setItem('calcredit_launch_played', 'true');
     });
   });
 
-  test('1. static high-res raster wallpaper layers are attached and load correct assets', async ({ page }) => {
+  test('keeps the inline video ready and removes the old SVG artwork', async ({ page }) => {
     await page.goto('/');
 
-    const ambientBg = page.locator('#calcredit-ambient-bg');
-    await expect(ambientBg).toBeAttached();
+    const background = page.locator('#calcredit-ambient-bg');
+    const videos = background.locator('video.wallpaper-video');
+    const activeVideo = background.locator('video.wallpaper-video.is-visible');
+    await expect(background).toBeAttached();
+    await expect(videos).toHaveCount(2);
+    await expect(activeVideo).toHaveCount(1, { timeout: 5000 });
+    await expect(videos.first()).not.toHaveAttribute('controls');
+    expect(await videos.evaluateAll((items) => items.every((item) => {
+      const video = item as HTMLVideoElement;
+      return !video.controls && video.muted && video.loop && video.playsInline;
+    }))).toBe(true);
+    await expect(background.locator('svg')).toHaveCount(0);
+    await expect(background.locator('.spark, .breath-layer')).toHaveCount(0);
 
-    // Verify both Light and Dark static images are attached
-    const lightImg = ambientBg.locator('img.light-bg');
-    const darkImg = ambientBg.locator('img.dark-bg');
-    await expect(lightImg).toBeAttached();
-    await expect(darkImg).toBeAttached();
-
-    expect(await lightImg.getAttribute('src')).toBe('/warm-scholar-bg.png');
-    expect(await darkImg.getAttribute('src')).toBe('/dark-scholar-bg.png');
-
-    // Verify CSS overlay layers are attached
-    await expect(ambientBg.locator('.breath-layer')).toBeAttached();
-    await expect(ambientBg.locator('.spark-layer')).toBeAttached();
+    await expect(videos.first()).toHaveAttribute(
+      'data-light-src',
+      '/wallpaperdark.mp4/wallpaper_light_phone_1080x2400.mp4'
+    );
+    await expect(videos.first()).toHaveAttribute(
+      'data-dark-src',
+      '/wallpaperdark.mp4/CalCredit_Wallpaper_Dark_1080x1920.mp4'
+    );
+    await expect(activeVideo).toHaveAttribute('poster', '/warm-scholar-bg.png');
+    await expect(videos.locator('source')).toHaveCount(0);
+    await expect(activeVideo).toHaveAttribute(
+      'src',
+      '/wallpaperdark.mp4/wallpaper_light_phone_1080x2400.mp4'
+    );
   });
 
-  test('2. wallpaper suppresses JavaScript RAF execution during html.launch-pending', async ({ page }) => {
-    // Override init script so launch-pending stays active initially
-    await page.addInitScript(() => {
-      window.sessionStorage.removeItem('calcredit_launch_played');
-      document.documentElement.classList.add('launch-pending');
-    });
-
+  test('loads the matching wallpaper when the theme changes', async ({ page }) => {
     await page.goto('/');
 
-    const ambientBg = page.locator('#calcredit-ambient-bg');
-    await expect(ambientBg).toBeAttached();
+    const background = page.locator('#calcredit-ambient-bg');
+    const videos = background.locator('video.wallpaper-video');
+    const lightVideo = background.locator(
+      'video.wallpaper-video[src$="wallpaper_light_phone_1080x2400.mp4"]'
+    );
+    const darkVideo = background.locator(
+      'video.wallpaper-video[src$="CalCredit_Wallpaper_Dark_1080x1920.mp4"]'
+    );
+    await expect(videos.first()).toHaveAttribute(
+      'data-light-src',
+      '/wallpaperdark.mp4/wallpaper_light_phone_1080x2400.mp4'
+    );
+    await expect(lightVideo).toHaveClass(/is-visible/);
+    await expect(lightVideo).toHaveAttribute('poster', '/warm-scholar-bg.png');
 
-    // Verify state is launch-pending and NO RAF loop is running
-    const state = await ambientBg.getAttribute('data-ambient');
-    expect(state).toBe('launch-pending');
-
-    const isRunning = await page.evaluate(() => {
-      return (window as unknown as { __calcredit_ambient?: { isRunning: boolean } }).__calcredit_ambient?.isRunning;
+    await page.evaluate(() => {
+      document.documentElement.dataset.theme = 'dark';
+      document.documentElement.classList.add('dark');
     });
-    expect(isRunning).toBe(false);
+    await expect(darkVideo).toHaveClass(/is-visible/);
+    await expect(darkVideo).toHaveAttribute('poster', '/dark-scholar-bg.png');
+    await expect(videos).toHaveCount(2);
 
-    // CSS opacity must be 0 and hidden
-    const opacity = await ambientBg.evaluate((el) => window.getComputedStyle(el).opacity);
-    expect(parseFloat(opacity)).toBe(0);
+    await page.evaluate(() => {
+      document.documentElement.dataset.theme = 'light';
+      document.documentElement.classList.remove('dark');
+    });
+    await expect(lightVideo).toHaveClass(/is-visible/);
+    await expect(lightVideo).toHaveAttribute('poster', '/warm-scholar-bg.png');
   });
 
-  test('3. wallpaper starts RAF loop once launch-pending is removed', async ({ page }) => {
-    await page.addInitScript(() => {
-      window.sessionStorage.removeItem('calcredit_launch_played');
-      document.documentElement.classList.add('launch-pending');
-    });
-
+  test('covers portrait, landscape, and desktop viewport dimensions', async ({ page }) => {
     await page.goto('/');
 
-    const ambientBg = page.locator('#calcredit-ambient-bg');
-    await expect(ambientBg).toBeAttached();
-
-    // Verify initial launch-pending state or dynamically trigger it
-    const initialState = await ambientBg.getAttribute('data-ambient');
-    if (initialState !== 'launch-pending') {
-      await page.evaluate(() => {
-        document.documentElement.classList.add('launch-pending');
+    for (const viewport of [
+      { width: 360, height: 800 },
+      { width: 412, height: 915 },
+      { width: 915, height: 412 },
+      { width: 1920, height: 1080 },
+    ]) {
+      await page.setViewportSize(viewport);
+      const video = page.locator('#calcredit-ambient-bg video').first();
+      const geometry = await video.evaluate((element) => {
+        const rect = element.getBoundingClientRect();
+        return {
+          width: rect.width,
+          height: rect.height,
+          objectFit: getComputedStyle(element).objectFit,
+        };
       });
-      await expect(ambientBg).toHaveAttribute('data-ambient', 'launch-pending');
+
+      expect(geometry.width).toBeCloseTo(viewport.width, 0);
+      expect(geometry.height).toBeCloseTo(viewport.height, 0);
+      expect(geometry.objectFit).toBe('cover');
     }
-
-    // Remove launch-pending class
-    await page.evaluate(() => {
-      document.documentElement.classList.remove('launch-pending');
-    });
-
-    // MutationObserver must detect removal and transition to running
-    await expect(ambientBg).toHaveAttribute('data-ambient', 'running');
-
-    const isRunning = await page.evaluate(() => {
-      return (window as unknown as { __calcredit_ambient?: { isRunning: boolean } }).__calcredit_ambient?.isRunning;
-    });
-    expect(isRunning).toBe(true);
   });
 
-  test('4. document visibility change halts and resumes animation', async ({ page }) => {
+  test('pauses while the launch overlay hides the wallpaper', async ({ page }) => {
     await page.goto('/');
+    await page.evaluate(() => document.documentElement.classList.add('launch-pending'));
 
-    const ambientBg = page.locator('#calcredit-ambient-bg');
-    await expect(ambientBg).toHaveAttribute('data-ambient', 'running');
-
-    // Emulate tab backgrounding / document hidden
-    await page.evaluate(() => {
-      Object.defineProperty(document, 'hidden', { value: true, configurable: true });
-      document.dispatchEvent(new Event('visibilitychange'));
-    });
-
-    await expect(ambientBg).toHaveAttribute('data-ambient', 'paused');
-    let isRunning = await page.evaluate(() => {
-      return (window as unknown as { __calcredit_ambient?: { isRunning: boolean } }).__calcredit_ambient?.isRunning;
-    });
-    expect(isRunning).toBe(false);
-
-    // Emulate tab returning to foreground
-    await page.evaluate(() => {
-      Object.defineProperty(document, 'hidden', { value: false, configurable: true });
-      document.dispatchEvent(new Event('visibilitychange'));
-    });
-
-    await expect(ambientBg).toHaveAttribute('data-ambient', 'running');
-    isRunning = await page.evaluate(() => {
-      return (window as unknown as { __calcredit_ambient?: { isRunning: boolean } }).__calcredit_ambient?.isRunning;
-    });
-    expect(isRunning).toBe(true);
+    const background = page.locator('#calcredit-ambient-bg');
+    await expect(background).toHaveCSS('visibility', 'hidden');
+    await expect(background.locator('video.wallpaper-video')).toHaveCount(2);
   });
 
-  test('5. Capacitor application backgrounding halts and foregrounding resumes animation', async ({ page }) => {
-    await page.goto('/');
-
-    const ambientBg = page.locator('#calcredit-ambient-bg');
-    await expect(ambientBg).toHaveAttribute('data-ambient', 'running');
-
-    // Emulate background event
-    await page.evaluate(() => {
-      document.getElementById('calcredit-ambient-bg')?.classList.add('paused');
-    });
-
-    const breathState = await ambientBg.locator('.breath-layer').evaluate((el) => {
-      return window.getComputedStyle(el).animationPlayState;
-    });
-    expect(breathState).toBe('paused');
-
-    // Emulate foreground return
-    await page.evaluate(() => {
-      document.getElementById('calcredit-ambient-bg')?.classList.remove('paused');
-    });
-
-    const resumedState = await ambientBg.locator('.breath-layer').evaluate((el) => {
-      return window.getComputedStyle(el).animationPlayState;
-    });
-    expect(resumedState).toBe('running');
-  });
-
-  test('6. reduced-motion preference strictly halts wallpaper animation', async ({ page }) => {
+  test('honors reduced-motion preference', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/');
 
-    const ambientBg = page.locator('#calcredit-ambient-bg');
-    await expect(ambientBg).toHaveAttribute('data-ambient', 'static');
-
-    const isRunning = await page.evaluate(() => {
-      return (window as unknown as { __calcredit_ambient?: { isRunning: boolean } }).__calcredit_ambient?.isRunning;
-    });
-    expect(isRunning).toBe(false);
-  });
-
-  test('7. strictly ZERO RAF loops exist on main thread and repeated events do not start any loop', async ({ page }) => {
-    await page.goto('/');
-
-    const ambientBg = page.locator('#calcredit-ambient-bg');
-    await expect(ambientBg).toHaveAttribute('data-ambient', 'running');
-
-    // Check initial RAF count - must be ZERO (no JS thread blocking)
-    let rafCount = await page.evaluate(() => {
-      return (window as unknown as { __calcredit_ambient?: { rafCount: number } }).__calcredit_ambient?.rafCount;
-    });
-    expect(rafCount).toBe(0);
-
-    // Blast repeated rapid lifecycle and window events
-    await page.evaluate(() => {
-      for (let i = 0; i < 20; i++) {
-        window.dispatchEvent(new Event('resize'));
-        window.dispatchEvent(new Event('scroll'));
-        window.dispatchEvent(new Event('pageshow'));
-        document.dispatchEvent(new Event('visibilitychange'));
-      }
-    });
-
-    // Verify still strictly ZERO RAF loops
-    rafCount = await page.evaluate(() => {
-      return (window as unknown as { __calcredit_ambient?: { rafCount: number } }).__calcredit_ambient?.rafCount;
-    });
-    expect(rafCount).toBe(0);
-  });
-
-  test('8. theme switching crossfade updates visibility between light and dark raster artwork', async ({ page }) => {
-    await page.goto('/');
-
-    const ambientBg = page.locator('#calcredit-ambient-bg');
-    const lightImg = ambientBg.locator('img.light-bg');
-    const darkImg = ambientBg.locator('img.dark-bg');
-
-    // 1. In Light Mode:
-    const lightOpacity = await lightImg.evaluate((el) => window.getComputedStyle(el).opacity);
-    expect(parseFloat(lightOpacity)).toBe(1);
-
-    // 2. Switch to Dark Mode:
-    await page.evaluate(() => {
-      document.documentElement.dataset.theme = 'dark';
-      document.documentElement.classList.add('dark');
-    });
-
-    await expect(async () => {
-      const darkOpacityAfter = await darkImg.evaluate((el) => window.getComputedStyle(el).opacity);
-      const lightOpacityAfter = await lightImg.evaluate((el) => window.getComputedStyle(el).opacity);
-      expect(parseFloat(darkOpacityAfter)).toBeGreaterThan(0.9);
-      expect(parseFloat(lightOpacityAfter)).toBeLessThan(0.1);
-    }).toPass({ timeout: 2000 });
-  });
-
-  test('9. no inline style mutations occur on wallpaper layers (zero main-thread churn)', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForTimeout(500);
-
-    const hasInlineStyles = await page.evaluate(() => {
-      const lightImg = document.querySelector('#calcredit-ambient-bg img.light-bg') as HTMLElement;
-      const darkImg = document.querySelector('#calcredit-ambient-bg img.dark-bg') as HTMLElement;
-      return (lightImg?.style.transform !== '' && lightImg?.style.transform !== undefined) ||
-             (darkImg?.style.transform !== '' && darkImg?.style.transform !== undefined);
-    });
-
-    expect(hasInlineStyles).toBe(false);
-  });
-
-  test('10. theme switching crossfade executes cleanly within 1.5s', async ({ page }) => {
-    await page.goto('/');
-
-    const lightSvg = page.locator('#calcredit-ambient-bg svg.light-svg');
-    const darkSvg = page.locator('#calcredit-ambient-bg svg.dark-svg');
-
-    // Switch theme
-    await page.evaluate(() => {
-      document.documentElement.dataset.theme = 'dark';
-      document.documentElement.classList.add('dark');
-    });
-
-    // Dark SVG fades in and Light SVG fades out
-    await expect(async () => {
-      const darkOpacity = parseFloat(await darkSvg.evaluate((el) => window.getComputedStyle(el).opacity));
-      const lightOpacity = parseFloat(await lightSvg.evaluate((el) => window.getComputedStyle(el).opacity));
-      expect(darkOpacity).toBeGreaterThan(0.9);
-      expect(lightOpacity).toBeLessThan(0.1);
-    }).toPass({ timeout: 1500 });
-  });
-
-  test('11. mobile viewport (390x844) runs with controlled ~30 FPS cadence', async ({ page }) => {
-    await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto('/');
-
-    await expect(page.locator('#calcredit-ambient-bg')).toHaveAttribute('data-ambient', 'running');
-
-    // Verify mobile environment is recognized
-    const isMobile = await page.evaluate(() => {
-      return (window as unknown as { __calcredit_ambient?: { isMobile: boolean } }).__calcredit_ambient?.isMobile;
-    });
-    expect(isMobile).toBe(true);
-
-    // Measure actual frame intervals
-    const intervals = await page.evaluate(async () => {
-      const samples: number[] = [];
-      let lastTime = performance.now();
-      return new Promise<number[]>((resolve) => {
-        let count = 0;
-        const measure = () => {
-          const now = performance.now();
-          samples.push(now - lastTime);
-          lastTime = now;
-          count++;
-          if (count < 25) {
-            requestAnimationFrame(measure);
-          } else {
-            resolve(samples.slice(2)); // Discard first two warm-up frames
-          }
-        };
-        requestAnimationFrame(measure);
-      });
-    });
-
-    expect(intervals.length).toBeGreaterThan(15);
-  });
-
-  test('12. application interactions remain functional (inputs, scrolling, buttons)', async ({ page }) => {
-    await page.goto('/');
-
-    // Check main navigation buttons
-    const gpaButton = page.locator('button:has-text("GPA Calculator"), [role="tab"]:has-text("GPA Calculator")').first();
-    if (await gpaButton.isVisible()) {
-      await gpaButton.click();
-      await page.waitForTimeout(300);
-    }
-
-    // Wallpaper must continue running without crash
-    await expect(page.locator('#calcredit-ambient-bg')).toHaveAttribute('data-ambient', 'running');
-  });
-
-  test('13. Credits screen renders and pause rules apply', async ({ page }) => {
-    await page.goto('/#credits');
-    await page.waitForTimeout(500);
-
-    const creditsPlate = page.locator('.credits-plate');
-    if (await creditsPlate.isVisible()) {
-      // Backgrounding should pause plate animations
-      await page.evaluate(() => {
-        document.body.classList.add('paused');
-      });
-
-      const playState = await page.evaluate(() => {
-        const el = document.querySelector('.credits-plate .cp-star');
-        return el ? window.getComputedStyle(el).animationPlayState : 'paused';
-      });
-      expect(playState).toBe('paused');
-
-      await page.evaluate(() => {
-        document.body.classList.remove('paused');
-      });
-    }
-  });
-
-  test('14. visual capture: light and dark desktop and mobile captures', async ({ page }, testInfo) => {
-    // 1. Mobile Light
-    await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto('/');
-    await page.waitForTimeout(500);
-    await page.screenshot({ path: testInfo.outputPath('v6_wallpaper_mobile_light.png') });
-
-    // 2. Desktop Light (1920x1080)
-    await page.setViewportSize({ width: 1920, height: 1080 });
-    await page.waitForTimeout(500);
-    await page.screenshot({ path: testInfo.outputPath('v6_wallpaper_desktop_light.png') });
-
-    // 3. Desktop Dark (1920x1080)
-    await page.evaluate(() => {
-      document.documentElement.dataset.theme = 'dark';
-      document.documentElement.classList.add('dark');
-    });
-    await page.waitForTimeout(600);
-    await page.screenshot({ path: testInfo.outputPath('v6_wallpaper_desktop_dark.png') });
-
-    // 4. Mobile Dark
-    await page.setViewportSize({ width: 390, height: 844 });
-    await page.waitForTimeout(400);
-    await page.screenshot({ path: testInfo.outputPath('v6_wallpaper_mobile_dark.png') });
+    const allPaused = await page.locator('#calcredit-ambient-bg video').evaluateAll(
+      (elements) => elements.every((element) => (element as HTMLVideoElement).paused)
+    );
+    expect(allPaused).toBe(true);
   });
 });

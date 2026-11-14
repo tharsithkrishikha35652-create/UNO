@@ -45,8 +45,9 @@ public class MainActivity extends BridgeActivity {
             insetsController.setAppearanceLightStatusBars(true);
         }
 
-        // 4. Expose synchronous JS interface so webview can query insets at the exact moment it mounts
+        // 4. Expose synchronous JS interface and enable unrestricted HTML5 video autoplay
         if (getBridge() != null && getBridge().getWebView() != null) {
+            getBridge().getWebView().getSettings().setMediaPlaybackRequiresUserGesture(false);
             getBridge().getWebView().addJavascriptInterface(new Object() {
                 @JavascriptInterface
                 public int getTopInsetDp() {

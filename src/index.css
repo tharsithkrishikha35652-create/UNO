@@ -151,7 +151,17 @@
 
   html,
   body {
-    overflow-x: hidden;
+    overflow-x: clip;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar,
+  #root::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
   }
 
   html,
@@ -213,17 +223,14 @@
   }
 
   :where(*::-webkit-scrollbar) {
-    width: 10px;
-    height: 10px;
+    display: none;
+    width: 0;
+    height: 0;
   }
 
-  :where(*::-webkit-scrollbar-thumb) {
-    background: #94a3b8;
-    border: 3px solid var(--app-background);
-  }
-
-  :where(*::-webkit-scrollbar-track) {
-    background: var(--app-background);
+  :where(*) {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
 }
 
@@ -368,12 +375,10 @@
   }
 }
 
-/* Ensure hardware-accelerated frosted glass backdrop blur replaced with solid rgba for Android WebView performance */
+/* Ensure hardware-accelerated frosted glass backdrop blur across WebKit and Chromium */
 .backdrop-blur-sm {
-  background-color: rgba(15, 23, 42, 0.75) !important;
-}
-:root:not([data-theme="dark"]) .backdrop-blur-sm {
-  background-color: rgba(247, 241, 225, 0.85) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+  backdrop-filter: blur(4px) !important;
 }
 
 /* Ensure backdrop overlay buttons remain 100% transparent and never inherit --app-background */
@@ -614,14 +619,7 @@ input[type="number"]::-webkit-outer-spin-button {
   box-shadow: 0 0 0 3px rgb(147 197 253 / 22%);
 }
 
-[data-theme="dark"] :where(*::-webkit-scrollbar-thumb) {
-  background: #475569;
-  border-color: #0b1220;
-}
 
-[data-theme="dark"] :where(*::-webkit-scrollbar-track) {
-  background: #0b1220;
-}
 
 @keyframes profile-slide-in {
   from {
@@ -656,13 +654,21 @@ input[type="number"]::-webkit-outer-spin-button {
     border-color 140ms ease-out, box-shadow 140ms ease-out;
 }
 
-/* Apply theme colors in one frame so they do not compete with sheet transforms. */
-html.theme-switching #root :where(button, a, input, select, textarea) {
-  transition-property: transform, opacity !important;
+/* Fade the student UI palette while preserving the separately animated layouts. */
+html.theme-switching #root :where(*) {
+  transition-property: color, background-color, border-color, box-shadow, fill,
+    stroke !important;
+  transition-duration: 520ms !important;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1) !important;
 }
 
 html.theme-switching #root .transition-colors {
-  transition-property: none !important;
+  transition-property: color, background-color, border-color, box-shadow !important;
+}
+
+html.theme-switching body {
+  transition-duration: 520ms !important;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1) !important;
 }
 
 @keyframes courses-sheet-in {
@@ -767,20 +773,53 @@ html.theme-switching #root .transition-colors {
   }
 }
 
-/* CALCREDIT V6 Live Wallpaper: Hardware-isolated background with CSS-only overlay animations */
+/* Fullscreen video wallpaper behind the student app */
 #calcredit-ambient-bg {
   position: fixed;
   inset: 0;
-  width: 100vw;
+  width: 100%;
   height: 100vh;
-  z-index: -1;
-  pointer-events: none;
+  height: 100dvh;
+  z-index: 0;
   overflow: hidden;
+  pointer-events: none;
   background-color: #f7f5f0;
-  contain: strict;
-  will-change: transform;
-  transform: translateZ(0);
-  transition: opacity 0.25s ease-out, background-color 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  background-image: url("/warm-scholar-bg.png");
+  background-position: center center;
+  background-size: cover;
+}
+
+[data-theme="dark"] #calcredit-ambient-bg,
+.dark #calcredit-ambient-bg {
+  background-color: #161618;
+  background-image: url("/dark-scholar-bg.png");
+}
+
+#calcredit-ambient-bg .wallpaper-video {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  object-fit: cover;
+  object-position: center center;
+  pointer-events: none;
+  transition: opacity 560ms cubic-bezier(0.22, 1, 0.36, 1);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+#calcredit-ambient-bg .wallpaper-video.is-visible {
+  opacity: 1;
+}
+
+#calcredit-ambient-bg .wallpaper-video::-webkit-media-controls,
+#calcredit-ambient-bg .wallpaper-video::-webkit-media-controls-panel,
+#calcredit-ambient-bg .wallpaper-video::-webkit-media-controls-overlay-play-button,
+#calcredit-ambient-bg .wallpaper-video::-webkit-media-controls-start-playback-button {
+  display: none !important;
+  -webkit-appearance: none !important;
 }
 
 html.launch-pending #calcredit-ambient-bg {
@@ -789,186 +828,7 @@ html.launch-pending #calcredit-ambient-bg {
   pointer-events: none !important;
 }
 
-html.launch-pending,
-html.launch-pending body {
-  background-color: #F7F1E1 !important;
-}
-
-html.launch-pending[data-theme="dark"],
-html.launch-pending.dark,
-html.launch-pending[data-theme="dark"] body,
-html.launch-pending.dark body {
-  background-color: #14110F !important;
-}
-
-[data-theme="dark"] #calcredit-ambient-bg,
-.dark #calcredit-ambient-bg {
-  background-color: #161618;
-}
-
-/* Static raster artwork layers */
-#calcredit-ambient-bg .wallpaper-layer {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  display: block;
-  pointer-events: none;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  will-change: opacity;
-  transition: opacity 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0.25s linear;
-}
-
-#calcredit-ambient-bg .light-bg {
-  opacity: 1;
-  visibility: visible;
-}
-
-#calcredit-ambient-bg .dark-bg {
-  opacity: 0;
-  visibility: hidden;
-}
-
-:root[data-theme="dark"] #calcredit-ambient-bg .light-bg,
-.dark #calcredit-ambient-bg .light-bg {
-  opacity: 0;
-  visibility: hidden;
-}
-
-:root[data-theme="dark"] #calcredit-ambient-bg .dark-bg,
-.dark #calcredit-ambient-bg .dark-bg {
-  opacity: 1;
-  visibility: visible;
-}
-
-/* CSS-Only Overlay 1: Ambient Breath Layer (transform & opacity only) */
-#calcredit-ambient-bg .breath-layer {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(ellipse at 23% 24%, #fff0d9 0%, transparent 43%),
-              radial-gradient(ellipse at 78% 74%, #e5a67a 0%, transparent 47%);
-  transform: translateZ(0);
-  animation: amb-breath-pulse 9s ease-in-out infinite alternate;
-  animation-play-state: inherit;
-}
-
-:root[data-theme="dark"] #calcredit-ambient-bg .breath-layer,
-.dark #calcredit-ambient-bg .breath-layer {
-  background: radial-gradient(ellipse at 23% 24%, #7e9acb 0%, transparent 45%),
-              radial-gradient(ellipse at 78% 76%, #a96751 0%, transparent 48%);
-}
-
-@keyframes amb-breath-pulse {
-  0% {
-    transform: scale3d(0.97, 0.97, 1);
-    opacity: 0.25;
-  }
-  100% {
-    transform: scale3d(1.03, 1.03, 1);
-    opacity: 0.52;
-  }
-}
-
-/* CSS-Only Overlay 2: Ambient Spark Layer (transform & opacity only) */
-#calcredit-ambient-bg .spark-layer {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-#calcredit-ambient-bg .spark {
-  position: absolute;
-  width: 9px;
-  height: 9px;
-  pointer-events: none;
-  transform: translateZ(0);
-  animation: amb-spark-twinkle 6s ease-in-out infinite alternate;
-  animation-play-state: inherit;
-}
-
-#calcredit-ambient-bg .spark::before,
-#calcredit-ambient-bg .spark::after {
-  content: "";
-  position: absolute;
-  background: #bd795b;
-  border-radius: 3px;
-  left: 4px;
-  top: 0;
-  width: 1.5px;
-  height: 9px;
-}
-
-#calcredit-ambient-bg .spark::after {
-  transform: rotate(90deg);
-}
-
-:root[data-theme="dark"] #calcredit-ambient-bg .spark::before,
-:root[data-theme="dark"] #calcredit-ambient-bg .spark::after,
-.dark #calcredit-ambient-bg .spark::before,
-.dark #calcredit-ambient-bg .spark::after {
-  background: #e2a17e;
-}
-
-#calcredit-ambient-bg .spark.s1 {
-  top: 16%;
-  left: 72%;
-  animation-duration: 5.5s;
-  animation-delay: 0s;
-}
-
-#calcredit-ambient-bg .spark.s2 {
-  top: 56%;
-  left: 9%;
-  animation-duration: 7s;
-  animation-delay: 1.5s;
-}
-
-@keyframes amb-spark-twinkle {
-  0% {
-    transform: scale3d(0.7, 0.7, 1) rotate(0deg);
-    opacity: 0.2;
-  }
-  50% {
-    transform: scale3d(1.15, 1.15, 1) rotate(45deg);
-    opacity: 0.85;
-  }
-  100% {
-    transform: scale3d(0.8, 0.8, 1) rotate(90deg);
-    opacity: 0.3;
-  }
-}
-
-/* Paused state when app is backgrounded, user is interacting, switching themes, or during launch sequence */
-html.theme-switching #calcredit-ambient-bg *,
-html.launch-pending #calcredit-ambient-bg *,
-#calcredit-ambient-bg[data-ambient="paused"] *,
-#calcredit-ambient-bg[data-ambient="static"] *,
-#calcredit-ambient-bg[data-ambient="launch-pending"] *,
-#calcredit-ambient-bg.paused *,
-body.paused #calcredit-ambient-bg *,
-body.paused .credits-plate *,
-#calcredit-ambient-bg.paused ~ #root .credits-plate * {
-  animation-play-state: paused !important;
-}
-
-/* Respect user's reduced-motion preference */
-@media (prefers-reduced-motion: reduce) {
-  #calcredit-ambient-bg *,
-  #calcredit-ambient-bg *::before,
-  #calcredit-ambient-bg *::after,
-  .credits-plate .cp-star,
-  .credits-plate .cp-cloud,
-  .credits-plate .cp-moon,
-  [data-theme="dark"] .credits-plate .cp-lit.cp-flick {
-    animation: none !important;
-    animation-play-state: paused !important;
-  }
-}
-
+/* The app content remains above the decorative media layer. */
 #root {
   position: relative;
   z-index: 1;
@@ -979,19 +839,18 @@ body.paused .credits-plate *,
 }
 
 body {
-  background: transparent !important;
-  transition: color 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: background-color 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 [data-theme="dark"] body {
-  background-color: transparent !important;
+  background-color: #161618 !important;
   color: #f1f1f3 !important;
 }
 
 /* Warm Scholar palette overrides */
 :root:not([data-theme="dark"]) body {
   color: var(--app-primary-text);
-  background: transparent !important;
+  background: var(--app-background);
 }
 :root:not([data-theme="dark"]) .bg-slate-50 {
   background-color: #fcfaf6;

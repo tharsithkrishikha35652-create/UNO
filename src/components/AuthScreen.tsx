@@ -554,7 +554,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
       <AnimatePresence>
       {!GUEST_LOGIN_DISABLED && showGuestConfirmation && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs"
           role="dialog"
           aria-modal="true"
           aria-labelledby="guest-confirmation-title"
@@ -608,7 +608,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
       <AnimatePresence>
       {!GUEST_LOGIN_DISABLED && showGuestDeptModal && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-xs"
           role="dialog"
           aria-modal="true"
           aria-labelledby="guest-dept-title"

@@ -71,7 +71,6 @@ import { ThemeToggle, type AppTheme } from "./components/ThemeToggle";
 import CalCreditLogo from "./components/CalCreditLogo";
 import LaunchAnimation from "./components/LaunchAnimation";
 import { AmbientWallpaper } from "./components/AmbientWallpaper";
-import { pingAmbient } from "./ambient/ambientBus";
 import { CGPAHub } from "./components/CGPAHub";
 import { GPA_COURSES, getGpaCourses, getAllGpaCourses } from "./gpaCourses";
 import { AuthScreen, GOOGLE_REDIRECT_PENDING_KEY } from "./components/AuthScreen";
@@ -709,7 +708,7 @@ export default function App() {
     themeSwitchTimeoutRef.current = window.setTimeout(() => {
       document.documentElement.classList.remove("theme-switching");
       themeSwitchTimeoutRef.current = null;
-    }, 280);
+    }, 650);
   }, []);
 
   useEffect(() => {
@@ -1661,11 +1660,6 @@ function AuthenticatedApp({
     dialogReturnFocusRef.current = null;
   }, [isDialogOpen]);
 
-  // Tell the live wallpaper which tab is active so its layers slide (parallax) with the app.
-  useEffect(() => {
-    pingAmbient({ kind: "tab", index: { calculator: 0, grades: 1, gpa: 2, cgpa: 3 }[activeTab] });
-  }, [activeTab]);
-
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
     const listener = CapacitorApp.addListener("backButton", () => {
@@ -2496,6 +2490,9 @@ function AuthenticatedApp({
       ...previous,
       [subjectIdAtStart]: inputSignature,
     }));
+    window.setTimeout(() => {
+      scrollToSummary();
+    }, 120);
     if (user) {
       const existing = readOfflineDraft(user.uid) ?? createOfflineDraft(user.uid);
       const changes = getPendingSubjectChanges(
@@ -2751,9 +2748,10 @@ function AuthenticatedApp({
   }, [selectedSemester, semesterCourseRows, semesterElectiveRows]);
 
   const scrollToSummary = () => {
-    document
-      .getElementById("summary-at-end")
-      ?.scrollIntoView({ behavior: "smooth" });
+    const el =
+      document.getElementById("results-summary-section") ??
+      document.getElementById("summary-at-end");
+    el?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   if (signOutPending) return <WorkspaceLoading message="Signing out…" />;
@@ -2836,7 +2834,7 @@ function AuthenticatedApp({
                   aria-hidden="true"
                 />
               </button>
-              <CalCreditLogo markSize={30} wordHeight={18} gap={0} />
+              <CalCreditLogo markSize={31.5} wordHeight={19} gap={0} />
             </div>
 
             <div className="hidden min-w-0 max-w-44 items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 sm:flex">
@@ -3066,7 +3064,7 @@ function AuthenticatedApp({
           ) : (
             <div
               key={currentSubject.id}
-              className="w-full border-b border-slate-200 bg-white shadow-xs animate-[sticky-result-in_160ms_ease-out]"
+              className="w-full border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-[#161618] shadow-xs animate-[sticky-result-in_160ms_ease-out] transition-colors"
               role="status"
               aria-live="polite"
               aria-label="Current subject status"
@@ -3075,29 +3073,31 @@ function AuthenticatedApp({
                 <button
                   type="button"
                   onClick={() => setIsEditorOpen(false)}
-                  className="inline-flex min-w-0 flex-[1_1_10rem] items-center border-0 !bg-transparent bg-transparent p-0 text-lg font-black text-[#172554] shadow-none hover:text-[#1e3a8a] cursor-pointer text-left sm:flex-1 sm:text-xl"
+                  className="inline-flex min-w-0 flex-[1_1_10rem] items-center border-0 !bg-transparent bg-transparent p-0 text-lg font-black text-[#172554] dark:text-slate-100 shadow-none hover:text-[#1e3a8a] dark:hover:text-blue-300 cursor-pointer text-left sm:flex-1 sm:text-xl"
                   title="Back to course dashboard"
                 >
                   <span className="truncate">{currentSubject.name}</span>
                 </button>
-                <button
-                  type="button"
-                  onClick={handleReset}
-                  className="inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-2.5 text-[10px] font-bold text-[#172554] transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#172554] sm:px-3 sm:text-xs"
-                  title="Clear all fields to enter fresh marks"
-                >
-                  <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
-                  <span>Clear form</span>
-                </button>
-                {hasEnteredSubjectMarks(currentSubject) && (
-                  <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[10px] sm:text-xs font-bold text-amber-800">
-                    <AlertCircle
-                      className="h-3 w-3 sm:h-3.5 sm:w-3.5"
-                      aria-hidden="true"
-                    />
-                    Enter all marks
-                  </span>
-                )}
+                <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+                  <button
+                    type="button"
+                    onClick={handleReset}
+                    className="inline-flex min-h-8 sm:min-h-9 shrink-0 items-center justify-center gap-1 sm:gap-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-[#202024] px-2 sm:px-2.5 text-[10px] sm:text-xs font-bold text-[#172554] dark:text-slate-200 transition-colors hover:bg-slate-50 dark:hover:bg-[#2a2a30] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#172554]"
+                    title="Clear all fields to enter fresh marks"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span>Clear form</span>
+                  </button>
+                  {hasEnteredSubjectMarks(currentSubject) && (
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-2 py-0.5 text-[10px] sm:text-xs font-bold text-amber-800 dark:text-amber-300">
+                      <AlertCircle
+                        className="h-3 w-3 sm:h-3.5 sm:w-3.5"
+                        aria-hidden="true"
+                      />
+                      Enter all marks
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           ))}
@@ -4137,7 +4137,7 @@ function AuthenticatedApp({
 
                       {/* Show the final marks and grade only after an explicit calculation. */}
                       {hasCalculatedCurrentSubject && (
-                        <div id="summary-at-end" className="pt-2">
+                        <div id="results-summary-section" className="pt-2 scroll-mt-32">
                           <ResultsSummaryPanel
                             breakdown={breakdown}
                             subject={displayedSubject}

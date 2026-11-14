@@ -42,7 +42,7 @@ export const ForceUpdateScreen: React.FC<ForceUpdateScreenProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/90 p-4"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/85 p-4 backdrop-blur-md"
       role="alertdialog"
       aria-modal="true"
       aria-labelledby="version-gate-title"

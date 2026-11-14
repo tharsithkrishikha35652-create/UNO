@@ -4663,7 +4663,7 @@ export const SubjectSelectionDialog: React.FC<SubjectSelectionDialogProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs"
       role="dialog"
       aria-modal="true"
       aria-labelledby="dialog-title"

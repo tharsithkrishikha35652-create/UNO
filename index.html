@@ -26,13 +26,23 @@
   </head>
   <body>
     <div id="calcredit-ambient-bg" aria-hidden="true">
-      <img class="wallpaper-layer light-bg" src="/warm-scholar-bg.png" alt="" width="682" height="1024" decoding="async" fetchpriority="high" />
-      <img class="wallpaper-layer dark-bg" src="/dark-scholar-bg.png" alt="" width="682" height="1024" decoding="async" />
-      <div class="breath-layer" aria-hidden="true"></div>
-      <div class="spark-layer" aria-hidden="true">
-        <i class="spark s1"></i>
-        <i class="spark s2"></i>
-      </div>
+      <video
+        class="wallpaper-video"
+        aria-hidden="true"
+        tabindex="-1"
+        muted
+        loop
+        playsinline
+        webkit-playsinline
+        preload="auto"
+        disablepictureinpicture
+        disableremoteplayback
+        controlslist="nodownload noplaybackrate noremoteplayback"
+        poster="/warm-scholar-bg.png"
+        data-light-src="/wallpaperdark.mp4/wallpaper_light_phone_1080x2400.mp4"
+        data-dark-src="/wallpaperdark.mp4/CalCredit_Wallpaper_Dark_1080x1920.mp4"
+      >
+      </video>
     </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
