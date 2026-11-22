@@ -112,6 +112,24 @@ describe('Firestore Security Rules', () => {
     });
   });
 
+  describe('Guest access boundaries', () => {
+    it('denies guests private feedback and rate-limit data while allowing public app configuration reads', async () => {
+      await testEnv.withSecurityRulesDisabled(async (context) => {
+        const adminDb = context.firestore();
+        await setDoc(doc(adminDb, 'feedback/guest-private'), { senderUid: 'alice' });
+        await setDoc(doc(adminDb, 'feedbackCounters/guest-private'), { count: 1 });
+        await setDoc(doc(adminDb, 'app_config/current'), { minimumVersion: '1.0.0' });
+      });
+
+      const guestDb = testEnv.unauthenticatedContext().firestore();
+      await assertFails(getDoc(doc(guestDb, 'feedback/guest-private')));
+      await assertFails(getDoc(doc(guestDb, 'feedbackCounters/guest-private')));
+      await assertFails(setDoc(doc(guestDb, 'feedback/guest-injected'), { message: 'guest' }));
+      await assertFails(setDoc(doc(guestDb, 'feedbackCounters/guest-injected'), { count: 1 }));
+      await assertSucceeds(getDoc(doc(guestDb, 'app_config/current')));
+    });
+  });
+
   describe('Feedback Reading & Admin Privileges', () => {
     const aliceUid = 'alice-123';
     const bobUid = 'bob-456';

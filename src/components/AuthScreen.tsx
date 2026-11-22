@@ -33,8 +33,6 @@ type AuthMode = 'login' | 'signup' | 'reset';
 
 export const GOOGLE_REDIRECT_PENDING_KEY = 'calcredit_google_redirect_pending';
 
-const GUEST_LOGIN_DISABLED = true;
-
 export function friendlyAuthError(error: unknown, provider: 'email' | 'google' = 'email', mode?: AuthMode): string {
   // Log full technical details in development for diagnostics
   if (import.meta.env.DEV && error) {
@@ -514,15 +512,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
           )}
 
           <div className={`${configurationError ? 'mt-6' : 'mt-5'} flex flex-col items-start gap-3 text-sm`}>
-            {!GUEST_LOGIN_DISABLED && (
-              <button
-                type="button"
-                onClick={() => setShowGuestConfirmation(true)}
-                className="w-full rounded-xl border border-[#172554] bg-white px-4 py-3 text-xs font-bold text-[#172554] hover:bg-slate-50 cursor-pointer transition-colors"
-              >
-                Continue as guest
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={() => setShowGuestConfirmation(true)}
+              className="w-full rounded-xl border border-[#172554] bg-white px-4 py-3 text-xs font-bold text-[#172554] hover:bg-slate-50 cursor-pointer transition-colors"
+            >
+              Continue as guest
+            </button>
             {!configurationError && mode === 'login' && (
               <button type="button" onClick={() => selectMode('reset')} className="bg-transparent font-semibold text-[#1e3a8a] hover:underline">
                 Forgot password?
@@ -552,7 +548,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
 
       {/* Guest Mode Confirmation Modal */}
       <AnimatePresence>
-      {!GUEST_LOGIN_DISABLED && showGuestConfirmation && (
+      {showGuestConfirmation && (
         <motion.div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs"
           role="dialog"
@@ -606,7 +602,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ configurationError, forc
 
       {/* Guest Department Selection Modal */}
       <AnimatePresence>
-      {!GUEST_LOGIN_DISABLED && showGuestDeptModal && (
+      {showGuestDeptModal && (
         <motion.div
           className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-xs"
           role="dialog"
