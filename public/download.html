@@ -77,6 +77,37 @@
       font-weight: 600;
       margin-top: 14px;
     }
+    .platform-tabs {
+      display: flex;
+      gap: 8px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 4px;
+      margin-bottom: 20px;
+    }
+    .platform-tab {
+      flex: 1;
+      text-align: center;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .platform-tab.active {
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      box-shadow: 0 2px 8px rgba(212, 163, 115, 0.2);
+    }
     .card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
@@ -194,73 +225,154 @@
           <line x1="62" y1="38" x2="68" y2="62" stroke="#B45309" stroke-width="4" stroke-linecap="round" />
         </svg>
       </div>
-      <h1>CalCredit for Android</h1>
+      <h1 id="pageTitle">Get CalCredit App</h1>
       <p class="subtitle">Official Student Release · Anna University (Regulations 2021)</p>
-      <div class="badge">
+      <div class="badge" id="platformBadge">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
           <path d="m9 12 2 2 4-4"/>
         </svg>
-        Android Debug-Key Signed · Direct Student Distribution
+        <span id="badgeText">Direct Student Distribution · Free &amp; Secure</span>
       </div>
     </div>
 
-    <div class="card">
-      <a href="/release-apk/CalCredit-v1.2.0.apk" class="download-btn" id="downloadBtn">
-        Download CalCredit APK (v1.2.0)
-      </a>
-      <div class="version-meta">
-        Requires Android 7.0 (API 24) or newer · Signed with the same debug key as the current APK
-      </div>
-      <a href="/" class="web-alt">
-        Or use CalCredit directly in your Web Browser →
-      </a>
+    <div class="platform-tabs" role="tablist">
+      <button class="platform-tab active" id="androidTab" onclick="switchPlatform('android')" role="tab">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M17.523 15.3414c-.5511 0-.9993-.4486-.9993-1.0003s.4482-1.0004.9993-1.0004c.5516 0 .9998.4487.9998 1.0004s-.4482 1.0003-.9998 1.0003m-11.046 0c-.5511 0-.9993-.4486-.9993-1.0003s.4482-1.0004.9993-1.0004c.5516 0 .9998.4487.9998 1.0004s-.4482 1.0003-.9998 1.0003m11.4045-6.02l1.9973-3.4592a.416.416 0 0 0-.1521-.5676.416.416 0 0 0-.5676.1521l-2.0223 3.503C15.5902 8.4116 13.8533 8.1 12 8.1s-3.5902.3116-5.1368.8507L4.8409 5.4477a.4161.4161 0 0 0-.5677-.1521.4157.4157 0 0 0-.152.5676l1.9972 3.4592C2.6889 11.1867.3432 14.6589 0 18.761h24c-.3432-4.1021-2.6889-7.5743-6.1185-9.4396"/>
+        </svg>
+        Android (APK)
+      </button>
+      <button class="platform-tab" id="iosTab" onclick="switchPlatform('ios')" role="tab">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.89c.66-.82 1.11-1.96.99-3.1-.96.04-2.12.64-2.8 1.44-.59.68-1.11 1.77-.97 2.87 1.07.08 2.12-.53 2.78-1.21z"/>
+        </svg>
+        iPhone / iOS (Free App)
+      </button>
     </div>
 
-    <div class="card">
-      <h2 class="steps-title">Installation Guide (3 Quick Steps)</h2>
-      
-      <div class="step-item">
-        <div class="step-num">1</div>
-        <div class="step-content">
-          <h3>Download the APK</h3>
-          <p>Tap the button above. If Chrome displays <em>"File might be harmful"</em>, tap <strong>"Download anyway"</strong>. (Android displays this for all direct downloads outside Play Store).</p>
+    <!-- Android Section -->
+    <div id="androidSection">
+      <div class="card">
+        <a href="/release-apk/CalCredit-v1.2.0.apk" class="download-btn" id="downloadBtn">
+          Download CalCredit APK (v1.2.0)
+        </a>
+        <div class="version-meta">
+          Requires Android 7.0 (API 24) or newer · Direct APK Distribution
+        </div>
+        <a href="/" class="web-alt">
+          Or use CalCredit directly in your Web Browser →
+        </a>
+      </div>
+
+      <div class="card">
+        <h2 class="steps-title">Installation Guide (3 Quick Steps)</h2>
+        
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h3>Download the APK</h3>
+            <p>Tap the button above. If Chrome displays <em>"File might be harmful"</em>, tap <strong>"Download anyway"</strong>. (Android displays this for all direct downloads outside Play Store).</p>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h3>Allow Unknown Apps (One-time)</h3>
+            <p>Open the downloaded file. If prompted with <em>"Install unknown apps"</em>, tap <strong>Settings</strong> and toggle on <strong>"Allow from this source"</strong>.</p>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h3>Tap Install</h3>
+            <p>When prompted, tap <strong>Install</strong>. If Google Play Protect displays a scan prompt, select <strong>"Scan app"</strong> or continue to complete installation.</p>
+          </div>
         </div>
       </div>
 
-      <div class="step-item">
-        <div class="step-num">2</div>
-        <div class="step-content">
-          <h3>Allow Unknown Apps (One-time)</h3>
-          <p>Open the downloaded file. If prompted with <em>"Install unknown apps"</em>, tap <strong>Settings</strong> and toggle on <strong>"Allow from this source"</strong>.</p>
+      <div class="card">
+        <h2 class="faq-title">Frequently Asked Questions</h2>
+        
+        <div class="faq-item">
+          <div class="faq-q">Why does Android ask to allow unknown apps?</div>
+          <div class="faq-a">Android requires explicit permission for any application installed outside Google Play. Because this APK is distributed directly to students, Android prompts for one-time approval.</div>
         </div>
-      </div>
 
-      <div class="step-item">
-        <div class="step-num">3</div>
-        <div class="step-content">
-          <h3>Tap Install</h3>
-          <p>When prompted, tap <strong>Install</strong>. If Google Play Protect displays a scan prompt, select <strong>"Scan app"</strong> or continue to complete installation.</p>
+        <div class="faq-item">
+          <div class="faq-q">What permissions does CalCredit use?</div>
+          <div class="faq-a">CalCredit requires standard Internet access to sync your GPA and academic profile with Firebase. It does not access your contacts, camera, SMS, files, or location.</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">Can I update the app later without losing data?</div>
+          <div class="faq-a">This APK can update the current direct-distributed build because it uses the same signing certificate. It is not a Play Store production signing key; installs from other signing identities cannot be updated in place.</div>
         </div>
       </div>
     </div>
 
-    <div class="card">
-      <h2 class="faq-title">Frequently Asked Questions</h2>
-      
-      <div class="faq-item">
-        <div class="faq-q">Why does Android ask to allow unknown apps?</div>
-        <div class="faq-a">Android requires explicit permission for any application installed outside Google Play. Because this APK is distributed directly to students, Android prompts for one-time approval.</div>
+    <!-- iOS Section -->
+    <div id="iosSection" style="display: none;">
+      <div class="card">
+        <a href="/" class="download-btn">
+          Open CalCredit in Safari →
+        </a>
+        <div class="version-meta">
+          Official Web App · Instant Zero-Install · 100% Free · No App Store payment needed
+        </div>
       </div>
 
-      <div class="faq-item">
-        <div class="faq-q">What permissions does CalCredit use?</div>
-        <div class="faq-a">CalCredit requires standard Internet access to sync your GPA and academic profile with Firebase. It does not access your contacts, camera, SMS, files, or location.</div>
+      <div class="card">
+        <h2 class="steps-title">How to Install on iPhone (Safari)</h2>
+        
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h3>Open in Safari</h3>
+            <p>Tap <strong>"Open CalCredit in Safari"</strong> above (or visit this website using Apple's <strong>Safari</strong> browser).</p>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h3>Tap the Share Button</h3>
+            <p>At the bottom navigation bar of Safari, tap the <strong>Share</strong> button (the icon showing a box with an arrow pointing up).</p>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h3>Select "Add to Home Screen"</h3>
+            <p>Scroll down the share menu, tap <strong>"Add to Home Screen"</strong>, and tap <strong>Add</strong> in the top-right corner.</p>
+          </div>
+        </div>
+        
+        <div style="background: rgba(212, 163, 115, 0.12); border: 1px solid var(--accent-gold); border-radius: 12px; padding: 12px 14px; margin-top: 16px; font-size: 13px; color: var(--text-primary); line-height: 1.5;">
+          ✨ <strong>Native iOS Experience:</strong> CalCredit will now sit on your iPhone home screen with its own icon and launch full-screen without any Safari browser bars!
+        </div>
       </div>
 
-      <div class="faq-item">
-        <div class="faq-q">Can I update the app later without losing data?</div>
-        <div class="faq-a">This APK can update the current direct-distributed build because it uses the same signing certificate. It is not a Play Store production signing key; installs from other signing identities cannot be updated in place.</div>
+      <div class="card">
+        <h2 class="faq-title">iPhone Installation FAQ</h2>
+        
+        <div class="faq-item">
+          <div class="faq-q">Do I need an Apple Developer account or App Store payment?</div>
+          <div class="faq-a">No! CalCredit uses Apple's official Progressive Web App (PWA) standard. It is 100% free and does not require Apple IDs, credit cards, or App Store downloads.</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">Does it work offline?</div>
+          <div class="faq-a">Yes. Once installed to your Home Screen, your academic regulations, courses, and calculated GPAs remain accessible on your device.</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">How do I get future updates?</div>
+          <div class="faq-a">Unlike normal App Store apps that require manual updates, CalCredit updates automatically every time you launch it with an active internet connection.</div>
+        </div>
       </div>
     </div>
 
@@ -269,5 +381,22 @@
       CalCredit © 2026. All academic marks data stored securely on Google Cloud.
     </div>
   </div>
+
+  <script>
+    function switchPlatform(platform) {
+      const isAndroid = platform === 'android';
+      document.getElementById('androidTab').classList.toggle('active', isAndroid);
+      document.getElementById('iosTab').classList.toggle('active', !isAndroid);
+      document.getElementById('androidSection').style.display = isAndroid ? 'block' : 'none';
+      document.getElementById('iosSection').style.display = isAndroid ? 'none' : 'block';
+      document.getElementById('pageTitle').textContent = isAndroid ? 'CalCredit for Android' : 'CalCredit for iPhone / iOS';
+      document.getElementById('badgeText').textContent = isAndroid ? 'Android Direct APK · Free & Secure' : 'Official Apple PWA · No App Store Needed';
+    }
+
+    // Automatically select iOS tab when visiting on iPhone, iPad, or iPod
+    if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+      switchPlatform('ios');
+    }
+  </script>
 </body>
 </html>

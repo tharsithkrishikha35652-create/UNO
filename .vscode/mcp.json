@@ -7,6 +7,10 @@
 		"my-mcp-server-108181d5": {
 			"url": "https://mcp.figma.com/mcp",
 			"type": "http"
+		},
+		"inspo": {
+			"url": "https://inspomcp.dev/api/mcp",
+			"type": "http"
 		}
 	},
 	"inputs": []
