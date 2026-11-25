@@ -13,6 +13,7 @@ test-results/
 # Local and OS files
 .idea/
 .claude/
+.hallmark/
 *.local
 .DS_Store
 Thumbs.db
