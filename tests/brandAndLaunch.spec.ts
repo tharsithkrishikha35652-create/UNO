@@ -191,6 +191,29 @@ test.describe('CalCredit Brand & Launch Animation Suite', () => {
       await expect(iconContainer).toHaveClass(/text-\[#172554\]/);
     }
 
+    const referFriendBtn = page.getByRole('button', { name: 'Refer a friend' });
+    await expect(referFriendBtn).toBeVisible();
+    expect(await page.locator('button').evaluateAll((buttons) => {
+      const replay = buttons.find((button) => button.textContent?.trim() === 'Replay tour');
+      const refer = buttons.find((button) => button.textContent?.trim() === 'Refer a friend');
+      return Boolean(replay && refer && (replay.compareDocumentPosition(refer) & Node.DOCUMENT_POSITION_FOLLOWING));
+    })).toBe(true);
+    await referFriendBtn.click();
+    await expect(page.getByRole('button', { name: 'Copy download link' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Share on WhatsApp' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Share on Instagram' })).toHaveAttribute('href', 'https://www.instagram.com/');
+
+    const whatsappUrl = await page.getByRole('link', { name: 'Share on WhatsApp' }).getAttribute('href');
+    const inviteMessage = decodeURIComponent(new URL(whatsappUrl!).searchParams.get('text') ?? '');
+    expect(inviteMessage).toContain('Hey guys! Check out *CalCredit – Your new Academic Sidekick!* 🎓');
+    expect(inviteMessage).toContain('https://github.com/project-calcredit/CalCredit-Releases/releases/download/v1.2.0/CalCredit-v1.2.0.apk');
+    expect(inviteMessage).toContain('https://project-uno-5b7c1.web.app/download');
+
+    await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+    await page.getByRole('button', { name: 'Copy download link' }).click();
+    await expect(page.getByRole('status')).toHaveText('Download link copied.');
+    await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe('https://project-uno-5b7c1.web.app/download');
+
     // Take screenshot for visual verification
     await page.screenshot({ path: testInfo.outputPath('verify_profile_drawer_logo.png') });
 

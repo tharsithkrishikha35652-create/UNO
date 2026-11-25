@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, type FormEvent } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { Check, ChevronDown, LoaderCircle, LogOut, MessageSquare, Sparkles, TableProperties, UsersRound, X } from 'lucide-react';
+import { Check, ChevronDown, Copy, Instagram, LoaderCircle, LogOut, MessageCircle, MessageSquare, Share2, Sparkles, TableProperties, UsersRound, X } from 'lucide-react';
 import type { AcademicProfileData } from '../types';
 import type { SemesterNumber } from './SubjectSelectionDialog';
 import { ThemeToggle, type AppTheme } from './ThemeToggle';
@@ -415,8 +415,47 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
 }) => {
   const reduceMotion = useReducedMotion();
   const [editing, setEditing] = useState(false);
+  const [referralOpen, setReferralOpen] = useState(false);
+  const [referralNotice, setReferralNotice] = useState('');
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const editButtonRef = useRef<HTMLButtonElement>(null);
+
+  const referralMessage = [
+    'Hey guys! Check out *CalCredit – Your new Academic Sidekick!* 🎓',
+    '',
+    'A clean, accurate GPA, CGPA & CA marks calculator designed specifically for Anna University regulations.',
+    '',
+    "*What's inside:*",
+    '• Instant CA & End-Sem marks breakdown across departments',
+    '• Fast GPA & CGPA calculation with regulation credit mapping',
+    '• Target grade simulator to see what marks you need to hit your goal',
+    '',
+    '📥 *Download the latest APK here:*',
+    '',
+    '*Android:*',
+    'https://github.com/project-calcredit/CalCredit-Releases/releases/download/v1.2.0/CalCredit-v1.2.0.apk',
+    '',
+    '*iOS:*',
+    'https://project-uno-5b7c1.web.app/download',
+  ].join('\n');
+
+  const copyText = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      const input = document.createElement('textarea');
+      input.value = text;
+      input.setAttribute('readonly', '');
+      input.style.position = 'fixed';
+      input.style.opacity = '0';
+      document.body.appendChild(input);
+      input.select();
+      const copied = document.execCommand('copy');
+      input.remove();
+      return copied;
+    }
+  };
 
   useEffect(() => {
     if (!isOpen) return;
@@ -688,6 +727,75 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
                   </div>
                 </button>
               )}
+
+              {/* Refer a friend */}
+              <section className="overflow-hidden rounded-xl border border-slate-300 bg-white dark:border-slate-700 dark:bg-[#1e1e20]">
+                <button
+                  type="button"
+                  aria-expanded={referralOpen}
+                  aria-controls="profile-referral-options"
+                  onClick={() => {
+                    setReferralOpen((open) => !open);
+                    setReferralNotice('');
+                  }}
+                  className="flex min-h-12 w-full items-center justify-between p-3.5 text-left transition-colors hover:bg-slate-50 dark:hover:bg-[#252528] focus-visible:outline-2 focus-visible:outline-[#172554] cursor-pointer"
+                >
+                  <span className="flex items-center gap-3">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-[#172554] dark:bg-blue-950/50 dark:text-blue-200">
+                      <Share2 className="h-4 w-4" aria-hidden="true" />
+                    </span>
+                    <span className="text-sm font-bold text-[#172554] dark:text-slate-100">Refer a friend</span>
+                  </span>
+                  <ChevronDown
+                    className={`h-4 w-4 text-slate-500 transition-transform ${referralOpen ? 'rotate-180' : ''}`}
+                    aria-hidden="true"
+                  />
+                </button>
+                {referralOpen && (
+                  <div id="profile-referral-options" className="space-y-2 border-t border-slate-200 p-3 dark:border-slate-700">
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const copied = await copyText('https://project-uno-5b7c1.web.app/download');
+                        setReferralNotice(copied ? 'Download link copied.' : 'Could not copy the link. Please try again.');
+                      }}
+                      className="flex min-h-11 w-full items-center gap-2 rounded-lg border border-slate-300 px-3 text-left text-xs font-bold text-[#172554] transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-[#172554] dark:border-slate-700 dark:text-slate-100 dark:hover:bg-[#252528] cursor-pointer"
+                    >
+                      <Copy className="h-4 w-4" aria-hidden="true" />
+                      Copy download link
+                    </button>
+                    <a
+                      href={`https://wa.me/?text=${encodeURIComponent(referralMessage)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex min-h-11 items-center gap-2 rounded-lg border border-slate-300 px-3 text-xs font-bold text-[#172554] transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-[#172554] dark:border-slate-700 dark:text-slate-100 dark:hover:bg-[#252528]"
+                    >
+                      <MessageCircle className="h-4 w-4 text-emerald-600" aria-hidden="true" />
+                      Share on WhatsApp
+                    </a>
+                    <a
+                      href="https://www.instagram.com/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={async () => {
+                        const copied = await copyText(referralMessage);
+                        setReferralNotice(copied
+                          ? 'Invite message copied. Paste it into Instagram.'
+                          : 'Could not copy the invite. Please copy it before posting on Instagram.');
+                      }}
+                      className="flex min-h-11 items-center gap-2 rounded-lg border border-slate-300 px-3 text-xs font-bold text-[#172554] transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-[#172554] dark:border-slate-700 dark:text-slate-100 dark:hover:bg-[#252528]"
+                    >
+                      <Instagram className="h-4 w-4 text-fuchsia-600" aria-hidden="true" />
+                      Share on Instagram
+                    </a>
+                    {referralNotice && (
+                      <p className="px-1 text-xs font-semibold text-slate-600 dark:text-slate-300" role="status" aria-live="polite">
+                        {referralNotice}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </section>
 
               {/* 10. App Version Explanatory Text */}
               {guestMode && (
