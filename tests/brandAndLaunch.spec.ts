@@ -211,8 +211,11 @@ test.describe('CalCredit Brand & Launch Animation Suite', () => {
 
     await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
     await page.getByRole('button', { name: 'Copy download link' }).click();
-    await expect(page.getByRole('status')).toHaveText('Download link copied.');
-    await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe('https://project-uno-5b7c1.web.app/download');
+    await expect(page.getByRole('status')).toHaveText('Invite message and download links copied.');
+    await expect.poll(async () => {
+      const text = await page.evaluate(() => navigator.clipboard.readText());
+      return text.replace(/\r\n/g, '\n');
+    }).toBe(inviteMessage);
 
     // Take screenshot for visual verification
     await page.screenshot({ path: testInfo.outputPath('verify_profile_drawer_logo.png') });

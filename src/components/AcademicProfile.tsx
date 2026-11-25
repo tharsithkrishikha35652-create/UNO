@@ -756,8 +756,8 @@ const ProfileDrawerBody: React.FC<ProfileDrawerProps> = ({
                     <button
                       type="button"
                       onClick={async () => {
-                        const copied = await copyText('https://project-uno-5b7c1.web.app/download');
-                        setReferralNotice(copied ? 'Download link copied.' : 'Could not copy the link. Please try again.');
+                        const copied = await copyText(referralMessage);
+                        setReferralNotice(copied ? 'Invite message and download links copied.' : 'Could not copy the invite. Please try again.');
                       }}
                       className="flex min-h-11 w-full items-center gap-2 rounded-lg border border-slate-300 px-3 text-left text-xs font-bold text-[#172554] transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-[#172554] dark:border-slate-700 dark:text-slate-100 dark:hover:bg-[#252528] cursor-pointer"
                     >
