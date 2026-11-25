@@ -198,19 +198,75 @@ test.describe('CalCredit Brand & Launch Animation Suite', () => {
       const refer = buttons.find((button) => button.textContent?.trim() === 'Refer a friend');
       return Boolean(replay && refer && (replay.compareDocumentPosition(refer) & Node.DOCUMENT_POSITION_FOLLOWING));
     })).toBe(true);
-    await referFriendBtn.click();
-    await expect(page.getByRole('button', { name: 'Copy download link' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Share on WhatsApp' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Share on Instagram' })).toHaveAttribute('href', 'https://www.instagram.com/');
 
-    const whatsappUrl = await page.getByRole('link', { name: 'Share on WhatsApp' }).getAttribute('href');
+    const creditsBtn = page.getByRole('button', { name: 'Credits' });
+    const assertReferralColorsMatch = async () => {
+      const tabStyles = await Promise.all([
+        creditsBtn.evaluate((el) => {
+          const cs = getComputedStyle(el);
+          const icon = el.querySelector('div.rounded-lg');
+          const iconCs = icon ? getComputedStyle(icon) : null;
+          return {
+            bg: cs.backgroundColor,
+            border: cs.borderColor,
+            iconBg: iconCs?.backgroundColor,
+            iconColor: iconCs?.color,
+          };
+        }),
+        referFriendBtn.evaluate((el) => {
+          const cs = getComputedStyle(el);
+          const secCs = el.parentElement ? getComputedStyle(el.parentElement) : null;
+          const icon = el.querySelector('div.rounded-lg');
+          const iconCs = icon ? getComputedStyle(icon) : null;
+          return {
+            bg: cs.backgroundColor,
+            border: secCs?.borderColor,
+            iconBg: iconCs?.backgroundColor,
+            iconColor: iconCs?.color,
+          };
+        }),
+      ]);
+      expect(tabStyles[1]).toEqual(tabStyles[0]);
+
+      const optionStyles = await page.locator('#profile-referral-options > a, #profile-referral-options > button').evaluateAll((els) =>
+        els.map((el) => {
+          const cs = getComputedStyle(el);
+          return {
+            bg: cs.backgroundColor,
+            border: cs.borderColor,
+            color: cs.color,
+          };
+        }),
+      );
+      expect(optionStyles).toHaveLength(3);
+      expect(optionStyles[0]).toEqual(optionStyles[1]);
+      expect(optionStyles[2]).toEqual(optionStyles[1]);
+    };
+
+    await referFriendBtn.click();
+    const copyLinkBtn = page.getByRole('button', { name: 'Copy download link' });
+    const whatsappLink = page.getByRole('link', { name: 'Share on WhatsApp' });
+    const instagramLink = page.getByRole('link', { name: 'Share on Instagram' });
+
+    await expect(copyLinkBtn).toBeVisible();
+    await expect(whatsappLink).toBeVisible();
+    await expect(instagramLink).toHaveAttribute('href', 'https://www.instagram.com/');
+    await expect(whatsappLink.locator('svg[data-brand-logo="whatsapp"]')).toBeVisible();
+    await expect(instagramLink.locator('svg[data-brand-logo="instagram"]')).toBeVisible();
+
+    await instagramLink.scrollIntoViewIfNeeded();
+    await page.mouse.move(0, 0);
+    await page.waitForTimeout(250);
+    await assertReferralColorsMatch();
+
+    const whatsappUrl = await whatsappLink.getAttribute('href');
     const inviteMessage = decodeURIComponent(new URL(whatsappUrl!).searchParams.get('text') ?? '');
     expect(inviteMessage).toContain('Hey guys! Check out *CalCredit – Your new Academic Sidekick!* 🎓');
     expect(inviteMessage).toContain('https://github.com/project-calcredit/CalCredit-Releases/releases/download/v1.2.0/CalCredit-v1.2.0.apk');
     expect(inviteMessage).toContain('https://project-uno-5b7c1.web.app/download');
 
     await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
-    await page.getByRole('button', { name: 'Copy download link' }).click();
+    await copyLinkBtn.click();
     await expect(page.getByRole('status')).toHaveText('Invite message and download links copied.');
     await expect.poll(async () => {
       const text = await page.evaluate(() => navigator.clipboard.readText());
@@ -225,7 +281,9 @@ test.describe('CalCredit Brand & Launch Animation Suite', () => {
       document.documentElement.setAttribute('data-theme', 'dark');
       document.documentElement.classList.add('dark');
     });
+    await page.mouse.move(0, 0);
     await page.waitForTimeout(300);
+    await assertReferralColorsMatch();
     await page.screenshot({ path: testInfo.outputPath('verify_profile_drawer_logo_dark.png') });
   });
 
